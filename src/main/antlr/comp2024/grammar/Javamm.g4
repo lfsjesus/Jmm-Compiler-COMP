@@ -14,6 +14,9 @@ MUL : '*' ;
 DIV : '/' ;
 ADD : '+' ;
 SUB : '-' ;
+NOT : '!' ;
+TRUE : 'true';
+FALSE : 'false';
 
 CLASS : 'class' ;
 INT : 'int' ;
@@ -65,6 +68,9 @@ expr
     | expr op= DIV expr #BinaryExpr //
     | expr op= ADD expr #BinaryExpr //
     | expr op= SUB expr #BinaryExpr //
+    | op= NOT expr #UnaryExpr
+    | TRUE #TrueLiteral
+    | FALSE #FalseLiteral
     | value=INTEGER #IntegerLiteral //
     | name=ID #VarRefExpr //
     ;
