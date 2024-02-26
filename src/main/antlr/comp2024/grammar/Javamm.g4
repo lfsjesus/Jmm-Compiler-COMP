@@ -15,10 +15,13 @@ DIV : '/' ;
 ADD : '+' ;
 SUB : '-' ;
 AND : '&&' ;
-OR : '||' ;
 NOT : '!' ;
 TRUE : 'true';
 FALSE : 'false';
+LESS : '<';
+THIS : 'this' ;
+IMPORT: 'import' ;
+DOT : '.' ;
 
 CLASS : 'class' ;
 INT : 'int' ;
@@ -34,6 +37,9 @@ program
     : classDecl EOF
     ;
 
+importDecl
+    : IMPORT packageName=ID (DOT ID)* SEMI
+    ;
 
 classDecl
     : CLASS name=ID
@@ -66,16 +72,17 @@ stmt
     ;
 
 expr
-    : op= NOT expr #UnaryExpr //
+    : expr op= LESS expr #BinaryExpr //
+    | op= NOT expr #UnaryExpr //
     | TRUE #TrueLiteral //
     | FALSE #FalseLiteral //
     | expr op= AND expr #BinaryExpr //
-    | expr op= OR expr #BinaryExpr //
     | expr op= MUL expr #BinaryExpr //
     | expr op= DIV expr #BinaryExpr //
     | expr op= ADD expr #BinaryExpr //
     | expr op= SUB expr #BinaryExpr //
     | value=INTEGER #IntegerLiteral //
+    | name=THIS #ThisLiteral //
     | name=ID #VarRefExpr //
     ;
 
