@@ -14,7 +14,8 @@ MUL : '*' ;
 DIV : '/' ;
 ADD : '+' ;
 SUB : '-' ;
-
+AND : '&&' ;
+OR : '||' ;
 CLASS : 'class' ;
 INT : 'int' ;
 PUBLIC : 'public' ;
@@ -61,7 +62,8 @@ stmt
     ;
 
 expr
-    : expr op= MUL expr #BinaryExpr //
+    : expr op= AND expr #BinaryExpr //
+    | expr op= MUL expr #BinaryExpr //
     | expr op= DIV expr #BinaryExpr //
     | expr op= ADD expr #BinaryExpr //
     | expr op= SUB expr #BinaryExpr //
