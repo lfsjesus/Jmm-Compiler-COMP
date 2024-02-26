@@ -16,6 +16,10 @@ ADD : '+' ;
 SUB : '-' ;
 AND : '&&' ;
 OR : '||' ;
+NOT : '!' ;
+TRUE : 'true';
+FALSE : 'false';
+
 CLASS : 'class' ;
 INT : 'int' ;
 PUBLIC : 'public' ;
@@ -62,7 +66,11 @@ stmt
     ;
 
 expr
-    : expr op= AND expr #BinaryExpr //
+    : op= NOT expr #UnaryExpr //
+    | TRUE #TrueLiteral //
+    | FALSE #FalseLiteral //
+    | expr op= AND expr #BinaryExpr //
+    | expr op= OR expr #BinaryExpr //
     | expr op= MUL expr #BinaryExpr //
     | expr op= DIV expr #BinaryExpr //
     | expr op= ADD expr #BinaryExpr //
