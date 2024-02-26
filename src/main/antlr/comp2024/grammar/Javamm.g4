@@ -21,6 +21,7 @@ TRUE : 'true';
 FALSE : 'false';
 
 CLASS : 'class' ;
+EXTENDS : 'extends';
 INT : 'int' ;
 PUBLIC : 'public' ;
 RETURN : 'return' ;
@@ -34,9 +35,8 @@ program
     : classDecl EOF
     ;
 
-
 classDecl
-    : CLASS name=ID
+    : CLASS name=ID (EXTENDS superName=ID)?
         LCURLY
         methodDecl*
         RCURLY
