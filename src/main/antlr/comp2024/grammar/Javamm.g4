@@ -24,6 +24,7 @@ IMPORT: 'import' ;
 DOT : '.' ;
 
 CLASS : 'class' ;
+EXTENDS : 'extends';
 INT : 'int' ;
 PUBLIC : 'public' ;
 RETURN : 'return' ;
@@ -42,7 +43,7 @@ importDecl
     ;
 
 classDecl
-    : CLASS name=ID
+    : CLASS name=ID (EXTENDS superName=ID)?
         LCURLY
         methodDecl*
         RCURLY
