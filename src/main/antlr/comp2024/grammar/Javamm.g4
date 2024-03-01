@@ -4,33 +4,55 @@ grammar Javamm;
     package pt.up.fe.comp2024;
 }
 
+// Operators
 EQUALS : '=';
-SEMI : ';' ;
-LCURLY : '{' ;
-RCURLY : '}' ;
-LPAREN : '(' ;
-RPAREN : ')' ;
 MUL : '*' ;
 DIV : '/' ;
 ADD : '+' ;
 SUB : '-' ;
 AND : '&&' ;
 NOT : '!' ;
-TRUE : 'true';
-FALSE : 'false';
 LESS : '<';
-THIS : 'this' ;
-IMPORT: 'import' ;
-DOT : '.' ;
 
+// Symbols
+SEMI : ';' ;
+COMMA : ',' ;
+VARARGS : '...' ;
+DOT : '.' ;
+LCURLY : '{' ;
+RCURLY : '}' ;
+LPAREN : '(' ;
+RPAREN : ')' ;
+LBRACK : '[' ;
+RBRACK : ']' ;
+
+// Keywords
 CLASS : 'class' ;
 EXTENDS : 'extends';
-INT : 'int' ;
 PUBLIC : 'public' ;
 RETURN : 'return' ;
+NEW : 'new' ;
+LENGTH : 'length' ;
+THIS : 'this' ;
+IMPORT: 'import' ;
+TRUE : 'true';
+FALSE : 'false';
 
-INTEGER : [0-9] ;
-ID : [a-zA-Z]+ ;
+// Control structures
+IF : 'if' ;
+ELSE : 'else' ;
+WHILE : 'while' ;
+
+// Types
+INT : 'int' ;
+BOOLEAN : 'boolean' ;
+FLOAT : 'float' ;
+DOUBLE : 'double' ;
+STRING : 'String' ;
+
+
+INTEGER : [0-9]+ ;
+ID : [a-zA-Z][a-zA-Z0-9_]* ;
 
 WS : [ \t\n\r\f]+ -> skip ;
 
@@ -50,18 +72,48 @@ classDecl
         RCURLY
     ;
 
+varArgs
+    : type VARARGS name=ID
+    ;
+
 varDecl
-    : type name=ID SEMI
+    : type name=ID SEMI // example: int a;
+    | type name=ID LBRACK RBRACK SEMI // example: int[] a;
     ;
 
 type
-    : name= INT ;
+    : type LBRACK RBRACK #ArrayType
+    | value=INT #IntType
+    | value=BOOLEAN #BooleanType
+    | value=STRING #StringType
+    | value=FLOAT #FloatType
+    | value=DOUBLE #DoubleType
+    | name=ID #ClassType
+    ;
+
+mainMethodDecl
+    :  (PUBLIC)? 'static' 'void' 'main' LPAREN 'String' LBRACK RBRACK name=ID RPAREN
+        LCURLY
+        varDecl*
+        stmt*
+        RCURLY
+    #MainMethod
+    ;
 
 methodDecl locals[boolean isPublic=false]
     : (PUBLIC {$isPublic=true;})?
-        type name=ID
-        LPAREN param RPAREN
-        LCURLY varDecl* stmt* RCURLY
+        type name=ID LPAREN (varArgs | param (COMMA param)* (COMMA varArgs)?)? RPAREN
+        LCURLY
+        (
+            varDecl*
+            stmt*
+            RETURN expr SEMI
+        )?
+        RCURLY
+    ;
+
+methodCall
+    : name=ID LPAREN (expr (COMMA expr)*)? RPAREN
     ;
 
 param
@@ -69,15 +121,35 @@ param
     ;
 
 stmt
-    : expr EQUALS expr SEMI #AssignStmt //
+    : expr SEMI #ExprStmt
+    | LCURLY stmt* RCURLY #BlockStmt
+    | ifExpr (elseIfExpr)* (elseExpr)? #IfStmt
+    | WHILE LPAREN expr RPAREN stmt #WhileStmt
+    | expr EQUALS expr SEMI #AssignStmt //
     | RETURN expr SEMI #ReturnStmt
     ;
 
+ifExpr
+    : IF LPAREN expr RPAREN stmt;
+
+elseIfExpr
+    : ELSE IF LPAREN expr RPAREN stmt;
+
+elseExpr
+    : ELSE stmt;
+
 expr
-    : expr op= LESS expr #BinaryExpr //
+    : LPAREN expr RPAREN #ParenExpr //
+    | NEW name=ID LPAREN RPAREN #NewClassExpr //
+    | NEW name=INT LBRACK expr RBRACK #NewArrayExpr //
+    | LBRACK (expr (COMMA expr)*)? RBRACK #ArrayInitExpr //
+    | expr LBRACK expr RBRACK #ArrayAccessExpr //
+    | expr DOT LENGTH #ArrayLengthExpr //
+    | expr DOT methodCall #MethodCallExpr //
+    | expr op= LESS expr #BinaryExpr //
     | op= NOT expr #UnaryExpr //
-    | TRUE #TrueLiteral //
-    | FALSE #FalseLiteral //
+    | value=TRUE #TrueLiteral //
+    | value=FALSE #FalseLiteral //
     | expr op= AND expr #BinaryExpr //
     | expr op= MUL expr #BinaryExpr //
     | expr op= DIV expr #BinaryExpr //
