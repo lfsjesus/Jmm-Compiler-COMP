@@ -62,7 +62,7 @@ program
     ;
 
 importDecl
-    : IMPORT packageName=ID (DOT ID)* SEMI
+    : IMPORT packageName+=ID (DOT packageName+=ID)* SEMI // This gives a list that is the package name
     ;
 
 classDecl

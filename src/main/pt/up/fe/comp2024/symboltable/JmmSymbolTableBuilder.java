@@ -25,12 +25,14 @@ public class JmmSymbolTableBuilder {
             superClass = classDecl.get("superName");
         }
 
+        var imports = buildImports(root);
         var methods = buildMethods(classDecl);
         var returnTypes = buildReturnTypes(classDecl);
         var params = buildParams(classDecl);
         var locals = buildLocals(classDecl);
 
-        return new JmmSymbolTable(className, superClass, methods, returnTypes, params, locals);
+
+        return new JmmSymbolTable(className, superClass, methods, returnTypes, params, locals, imports);
     }
 
     private static Map<String, Type> buildReturnTypes(JmmNode classDecl) {
@@ -96,6 +98,13 @@ public class JmmSymbolTableBuilder {
         return methodDecl.getChildren(VAR_DECL).stream()
                 .map(varDecl -> new Symbol(intType, varDecl.get("name")))
                 .toList();
+    }
+
+    private static List<String> buildImports(JmmNode root) {
+        List<JmmNode> imports = root.getChildren(IMPORT_DECL);
+        return imports.stream()
+                    .map(imp -> imp.get("packageName"))
+                    .toList();
     }
 
 
