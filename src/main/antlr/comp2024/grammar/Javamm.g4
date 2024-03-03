@@ -57,7 +57,8 @@ ID : [a-zA-Z][a-zA-Z0-9_]* ;
 WS : [ \t\n\r\f]+ -> skip ;
 
 program
-    : classDecl EOF
+    : stmt+ EOF
+    | (importDecl)* classDecl EOF
     ;
 
 importDecl
@@ -83,11 +84,11 @@ varDecl
 
 type
     : type LBRACK RBRACK #ArrayType
-    | value=INT #IntType
-    | value=BOOLEAN #BooleanType
-    | value=STRING #StringType
-    | value=FLOAT #FloatType
-    | value=DOUBLE #DoubleType
+    | name=INT #IntType
+    | name=BOOLEAN #BooleanType
+    | name=STRING #StringType
+    | name=FLOAT #FloatType
+    | name=DOUBLE #DoubleType
     | name=ID #ClassType
     ;
 
@@ -107,13 +108,17 @@ methodDecl locals[boolean isPublic=false]
         (
             varDecl*
             stmt*
-            RETURN expr SEMI
+            methodReturn
         )?
         RCURLY
     ;
 
 methodCall
     : name=ID LPAREN (expr (COMMA expr)*)? RPAREN
+    ;
+
+methodReturn
+    : RETURN expr SEMI
     ;
 
 param
@@ -126,7 +131,7 @@ stmt
     | ifExpr (elseIfExpr)* (elseExpr)? #IfStmt
     | WHILE LPAREN expr RPAREN stmt #WhileStmt
     | expr EQUALS expr SEMI #AssignStmt //
-    | RETURN expr SEMI #ReturnStmt
+    | methodReturn #ReturnStmt
     ;
 
 ifExpr
