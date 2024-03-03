@@ -93,7 +93,7 @@ type
     ;
 
 mainMethodDecl
-    :  (PUBLIC)? 'static' 'void' 'main' LPAREN 'String' LBRACK RBRACK name=ID RPAREN
+    :  PUBLIC 'static' 'void' 'main' LPAREN 'String' LBRACK RBRACK ID RPAREN
         LCURLY
         varDecl*
         stmt*
