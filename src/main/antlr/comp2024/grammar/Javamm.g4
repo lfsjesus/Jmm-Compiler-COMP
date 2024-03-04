@@ -49,6 +49,7 @@ BOOLEAN : 'boolean' ;
 FLOAT : 'float' ;
 DOUBLE : 'double' ;
 STRING : 'String' ; //not keyword
+VOID : 'void' ;
 
 
 INTEGER : [0-9]+ ;
@@ -89,20 +90,16 @@ type
     | name=STRING #StringType
     | name=FLOAT #FloatType
     | name=DOUBLE #DoubleType
+    | name=VOID #VoidType
     | name=ID #ClassType
     ;
 
-mainMethodDecl
-    :  PUBLIC 'static' 'void' name='main' LPAREN 'String' LBRACK RBRACK ID RPAREN
+methodDecl locals[boolean isPublic=false]
+    : (PUBLIC {$isPublic=true;})? 'static' type name='main' LPAREN param RPAREN // best way is to use the main method in methodDecl
         LCURLY
         varDecl*
         stmt*
         RCURLY
-    #MainMethod
-    ;
-
-methodDecl locals[boolean isPublic=false]
-    : mainMethodDecl
     | (PUBLIC {$isPublic=true;})?
         type name=ID LPAREN (varArgs | param (COMMA param)* (COMMA varArgs)?)? RPAREN
         LCURLY

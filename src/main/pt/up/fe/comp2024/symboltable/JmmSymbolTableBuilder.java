@@ -27,13 +27,14 @@ public class JmmSymbolTableBuilder {
 
         var imports = buildImports(root);
         var methods = buildMethods(classDecl);
-        //var returnTypes = buildReturnTypes(classDecl);
-        //var params = buildParams(classDecl);
-        var locals = buildLocals(classDecl);
+        var returnTypes = buildReturnTypes(classDecl);
+        var params = buildParams(classDecl);
+        var locals = buildLocals(classDecl); // these are the locals of the methods
+        var fields = buildFields(classDecl);
 
 
         //return new JmmSymbolTable(className, superClass, methods, returnTypes, params, locals, imports);
-        return new JmmSymbolTable(className, superClass, methods, null, null, locals, imports);
+        return new JmmSymbolTable(className, superClass, fields, methods, returnTypes, params, locals, imports);
     }
 
     private static Map<String, Type> buildReturnTypes(JmmNode classDecl) {
@@ -41,8 +42,19 @@ public class JmmSymbolTableBuilder {
 
         Map<String, Type> map = new HashMap<>();
 
-        classDecl.getChildren(METHOD_DECL).stream()
-                .forEach(method -> map.put(method.get("name"), new Type(TypeUtils.getIntTypeName(), false)));
+        for (JmmNode method : classDecl.getChildren(METHOD_DECL)) {
+            JmmNode type = method.getJmmChild(0);
+
+            if (type.getKind().equals("ArrayType")) { // SHOULD I ADD A NEW KIND ??????????
+                String returnType = type.getJmmChild(0).get("name");
+                map.put("main", new Type(returnType, true));
+                continue;
+            }
+
+            String returnType = type.get("name");
+            map.put(method.get("name"), new Type(returnType, false));
+        }
+
 
         return map;
     }
@@ -52,6 +64,7 @@ public class JmmSymbolTableBuilder {
 
         for (JmmNode method : classDecl.getChildren(METHOD_DECL)) {
             List<Symbol> paramsList = new ArrayList<>();
+
             for (JmmNode param : method.getChildren(PARAM)) {
                 String paramName = param.get("name"); // name of the parameter
                 JmmNode type = param.getJmmChild(0);
@@ -73,16 +86,10 @@ public class JmmSymbolTableBuilder {
     }
 
     private static Map<String, List<Symbol>> buildLocals(JmmNode classDecl) {
-        // TODO: Simple implementation that needs to be expanded
-
         Map<String, List<Symbol>> map = new HashMap<>();
 
         for (JmmNode method : classDecl.getChildren(METHOD_DECL))
         {
-            if (!method.hasAttribute("name")) {
-                map.put("main", getLocalsList(method.getJmmChild(0)));
-                continue;
-            }
             map.put(method.get("name"),getLocalsList(method));
         }
 
@@ -93,10 +100,6 @@ public class JmmSymbolTableBuilder {
         List<String> methods = new ArrayList<>();
 
         for (JmmNode method : classDecl.getChildren(METHOD_DECL)) {
-            if (!method.hasAttribute("name")) {
-                methods.add("main");
-                continue;
-            }
             methods.add(method.get("name"));
         }
 
@@ -104,7 +107,6 @@ public class JmmSymbolTableBuilder {
     }
 
     private static List<Symbol> getLocalsList(JmmNode methodDecl) {
-        // TODO: Simple implementation that needs to be expanded
         List<Symbol> localsList = new ArrayList<>();
         for(JmmNode varDecl : methodDecl.getChildren(VAR_DECL)) {
             String varName = varDecl.get("name");
@@ -130,5 +132,24 @@ public class JmmSymbolTableBuilder {
                     .toList();
     }
 
+    public static List<Symbol> buildFields(JmmNode classDecl) {
+        List<Symbol> fields = new ArrayList<>();
+
+        for (JmmNode varDecl : classDecl.getChildren(VAR_DECL)) {
+            String varName = varDecl.get("name");
+            JmmNode type = varDecl.getJmmChild(0);
+
+            if (type.getKind().equals("ArrayType")) { // SHOULD I ADD A NEW KIND ??????????
+                String varType = type.getJmmChild(0).get("name");
+                fields.add(new Symbol(new Type(varType, true), varName));
+                continue;
+            }
+
+            String varType = type.get("name");
+            fields.add(new Symbol(new Type(varType, false), varName));
+        }
+
+        return fields;
+    }
 
 }
