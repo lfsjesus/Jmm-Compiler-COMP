@@ -32,7 +32,7 @@ EXTENDS : 'extends';
 PUBLIC : 'public' ;
 RETURN : 'return' ;
 NEW : 'new' ;
-LENGTH : 'length' ;
+LENGTH : 'length' ; //not keyword
 THIS : 'this' ;
 IMPORT: 'import' ;
 TRUE : 'true';
@@ -48,7 +48,7 @@ INT : 'int' ;
 BOOLEAN : 'boolean' ;
 FLOAT : 'float' ;
 DOUBLE : 'double' ;
-STRING : 'String' ;
+STRING : 'String' ; //not keyword
 
 
 INTEGER : [0-9]+ ;
@@ -93,7 +93,7 @@ type
     ;
 
 mainMethodDecl
-    :  PUBLIC 'static' 'void' 'main' LPAREN 'String' LBRACK RBRACK ID RPAREN
+    :  PUBLIC 'static' 'void' name='main' LPAREN 'String' LBRACK RBRACK ID RPAREN
         LCURLY
         varDecl*
         stmt*
@@ -102,7 +102,8 @@ mainMethodDecl
     ;
 
 methodDecl locals[boolean isPublic=false]
-    : (PUBLIC {$isPublic=true;})?
+    : mainMethodDecl
+    | (PUBLIC {$isPublic=true;})?
         type name=ID LPAREN (varArgs | param (COMMA param)* (COMMA varArgs)?)? RPAREN
         LCURLY
         (
