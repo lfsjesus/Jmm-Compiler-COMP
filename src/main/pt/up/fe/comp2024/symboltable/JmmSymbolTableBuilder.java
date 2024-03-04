@@ -77,8 +77,14 @@ public class JmmSymbolTableBuilder {
 
         Map<String, List<Symbol>> map = new HashMap<>();
 
-        classDecl.getChildren(METHOD_DECL).stream()
-                .forEach(method -> map.put(method.get("name"), getLocalsList(method)));
+        for (JmmNode method : classDecl.getChildren(METHOD_DECL))
+        {
+            if (!method.hasAttribute("name")) {
+                map.put("main", getLocalsList(method.getJmmChild(0)));
+                continue;
+            }
+            map.put(method.get("name"),getLocalsList(method));
+        }
 
         return map;
     }
