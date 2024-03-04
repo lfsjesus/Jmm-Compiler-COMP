@@ -253,5 +253,4 @@ public class GrammarTest {
     public void testExprArrayInit() {
         TestUtils.parseVerbose("[10, 20, 30]", EXPRESSION);
     }
-
 }
