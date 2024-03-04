@@ -107,8 +107,9 @@ public class JmmSymbolTableBuilder {
     private static List<Symbol> getLocalsList(JmmNode methodDecl) {
         List<Symbol> localsList = new ArrayList<>();
         for(JmmNode varDecl : methodDecl.getChildren(VAR_DECL)) {
-            String varName = varDecl.get("name");
-            JmmNode type = varDecl.getJmmChild(0);
+            JmmNode type = methodDecl.getJmmChild(0);
+            JmmNode declarable = varDecl.getJmmChild(1);
+            String varName = declarable.get("name");
 
             if (type.getKind().equals("ArrayType")) { // SHOULD I ADD A NEW KIND ??????????
                 String varType = type.getJmmChild(0).get("name");
@@ -134,8 +135,9 @@ public class JmmSymbolTableBuilder {
         List<Symbol> fields = new ArrayList<>();
 
         for (JmmNode varDecl : classDecl.getChildren(VAR_DECL)) {
-            String varName = varDecl.get("name");
             JmmNode type = varDecl.getJmmChild(0);
+            JmmNode declarable = varDecl.getJmmChild(1);
+            String varName = declarable.get("name");
 
             if (type.getKind().equals("ArrayType")) { // SHOULD I ADD A NEW KIND ??????????
                 String varType = type.getJmmChild(0).get("name");

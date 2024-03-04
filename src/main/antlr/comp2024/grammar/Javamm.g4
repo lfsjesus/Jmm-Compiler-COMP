@@ -83,9 +83,10 @@ varArgs
     ;
 
 varDecl // WE MAY NEED TO THINK ABOUT THIS, REGARDING MAIN, LENGTH...
-    : type name=(ID | 'main') SEMI // example: int a;
-    | type name=(ID | 'main') LBRACK RBRACK SEMI // example: int[] a;
-    ;
+    : type declarable SEMI;
+
+declarable
+    : name=(ID | 'length' | 'main'); // This is a variable declaration
 
 type
     : type LBRACK RBRACK #ArrayType
