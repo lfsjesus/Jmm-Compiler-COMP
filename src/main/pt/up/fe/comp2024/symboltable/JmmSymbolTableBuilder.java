@@ -27,12 +27,13 @@ public class JmmSymbolTableBuilder {
 
         var imports = buildImports(root);
         var methods = buildMethods(classDecl);
-        var returnTypes = buildReturnTypes(classDecl);
-        var params = buildParams(classDecl);
+        //var returnTypes = buildReturnTypes(classDecl);
+        //var params = buildParams(classDecl);
         var locals = buildLocals(classDecl);
 
 
-        return new JmmSymbolTable(className, superClass, methods, returnTypes, params, locals, imports);
+        //return new JmmSymbolTable(className, superClass, methods, returnTypes, params, locals, imports);
+        return new JmmSymbolTable(className, superClass, methods, null, null, locals, imports);
     }
 
     private static Map<String, Type> buildReturnTypes(JmmNode classDecl) {
@@ -83,21 +84,37 @@ public class JmmSymbolTableBuilder {
     }
 
     private static List<String> buildMethods(JmmNode classDecl) {
+        List<String> methods = new ArrayList<>();
 
-        return classDecl.getChildren(METHOD_DECL).stream()
-                .map(method -> method.get("name"))
-                .toList();
+        for (JmmNode method : classDecl.getChildren(METHOD_DECL)) {
+            if (!method.hasAttribute("name")) {
+                methods.add("main");
+                continue;
+            }
+            methods.add(method.get("name"));
+        }
+
+        return methods;
     }
-
 
     private static List<Symbol> getLocalsList(JmmNode methodDecl) {
         // TODO: Simple implementation that needs to be expanded
+        List<Symbol> localsList = new ArrayList<>();
+        for(JmmNode varDecl : methodDecl.getChildren(VAR_DECL)) {
+            String varName = varDecl.get("name");
+            JmmNode type = varDecl.getJmmChild(0);
 
-        var intType = new Type(TypeUtils.getIntTypeName(), false);
+            if (type.getKind().equals("ArrayType")) { // SHOULD I ADD A NEW KIND ??????????
+                String varType = type.getJmmChild(0).get("name");
+                localsList.add(new Symbol(new Type(varType, true), varName));
+                continue;
+            }
 
-        return methodDecl.getChildren(VAR_DECL).stream()
-                .map(varDecl -> new Symbol(intType, varDecl.get("name")))
-                .toList();
+            String varType = type.get("name");
+            localsList.add(new Symbol(new Type(varType, false), varName));
+        }
+
+        return localsList;
     }
 
     private static List<String> buildImports(JmmNode root) {
