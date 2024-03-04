@@ -38,8 +38,6 @@ public class JmmSymbolTableBuilder {
     }
 
     private static Map<String, Type> buildReturnTypes(JmmNode classDecl) {
-        // TODO: Simple implementation that needs to be expanded
-
         Map<String, Type> map = new HashMap<>();
 
         for (JmmNode method : classDecl.getChildren(METHOD_DECL)) {
@@ -47,7 +45,7 @@ public class JmmSymbolTableBuilder {
 
             if (type.getKind().equals("ArrayType")) { // SHOULD I ADD A NEW KIND ??????????
                 String returnType = type.getJmmChild(0).get("name");
-                map.put("main", new Type(returnType, true));
+                map.put(method.get("name"), new Type(returnType, true));
                 continue;
             }
 
