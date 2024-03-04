@@ -4,6 +4,10 @@ grammar Javamm;
     package pt.up.fe.comp2024;
 }
 
+// Comments
+LINE_COMMENT : '//' .*? '\n' -> skip ;
+MULTI_COMMENT : '/*' .*? '*/' -> skip ;
+
 // Operators
 EQUALS : '=';
 MUL : '*' ;
@@ -78,9 +82,9 @@ varArgs
     : type VARARGS name=ID
     ;
 
-varDecl
-    : type name=ID SEMI // example: int a;
-    | type name=ID LBRACK RBRACK SEMI // example: int[] a;
+varDecl // WE MAY NEED TO THINK ABOUT THIS, REGARDING MAIN, LENGTH...
+    : type name=(ID | 'main') SEMI // example: int a;
+    | type name=(ID | 'main') LBRACK RBRACK SEMI // example: int[] a;
     ;
 
 type
@@ -126,7 +130,7 @@ param
 stmt
     : expr SEMI #ExprStmt
     | LCURLY stmt* RCURLY #BlockStmt
-    | ifExpr (elseIfExpr)* (elseExpr)? #IfStmt
+    | ifExpr (elseIfExpr)* elseExpr #IfStmt
     | WHILE LPAREN expr RPAREN stmt #WhileStmt
     | expr EQUALS expr SEMI #AssignStmt //
     | methodReturn #ReturnStmt
