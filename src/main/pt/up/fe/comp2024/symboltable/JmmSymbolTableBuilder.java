@@ -15,10 +15,10 @@ public class JmmSymbolTableBuilder {
 
 
     public static JmmSymbolTable build(JmmNode root) {
+        JmmNode classDecl;
 
-        //JmmNode classDecl = root.getChildren(Kind.CLASS_DECL).get(0);
         try {
-            JmmNode classDecl = root.getChildren(Kind.CLASS_DECL).get(0);
+            classDecl = root.getChildren(Kind.CLASS_DECL).get(0);
         } catch (Exception e) {
             throw new RuntimeException("No class declaration found");
         }
@@ -31,15 +31,13 @@ public class JmmSymbolTableBuilder {
             superClass = classDecl.get("superName");
         }
 
-        var imports = buildImports(root);
-        var methods = buildMethods(classDecl);
-        var returnTypes = buildReturnTypes(classDecl);
-        var params = buildParams(classDecl);
-        var locals = buildLocals(classDecl); // these are the locals of the methods
-        var fields = buildFields(classDecl);
+        List<String> imports = buildImports(root);
+        List<String> methods = buildMethods(classDecl);
+        Map<String, Type> returnTypes = buildReturnTypes(classDecl);
+        Map<String, List<Symbol>> params = buildParams(classDecl);
+        Map<String, List<Symbol>> locals = buildLocals(classDecl);
+        List<Symbol> fields = buildFields(classDecl);
 
-
-        //return new JmmSymbolTable(className, superClass, methods, returnTypes, params, locals, imports);
         return new JmmSymbolTable(className, superClass, fields, methods, returnTypes, params, locals, imports);
     }
 
