@@ -42,7 +42,7 @@ IMPORT: 'import' ;
 TRUE : 'true';
 FALSE : 'false';
 STATIC : 'static' ;
-MAIN : 'main' ;
+MAIN : 'main' ; //not keyword
 
 // Control structures
 IF : 'if' ;
@@ -80,10 +80,10 @@ classDecl
     ;
 
 varArgs
-    : type VARARGS name=ID
+    : type VARARGS declarable
     ;
 
-varDecl // WE MAY NEED TO THINK ABOUT THIS, REGARDING MAIN, LENGTH...
+varDecl
     : type declarable SEMI;
 
 declarable
@@ -101,12 +101,12 @@ type
     ;
 
 methodDecl locals[boolean isPublic=false]
-    : (PUBLIC {$isPublic=true;})? STATIC type name=MAIN LPAREN param RPAREN // best way is to use the main method in methodDecl
+    : (PUBLIC {$isPublic=true;})? STATIC type name=MAIN LPAREN param RPAREN // Main Method Declaration
         LCURLY
         varDecl*
         stmt*
         RCURLY
-    | (PUBLIC {$isPublic=true;})?
+    | (PUBLIC {$isPublic=true;})? // Regular Method Declaration
         type name=ID LPAREN (varArgs | param (COMMA param)* (COMMA varArgs)?)? RPAREN
         LCURLY
         (
@@ -131,10 +131,10 @@ param
 
 stmt
     : expr SEMI #ExprStmt
-    | LCURLY stmt* RCURLY #BlockStmt
+    | LCURLY stmt* RCURLY #CurlyStmt
     | ifExpr (elseIfExpr)* elseExpr #IfStmt
     | WHILE LPAREN expr RPAREN stmt #WhileStmt
-    | expr EQUALS expr SEMI #AssignStmt //
+    | expr EQUALS expr SEMI #AssignStmt
     | methodReturn #ReturnStmt
     ;
 
@@ -149,8 +149,8 @@ elseExpr
 
 expr
     : LPAREN expr RPAREN #ParenExpr //
-    | NEW name=ID LPAREN RPAREN #NewClassExpr //
-    | NEW name=INT LBRACK expr RBRACK #NewArrayExpr //
+    | NEW declarable LPAREN RPAREN #NewClassObjExpr //
+    | NEW name=(INT | FLOAT | DOUBLE | BOOLEAN) LBRACK expr RBRACK #NewArrayExpr //
     | LBRACK (expr (COMMA expr)*)? RBRACK #ArrayInitExpr //
     | expr LBRACK expr RBRACK #ArrayAccessExpr //
     | expr DOT LENGTH #ArrayLengthExpr //
