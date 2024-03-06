@@ -41,6 +41,8 @@ THIS : 'this' ;
 IMPORT: 'import' ;
 TRUE : 'true';
 FALSE : 'false';
+STATIC : 'static' ;
+MAIN : 'main' ;
 
 // Control structures
 IF : 'if' ;
@@ -85,7 +87,7 @@ varDecl // WE MAY NEED TO THINK ABOUT THIS, REGARDING MAIN, LENGTH...
     : type declarable SEMI;
 
 declarable
-    : name=(ID | 'length' | 'main'); // This is a variable declaration
+    : name=(ID | LENGTH | MAIN); // This is a variable declaration
 
 type
     : type LBRACK RBRACK #ArrayType
@@ -99,7 +101,7 @@ type
     ;
 
 methodDecl locals[boolean isPublic=false]
-    : (PUBLIC {$isPublic=true;})? 'static' type name='main' LPAREN param RPAREN // best way is to use the main method in methodDecl
+    : (PUBLIC {$isPublic=true;})? STATIC type name=MAIN LPAREN param RPAREN // best way is to use the main method in methodDecl
         LCURLY
         varDecl*
         stmt*
