@@ -80,7 +80,7 @@ classDecl
     ;
 
 varArgs
-    : type VARARGS declarable
+    : type VARARGS name=ID
     ;
 
 varDecl
@@ -116,7 +116,6 @@ methodDecl locals[boolean isPublic=false]
         )?
         RCURLY
     ;
-
 methodCall
     : name=ID LPAREN (expr (COMMA expr)*)? RPAREN
     ;
@@ -126,7 +125,7 @@ methodReturn
     ;
 
 param
-    : type name=ID
+    : type declarable
     ;
 
 stmt
@@ -149,14 +148,14 @@ elseExpr
 
 expr
     : LPAREN expr RPAREN #ParenExpr //
-    | NEW declarable LPAREN RPAREN #NewClassObjExpr //
+    | NEW name=ID LPAREN RPAREN #NewClassObjExpr //
     | NEW name=(INT | FLOAT | DOUBLE | BOOLEAN) LBRACK expr RBRACK #NewArrayExpr //
     | LBRACK (expr (COMMA expr)*)? RBRACK #ArrayInitExpr //
     | expr LBRACK expr RBRACK #ArrayAccessExpr //
     | expr DOT LENGTH #ArrayLengthExpr //
     | expr DOT methodCall #MethodCallExpr //
     | expr op= LESS expr #BinaryExpr //
-    | op= NOT expr #UnaryExpr //
+    | op= NOT expr #NotExpr //
     | value=TRUE #TrueLiteral //
     | value=FALSE #FalseLiteral //
     | expr op= AND expr #BinaryExpr //
@@ -168,6 +167,4 @@ expr
     | name=THIS #ThisLiteral //
     | name=ID #VarRefExpr //
     ;
-
-
 
