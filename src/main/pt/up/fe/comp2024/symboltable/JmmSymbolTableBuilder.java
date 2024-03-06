@@ -64,7 +64,8 @@ public class JmmSymbolTableBuilder {
             List<Symbol> paramsList = new ArrayList<>();
 
             for (JmmNode param : method.getChildren(PARAM)) {
-                String paramName = param.get("name"); // name of the parameter
+                JmmNode paramNameNode = param.getJmmChild(1);
+                String paramName = paramNameNode.get("name"); // name of the parameter
                 JmmNode type = param.getJmmChild(0);
 
                 if (type.getKind().equals("ArrayType")) { // SHOULD I ADD A NEW KIND ??????????
