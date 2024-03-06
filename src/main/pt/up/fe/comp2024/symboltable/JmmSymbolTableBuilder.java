@@ -47,7 +47,7 @@ public class JmmSymbolTableBuilder {
         for (JmmNode method : classDecl.getChildren(METHOD_DECL)) {
             JmmNode type = method.getJmmChild(0);
 
-            if (type.getKind().equals("ArrayType")) { // SHOULD I ADD A NEW KIND ??????????
+            if (type.getKind().equals("ArrayType")) {
                 String returnType = type.getJmmChild(0).get("name");
                 map.put(method.get("name"), new Type(returnType, true));
                 continue;
@@ -69,16 +69,16 @@ public class JmmSymbolTableBuilder {
 
             for (JmmNode param : method.getChildren(PARAM)) {
                 JmmNode paramNameNode = param.getJmmChild(1);
-                String paramName = paramNameNode.get("name"); // name of the parameter
+                String paramName = paramNameNode.get("name");
                 JmmNode type = param.getJmmChild(0);
 
-                if (type.getKind().equals("ArrayType")) { // SHOULD I ADD A NEW KIND ??????????
+                if (type.getKind().equals("ArrayType")) {
                     String paramType = type.getJmmChild(0).get("name");
                     paramsList.add(new Symbol(new Type(paramType, true), paramName));
                     continue;
                 }
 
-                String paramType = param.getJmmChild(0).get("name"); // type of the parameter
+                String paramType = param.getJmmChild(0).get("name");
 
                 paramsList.add(new Symbol(new Type(paramType, false), paramName));
             }
@@ -116,7 +116,7 @@ public class JmmSymbolTableBuilder {
             JmmNode declarable = varDecl.getJmmChild(1);
             String varName = declarable.get("name");
 
-            if (type.getKind().equals("ArrayType")) { // SHOULD I ADD A NEW KIND ??????????
+            if (type.getKind().equals("ArrayType")) {
                 String varType = type.getJmmChild(0).get("name");
                 localsList.add(new Symbol(new Type(varType, true), varName));
                 continue;
@@ -144,7 +144,7 @@ public class JmmSymbolTableBuilder {
             JmmNode declarable = varDecl.getJmmChild(1);
             String varName = declarable.get("name");
 
-            if (type.getKind().equals("ArrayType")) { // SHOULD I ADD A NEW KIND ??????????
+            if (type.getKind().equals("ArrayType")) {
                 String varType = type.getJmmChild(0).get("name");
                 fields.add(new Symbol(new Type(varType, true), varName));
                 continue;
