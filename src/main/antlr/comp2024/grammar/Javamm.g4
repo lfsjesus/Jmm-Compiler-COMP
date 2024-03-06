@@ -62,8 +62,7 @@ ID : [a-zA-Z_$]([a-zA-Z_0-9$])* ;
 WS : [ \t\n\r\f]+ -> skip ;
 
 program
-    : stmt+ EOF
-    | (importDecl)* classDecl EOF
+    : (importDecl)* classDecl EOF
     ;
 
 importDecl
