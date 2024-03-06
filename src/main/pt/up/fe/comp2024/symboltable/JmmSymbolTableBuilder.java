@@ -16,8 +16,14 @@ public class JmmSymbolTableBuilder {
 
     public static JmmSymbolTable build(JmmNode root) {
 
-        JmmNode classDecl = root.getChildren(Kind.CLASS_DECL).get(0);
-        SpecsCheck.checkArgument(Kind.CLASS_DECL.check(classDecl), () -> "Expected a class declaration: " + classDecl);
+        //JmmNode classDecl = root.getChildren(Kind.CLASS_DECL).get(0);
+        try {
+            JmmNode classDecl = root.getChildren(Kind.CLASS_DECL).get(0);
+        } catch (Exception e) {
+            throw new RuntimeException("No class declaration found");
+        }
+
+
         String className = classDecl.get("name");
         String superClass = null;
 
