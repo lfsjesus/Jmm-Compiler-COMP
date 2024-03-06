@@ -87,7 +87,7 @@ varDecl // WE MAY NEED TO THINK ABOUT THIS, REGARDING MAIN, LENGTH...
     : type declarable SEMI;
 
 declarable
-    : name=(ID | LENGTH | MAIN); // This is a variable declaration
+    : name=(ID | LENGTH | MAIN | STRING); // This is a variable declaration
 
 type
     : type LBRACK RBRACK #ArrayType
