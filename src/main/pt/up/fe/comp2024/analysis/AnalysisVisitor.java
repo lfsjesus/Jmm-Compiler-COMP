@@ -56,11 +56,11 @@ public abstract class AnalysisVisitor extends PreorderJmmVisitor<SymbolTable, Vo
             case "ThisLiteral":
                 return new Type(node.get("type"), false);
             case "NewClassObjExpr":
-                return new Type(node.get("type"), false);
+                return new Type(node.get("name"), false);
             case "NewArrayExpr":
                 return new Type(node.get("type"), false);
             case "ArrayInitExpr":
-                return new Type(node.get("type"), false);
+                return new Type(getNodeType(node.getChildren().get(0), table).getName(), true);
             case "ArrayAccessExpr":
                 return new Type(node.get("type"), false);
             case "ArrayLengthExpr":
@@ -187,7 +187,23 @@ public abstract class AnalysisVisitor extends PreorderJmmVisitor<SymbolTable, Vo
         return new Type("Unknown", false);
     }
 
+    public boolean hasImport(String className, SymbolTable table) {
+        List<String> imports = table.getImports();
 
+        // each string is an import in form "[word1, word2, word3]". cheack if last word is the class name
+        for (String importName : imports) {
+            try {
+                String subString = importName.substring(importName.lastIndexOf(".") + 1);
+                if (subString.equals(className)) {
+                    return true;
+                }
+            } catch (Exception ignored) {
+            }
+        }
+
+        return false;
+
+    }
 
 
 }

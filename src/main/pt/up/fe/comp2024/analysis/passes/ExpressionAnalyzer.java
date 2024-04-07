@@ -18,7 +18,7 @@ public class ExpressionAnalyzer extends AnalysisVisitor{
         addVisit(Kind.PAREN_EXPR, this::visitParenExpr);
         //addVisit(Kind.NEW_CLASS_OBJ_EXPR, this::visitNewClassObjExpr);
         //addVisit(Kind.NEW_ARRAY_EXPR, this::visitNewArrayExpr);
-        //addVisit(Kind.ARRAY_INIT_EXPR, this::visitArrayInitExpr);
+        addVisit(Kind.ARRAY_INIT_EXPR, this::visitArrayInitExpr);
         addVisit(Kind.ARRAY_ACCESS_EXPR, this::visitArrayAccessExpr);
         addVisit(Kind.ARRAY_LENGTH_EXPR, this::visitArrayLengthExpr);
         //addVisit(Kind.METHOD_CALL_EXPR, this::visitMethodCallExpr);
@@ -76,6 +76,23 @@ public class ExpressionAnalyzer extends AnalysisVisitor{
 
         if (!arrayType.isArray()) {
             addReport(Report.newError(Stage.SEMANTIC, NodeUtils.getLine(node), NodeUtils.getColumn(node), "The type of the expression must be an array type but it resolved to " + arrayType.getName(), null));
+        }
+
+        return null;
+    }
+
+    private Void visitArrayInitExpr(JmmNode node, SymbolTable table) {
+        // loop through all children and check if they are of the same type
+        Type type = null;
+
+        for (JmmNode child : node.getChildren()) {
+            Type childType = getNodeType(child, table);
+            if (type == null) {
+                type = childType;
+            } else if (!type.equals(childType)) {
+                addReport(Report.newError(Stage.SEMANTIC, NodeUtils.getLine(node), NodeUtils.getColumn(node), "Array elements must be of the same type", null));
+                return null;
+            }
         }
 
         return null;

@@ -14,7 +14,7 @@ public class StatementAnalyzer extends AnalysisVisitor{
 
     @Override
     public void buildVisitor() {
-        //addVisit(Kind.ASSIGN_STMT, this::visitAssignStmt);
+        addVisit(Kind.ASSIGN_STMT, this::visitAssignStmt);
         addVisit(Kind.IF_STMT, this::visitIfStmt);
         addVisit(Kind.WHILE_STMT, this::visitWhileStmt);
         addVisit(Kind.RETURN_STMT, this::visitReturnStmt); // is this needed?
@@ -77,4 +77,29 @@ public class StatementAnalyzer extends AnalysisVisitor{
 
     }
 
+    private Void visitAssignStmt(JmmNode node, SymbolTable table) {
+        JmmNode left = node.getChildren().get(0);
+        JmmNode right = node.getChildren().get(1);
+
+        Type leftType = getNodeType(left, table);
+        Type rightType = getNodeType(right, table);
+
+        if (hasImport(leftType.getName(), table) && hasImport(rightType.getName(), table)) {
+            return null;
+        }
+
+        String extendedClass = table.getSuper();
+
+        if (extendedClass != null) {
+            if (leftType.getName().equals(extendedClass) || rightType.getName().equals(extendedClass)) {
+                return null;
+            }
+        }
+
+        if (!leftType.equals(rightType) || leftType.isArray() != rightType.isArray()) {
+            addReport(Report.newError(Stage.SEMANTIC, NodeUtils.getLine(node), NodeUtils.getColumn(node), "Incompatible types in assignment", null));
+        }
+
+        return null;
+        }
 }
