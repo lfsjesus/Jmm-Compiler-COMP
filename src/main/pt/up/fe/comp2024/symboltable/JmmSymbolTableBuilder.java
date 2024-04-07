@@ -82,6 +82,17 @@ public class JmmSymbolTableBuilder {
 
                 paramsList.add(new Symbol(new Type(paramType, false), paramName));
             }
+
+            // VarArgs
+            for (JmmNode varArg : method.getChildren(VAR_ARGS)) {
+                String paramName = varArg.get("name");
+                JmmNode type = varArg.getJmmChild(0);
+
+                String paramType = varArg.getJmmChild(0).get("name");
+
+                paramsList.add(new Symbol(new Type(paramType, true), paramName));
+            }
+
             map.put(method.get("name"), paramsList);
         }
 
@@ -112,7 +123,7 @@ public class JmmSymbolTableBuilder {
     private static List<Symbol> getLocalsList(JmmNode methodDecl) {
         List<Symbol> localsList = new ArrayList<>();
         for(JmmNode varDecl : methodDecl.getChildren(VAR_DECL)) {
-            JmmNode type = methodDecl.getJmmChild(0);
+            JmmNode type = varDecl.getJmmChild(0);
             JmmNode declarable = varDecl.getJmmChild(1);
             String varName = declarable.get("name");
 
