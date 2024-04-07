@@ -1,5 +1,6 @@
 package pt.up.fe.comp2024.analysis;
 
+import pt.up.fe.comp.jmm.analysis.table.Symbol;
 import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
 import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.JmmNode;
@@ -41,55 +42,58 @@ public abstract class AnalysisVisitor extends PreorderJmmVisitor<SymbolTable, Vo
         return getReports();
     }
 
-    public Type getNodeType(JmmNode node) {
+    public Type getNodeType(JmmNode node, SymbolTable table) {
         String type = node.getKind();
 
         switch (type) {
-            case "TRUE_LITERAL", "FALSE_LITERAL":
+            case "TrueLiteral", "FalseLiteral":
                 return new Type("boolean", false);
-            case "INTEGER_LITERAL":
+            case "IntegerLiteral":
                 return new Type("int", false);
-            case "VAR_REF_EXPR":
+            case "VarRefExpr":
+                String methodName = getMethodName(node);
+                return getVarType(node.get("name"), methodName, table);
+            case "ThisLiteral":
                 return new Type(node.get("type"), false);
-            case "THIS_LITERAL":
+            case "NewClassObjExpr":
                 return new Type(node.get("type"), false);
-            case "NEW_CLASS_OBJ_EXPR":
+            case "NewArrayExpr":
                 return new Type(node.get("type"), false);
-            case "NEW_ARRAY_EXPR":
+            case "ArrayInitExpr":
                 return new Type(node.get("type"), false);
-            case "ARRAY_INIT_EXPR":
+            case "ArrayAccessExpr":
                 return new Type(node.get("type"), false);
-            case "ARRAY_ACCESS_EXPR":
-                return new Type(node.get("type"), false);
-            case "ARRAY_LENGTH_EXPR":
+            case "ArrayLengthExpr":
                 return new Type("int", false);
-            case "METHOD_CALL_EXPR":
+            case "MethodCallExpr":
                 return new Type(node.get("type"), false);
-            case "NOT_EXPR":
+            case "NotExpr":
                 return new Type("boolean", false);
-            case "BINARY_EXPR":
+            case "BinaryExpr":
                 String operator = node.get("op");
-                checkOperation(node); // check if the operation is valid
+                checkOperation(node, table); // check if the operation is valid
                 if (operator.equals("+") || operator.equals("-") || operator.equals("*") || operator.equals("/")) {
                     return new Type("int", false);
                 } else {
                     return new Type("boolean", false);
                 }
-            case "PAREN_EXPR":
-                return getNodeType(node.getChildren().get(0));
+            case "ParenExpr":
+                return getNodeType(node.getChildren().get(0), table);
+            case "MethodDecl":
+                return table.getReturnType(node.get("name")); // MAKES SENSE TO HAVE GETRETURNTYPE?
             default:
                 return new Type("Unknown", false);
         }
     }
 
-    public Void checkOperation(JmmNode node) {
+    public Void checkOperation(JmmNode node, SymbolTable table) {
         JmmNode left = node.getChildren().get(0);
         JmmNode right = node.getChildren().get(1);
 
         String operator = node.get("op");
 
-        Type leftType = getNodeType(left);
-        Type rightType = getNodeType(right);
+        Type leftType = getNodeType(left, table);
+        Type rightType = getNodeType(right, table);
 
         if (!leftType.equals(rightType)) {
             // add report
@@ -113,7 +117,7 @@ public abstract class AnalysisVisitor extends PreorderJmmVisitor<SymbolTable, Vo
                         null)
                 );
             }
-        } else if (operator.equals("int")) {
+        } else if (operator.equals("+") || operator.equals("-") || operator.equals("*") || operator.equals("/")) {
             if (!leftType.getName().equals("int") || !rightType.getName().equals("int")) {
                 // add report
                 addReport(Report.newError(
@@ -128,4 +132,62 @@ public abstract class AnalysisVisitor extends PreorderJmmVisitor<SymbolTable, Vo
 
         return null;
     }
+
+    public String getMethodName(JmmNode node) {
+        while (node != null && !node.getKind().equals("MethodDecl")) {
+            node = node.getJmmParent();
+        }
+
+        if (node != null && node.hasAttribute("name")) {
+            return node.get("name");
+        }
+
+        return null;
+    }
+
+    public Type getVarType(String varName, String methodName, SymbolTable table) {
+        List<Symbol> args = table.getParameters(methodName);
+        List<Symbol> locals = table.getLocalVariables(methodName);
+        List<Symbol> globals = table.getFields();
+        List<String> imports = table.getImports();
+        String extendsClass = table.getSuper();
+
+        if (imports.contains(varName)) {
+            return new Type(varName, false);
+        }
+
+        if (extendsClass != null && extendsClass.equals(varName)) {
+            return new Type(varName, false);
+        }
+
+        if (args != null) {
+            for (Symbol arg : args) {
+                if (arg.getName().equals(varName)) {
+                    return arg.getType();
+                }
+            }
+        }
+
+        if (locals != null) {
+            for (Symbol local : locals) {
+                if (local.getName().equals(varName)) {
+                    return local.getType();
+                }
+            }
+        }
+
+        if (globals != null) {
+            for (Symbol global : globals) {
+                if (global.getName().equals(varName)) {
+                    return global.getType();
+                }
+            }
+        }
+
+        return new Type("Unknown", false);
+    }
+
+
+
+
 }

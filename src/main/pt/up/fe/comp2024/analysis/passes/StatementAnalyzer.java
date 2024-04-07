@@ -17,7 +17,7 @@ public class StatementAnalyzer extends AnalysisVisitor{
         //addVisit(Kind.ASSIGN_STMT, this::visitAssignStmt);
         addVisit(Kind.IF_STMT, this::visitIfStmt);
         addVisit(Kind.WHILE_STMT, this::visitWhileStmt);
-        //addVisit(Kind.RETURN_STMT, this::visitReturnStmt);
+        addVisit(Kind.RETURN_STMT, this::visitReturnStmt); // is this needed?
         addVisit(Kind.METHOD_RETURN, this::visitReturnStmt);
         //addVisit(Kind.CURLY_STMT, this::visitCurlyStmt);
         //addVisit(Kind.EXPR_STMT, this::visitExprStmt);
@@ -27,7 +27,7 @@ public class StatementAnalyzer extends AnalysisVisitor{
         JmmNode condition = node.getChildren().get(0);
         JmmNode body = node.getChildren().get(1);
 
-        Type conditionType = getNodeType(condition);
+        Type conditionType = getNodeType(condition, table);
 
         if (!conditionType.getName().equals("boolean") || conditionType.isArray()) {
             addReport(Report.newError(Stage.SEMANTIC, NodeUtils.getLine(condition), NodeUtils.getColumn(condition), "Condition of while statement must be of type boolean", null));
@@ -42,7 +42,7 @@ public class StatementAnalyzer extends AnalysisVisitor{
         JmmNode condition = node.getChildren().get(0);
         JmmNode stmt = node.getChildren().get(1);
 
-        Type conditionType = getNodeType(condition);
+        Type conditionType = getNodeType(condition, table);
 
         if (!conditionType.getName().equals("boolean") || conditionType.isArray()) {
             addReport(Report.newError(Stage.SEMANTIC, NodeUtils.getLine(condition), NodeUtils.getColumn(condition), "Condition of if statement must be of type boolean", null));
@@ -58,12 +58,14 @@ public class StatementAnalyzer extends AnalysisVisitor{
     private Void visitReturnStmt(JmmNode node, SymbolTable table) {
         JmmNode stmt = node.getChildren().get(0);
 
-        Type returnType = getNodeType(stmt);
-        Type declaredReturnType = table.getReturnType(currentMethod);
+        Type returnType = getNodeType(stmt, table);
+        Type declaredReturnType = getNodeType(node.getJmmParent(), table); // Check test arrayInit ASAP!
 
         if (!returnType.getName().equals(declaredReturnType.getName())) {
             addReport(Report.newError(Stage.SEMANTIC, NodeUtils.getLine(stmt), NodeUtils.getColumn(stmt), "Return type does not match method return type", null));
         }
+
+
 
         for (JmmNode child : stmt.getChildren()) {
             visit(child, table);

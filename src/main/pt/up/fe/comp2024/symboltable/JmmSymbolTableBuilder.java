@@ -112,7 +112,7 @@ public class JmmSymbolTableBuilder {
     private static List<Symbol> getLocalsList(JmmNode methodDecl) {
         List<Symbol> localsList = new ArrayList<>();
         for(JmmNode varDecl : methodDecl.getChildren(VAR_DECL)) {
-            JmmNode type = methodDecl.getJmmChild(0);
+            JmmNode type = varDecl.getJmmChild(0);
             JmmNode declarable = varDecl.getJmmChild(1);
             String varName = declarable.get("name");
 

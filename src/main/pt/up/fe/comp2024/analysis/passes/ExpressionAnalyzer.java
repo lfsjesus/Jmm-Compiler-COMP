@@ -32,7 +32,7 @@ public class ExpressionAnalyzer extends AnalysisVisitor{
 
     private Void visitNotExpr(JmmNode node, SymbolTable table) {
         JmmNode expr = node.getChildren().get(0);
-        Type type = getNodeType(expr);
+        Type type = getNodeType(expr, table);
 
         if (type.isArray()) {
             addReport(Report.newError(Stage.SEMANTIC, NodeUtils.getLine(node), NodeUtils.getColumn(node), "Operator '!' cannot be applied to type " + type.getName(), null));
@@ -44,19 +44,19 @@ public class ExpressionAnalyzer extends AnalysisVisitor{
     }
 
     private Void visitParenExpr(JmmNode node, SymbolTable table) {
-        return checkOperation(node);
+        return checkOperation(node, table);
     }
 
     private Void visitBinaryExpr(JmmNode node, SymbolTable table) {
-        return checkOperation(node);
+        return checkOperation(node, table);
     }
 
     private Void visitArrayAccessExpr(JmmNode node, SymbolTable table) {
         JmmNode array = node.getChildren().get(0);
         JmmNode index = node.getChildren().get(1);
 
-        Type arrayType = getNodeType(array);
-        Type indexType = getNodeType(index);
+        Type arrayType = getNodeType(array, table);
+        Type indexType = getNodeType(index, table);
 
         if (!arrayType.isArray()) {
             addReport(Report.newError(Stage.SEMANTIC, NodeUtils.getLine(node), NodeUtils.getColumn(node), "The type of the expression must be an array type but it resolved to " + arrayType.getName(), null));
@@ -72,7 +72,7 @@ public class ExpressionAnalyzer extends AnalysisVisitor{
     private Void visitArrayLengthExpr(JmmNode node, SymbolTable table) {
         JmmNode array = node.getChildren().get(0);
 
-        Type arrayType = getNodeType(array);
+        Type arrayType = getNodeType(array, table);
 
         if (!arrayType.isArray()) {
             addReport(Report.newError(Stage.SEMANTIC, NodeUtils.getLine(node), NodeUtils.getColumn(node), "The type of the expression must be an array type but it resolved to " + arrayType.getName(), null));
