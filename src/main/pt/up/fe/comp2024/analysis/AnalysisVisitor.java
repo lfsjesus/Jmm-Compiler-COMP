@@ -46,7 +46,7 @@ public abstract class AnalysisVisitor extends PreorderJmmVisitor<SymbolTable, Vo
         String type = node.getKind();
 
         switch (type) {
-            case "TrueLiteral", "FalseLiteral":
+            case "TrueLiteral", "FalseLiteral", "NotExpr":
                 return new Type("boolean", false);
             case "IntegerLiteral":
                 return new Type("int", false);
@@ -62,15 +62,13 @@ public abstract class AnalysisVisitor extends PreorderJmmVisitor<SymbolTable, Vo
             case "ArrayInitExpr":
                 return new Type(getNodeType(node.getChildren().get(0), table).getName(), true);
             case "ArrayAccessExpr":
-                return new Type(node.get("type"), false);
+                return getNodeType(node.getChildren().get(0), table); // type of element is the same as the array
             case "ArrayLengthExpr":
                 return new Type("int", false);
             case "MethodCallExpr":
-                return new Type(node.get("type"), false);
+                return getNodeType(node.getChildren().get(0), table);
             case "MethodCall":
                 return table.getReturnType(node.get("name"));
-            case "NotExpr":
-                return new Type("boolean", false);
             case "BinaryExpr":
                 String operator = node.get("op");
                 checkOperation(node, table); // check if the operation is valid

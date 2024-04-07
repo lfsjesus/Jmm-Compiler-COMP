@@ -14,6 +14,7 @@ public enum Kind {
     TYPE,
     METHOD_DECL,
     PARAM,
+    VAR_ARGS,
     ASSIGN_STMT,
     RETURN_STMT,
     METHOD_RETURN,

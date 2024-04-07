@@ -153,6 +153,7 @@ expr
     | LBRACK (expr (COMMA expr)*)? RBRACK #ArrayInitExpr //
     | expr LBRACK expr RBRACK #ArrayAccessExpr //
     | expr DOT LENGTH #ArrayLengthExpr //
+    | methodCall #MethodCallExpr //
     | expr DOT methodCall #MethodCallExpr //
     | expr op= LESS expr #BinaryExpr //
     | op= NOT expr #NotExpr //
