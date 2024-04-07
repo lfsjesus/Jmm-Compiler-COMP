@@ -9,6 +9,8 @@ import pt.up.fe.comp2024.ast.Kind;
 import pt.up.fe.comp2024.ast.NodeUtils;
 import pt.up.fe.specs.util.SpecsCheck;
 
+import java.util.List;
+
 public class ExpressionAnalyzer extends AnalysisVisitor{
     private String currentMethod;
 
@@ -22,6 +24,7 @@ public class ExpressionAnalyzer extends AnalysisVisitor{
         addVisit(Kind.ARRAY_ACCESS_EXPR, this::visitArrayAccessExpr);
         addVisit(Kind.ARRAY_LENGTH_EXPR, this::visitArrayLengthExpr);
         //addVisit(Kind.METHOD_CALL_EXPR, this::visitMethodCallExpr);
+        //addVisit(Kind.METHOD_CALL, this::visitMethodCallExpr);
         addVisit(Kind.NOT_EXPR, this::visitNotExpr);
         //addVisit(Kind.TRUE_LITERAL, this::visitTrueLiteral);
         //addVisit(Kind.FALSE_LITERAL, this::visitFalseLiteral);
@@ -97,5 +100,7 @@ public class ExpressionAnalyzer extends AnalysisVisitor{
 
         return null;
     }
+
+
 
 }
