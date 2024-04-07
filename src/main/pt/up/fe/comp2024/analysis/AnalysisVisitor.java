@@ -197,9 +197,30 @@ public abstract class AnalysisVisitor extends PreorderJmmVisitor<SymbolTable, Vo
 
     public Type getReturnType(JmmNode node, SymbolTable table) {
         if (node.getKind().equals("MethodCallExpr")) {
-            return getReturnType(node.getChildren().get(0), table);
+            // get last child
+            return getReturnType(node.getChildren().get(node.getChildren().size() - 1), table);
         } else if (node.getKind().equals("MethodCall")) {
-            return table.getReturnType(node.get("name"));
+            // either it's in the table or accept if imported
+            if (table.getReturnType(node.get("name")) != null) {
+                return table.getReturnType(node.get("name"));
+            } else if (hasImport(getNodeType(node.getJmmParent().getChildren().get(0), table).getName(), table)) {
+                return new Type(getNodeType(node.getJmmParent().getChildren().get(0), table).getName(), false);
+            } else if (table.getSuper() != null) {
+                JmmNode a = node.getParent().getChildren().get(0);
+                String type = table.getLocalVariables(getMethodName(node)).get(0).getType().getName();
+                return new Type(type, false);
+            }
+
+            addReport(Report.newError(
+                    Stage.SEMANTIC,
+                    NodeUtils.getLine(node),
+                    NodeUtils.getColumn(node),
+                    "Method " + node.get("name") + " is not declared",
+                    null)
+            );
+
+            // In case, for example, the method is not declared (callToUndeclaredMethod file). This or stop immediately?
+            return null;
         }
 
         return null;

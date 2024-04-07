@@ -1,4 +1,5 @@
 package pt.up.fe.comp2024.analysis.passes;
+import pt.up.fe.comp.jmm.analysis.table.Symbol;
 import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
 import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.JmmNode;
@@ -23,8 +24,8 @@ public class ExpressionAnalyzer extends AnalysisVisitor{
         addVisit(Kind.ARRAY_INIT_EXPR, this::visitArrayInitExpr);
         addVisit(Kind.ARRAY_ACCESS_EXPR, this::visitArrayAccessExpr);
         addVisit(Kind.ARRAY_LENGTH_EXPR, this::visitArrayLengthExpr);
-        //addVisit(Kind.METHOD_CALL_EXPR, this::visitMethodCallExpr);
-        //addVisit(Kind.METHOD_CALL, this::visitMethodCallExpr);
+        addVisit(Kind.METHOD_CALL_EXPR, this::visitMethodCallExpr);
+        addVisit(Kind.METHOD_CALL, this::visitMethodCallExpr);
         addVisit(Kind.NOT_EXPR, this::visitNotExpr);
         //addVisit(Kind.TRUE_LITERAL, this::visitTrueLiteral);
         //addVisit(Kind.FALSE_LITERAL, this::visitFalseLiteral);
@@ -97,6 +98,72 @@ public class ExpressionAnalyzer extends AnalysisVisitor{
                 return null;
             }
         }
+
+        return null;
+    }
+
+    public Void visitMethodCallExpr(JmmNode node, SymbolTable table) {
+        // check import
+        if (hasImport(getNodeType(node, table).getName(), table)) {
+            return null;
+        }
+
+        String methodName = null;
+
+        if (node.getKind().equals("MethodCall")) {
+            methodName = node.get("name");
+
+        } else if (node.getKind().equals("MethodCallExpr")) {
+            // get last
+            methodName = node.getChildren().get(node.getChildren().size() - 1).get("name");
+        }
+
+        // check if it's the extend
+        String superName = table.getSuper();
+        String currentClass = table.getClassName();
+        if (superName != null && (superName.equals(getNodeType(node, table).getName()) || currentClass.equals(getNodeType(node, table).getName()))) {
+            return null;
+        }
+
+        if (!table.getMethods().contains(methodName)) {
+            addReport(Report.newError(Stage.SEMANTIC, NodeUtils.getLine(node), NodeUtils.getColumn(node), "Method " + methodName + " is not declared", null));
+            return null;
+        }
+
+        // check if parameters types are correct
+        List<Symbol> parameters = table.getParameters(methodName);
+        // get passed arguments
+        List<JmmNode> arguments = node.getChildren();
+
+        boolean varargs = (parameters.size() < arguments.size() && parameters.get(parameters.size() - 1).getType().isArray());
+        varargs = varargs || (parameters.size() == arguments.size() && parameters.get(parameters.size() - 1).getType().isArray());
+
+        // check if varargs
+        if (parameters.size() > arguments.size() && !varargs) {
+            addReport(Report.newError(Stage.SEMANTIC, NodeUtils.getLine(node), NodeUtils.getColumn(node), "Method " + methodName + " has wrong number of arguments", null));
+            return null;
+        }
+        else if (parameters.size() < arguments.size() && !varargs) {
+            addReport(Report.newError(Stage.SEMANTIC, NodeUtils.getLine(node), NodeUtils.getColumn(node), "Method " + methodName + " has wrong number of arguments", null));
+            return null;
+        }
+
+        // check types
+        for (int i = 0; i < parameters.size(); i++) {
+            Type parameterType = parameters.get(i).getType();
+            Type argumentType = getNodeType(arguments.get(i), table);
+
+            if (varargs && (i == parameters.size() - 1)) {
+                if (!parameterType.getName().equals(argumentType.getName())) {
+                    addReport(Report.newError(Stage.SEMANTIC, NodeUtils.getLine(node), NodeUtils.getColumn(node), "Method " + methodName + " has wrong type of arguments", null));
+                    return null;
+                }
+            } else if (!parameterType.equals(argumentType)) {
+                addReport(Report.newError(Stage.SEMANTIC, NodeUtils.getLine(node), NodeUtils.getColumn(node), "Method " + methodName + " has wrong type of arguments", null));
+                return null;
+            }
+        }
+
 
         return null;
     }
