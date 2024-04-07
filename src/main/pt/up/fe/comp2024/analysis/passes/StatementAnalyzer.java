@@ -61,10 +61,14 @@ public class StatementAnalyzer extends AnalysisVisitor{
         Type returnType = getNodeType(stmt, table);
         Type declaredReturnType = getNodeType(node.getJmmParent(), table); // Check test arrayInit ASAP!
 
+        // check if it's import
+        if (hasImport(getNodeType(stmt, table).getName(), table)) {
+            return null;
+        }
+
         if (!returnType.getName().equals(declaredReturnType.getName())) {
             addReport(Report.newError(Stage.SEMANTIC, NodeUtils.getLine(stmt), NodeUtils.getColumn(stmt), "Return type does not match method return type", null));
         }
-
 
 
         for (JmmNode child : stmt.getChildren()) {

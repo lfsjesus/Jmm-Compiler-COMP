@@ -48,7 +48,7 @@ public abstract class AnalysisVisitor extends PreorderJmmVisitor<SymbolTable, Vo
         switch (type) {
             case "TrueLiteral", "FalseLiteral", "NotExpr":
                 return new Type("boolean", false);
-            case "IntegerLiteral":
+            case "IntegerLiteral", "ArrayLengthExpr":
                 return new Type("int", false);
             case "VarRefExpr":
                 String methodName = getMethodName(node);
@@ -63,12 +63,8 @@ public abstract class AnalysisVisitor extends PreorderJmmVisitor<SymbolTable, Vo
                 return new Type(getNodeType(node.getChildren().get(0), table).getName(), true);
             case "ArrayAccessExpr":
                 return getNodeType(node.getChildren().get(0), table); // type of element is the same as the array
-            case "ArrayLengthExpr":
-                return new Type("int", false);
-            case "MethodCallExpr":
-                return getNodeType(node.getChildren().get(0), table);
-            case "MethodCall":
-                return table.getReturnType(node.get("name"));
+            case "MethodCallExpr", "MethodCall":
+                return getReturnType(node, table);
             case "BinaryExpr":
                 String operator = node.get("op");
                 checkOperation(node, table); // check if the operation is valid
@@ -160,27 +156,21 @@ public abstract class AnalysisVisitor extends PreorderJmmVisitor<SymbolTable, Vo
             return new Type(varName, false);
         }
 
-        if (args != null) {
-            for (Symbol arg : args) {
-                if (arg.getName().equals(varName)) {
-                    return arg.getType();
-                }
+        for (Symbol arg : args) {
+            if (arg.getName().equals(varName)) {
+                return arg.getType();
             }
         }
 
-        if (locals != null) {
-            for (Symbol local : locals) {
-                if (local.getName().equals(varName)) {
-                    return local.getType();
-                }
+        for (Symbol local : locals) {
+            if (local.getName().equals(varName)) {
+                return local.getType();
             }
         }
 
-        if (globals != null) {
-            for (Symbol global : globals) {
-                if (global.getName().equals(varName)) {
-                    return global.getType();
-                }
+        for (Symbol global : globals) {
+            if (global.getName().equals(varName)) {
+                return global.getType();
             }
         }
 
@@ -190,10 +180,10 @@ public abstract class AnalysisVisitor extends PreorderJmmVisitor<SymbolTable, Vo
     public boolean hasImport(String className, SymbolTable table) {
         List<String> imports = table.getImports();
 
-        // each string is an import in form "[word1, word2, word3]". cheack if last word is the class name
+        // each string is an import in form "[word1, word2, word3]". check if last word is the class name
         for (String importName : imports) {
             try {
-                String subString = importName.substring(importName.lastIndexOf(".") + 1);
+                String subString = importName.substring(importName.length() - className.length() - 1, importName.length() - 1);
                 if (subString.equals(className)) {
                     return true;
                 }
@@ -203,6 +193,37 @@ public abstract class AnalysisVisitor extends PreorderJmmVisitor<SymbolTable, Vo
 
         return false;
 
+    }
+
+    public Type getReturnType(JmmNode node, SymbolTable table) {
+        if (node.getKind().equals("MethodCallExpr")) {
+            // get last child
+            return getReturnType(node.getChildren().get(node.getChildren().size() - 1), table);
+        } else if (node.getKind().equals("MethodCall")) {
+            // either it's in the table or accept if imported
+            if (table.getReturnType(node.get("name")) != null) {
+                return table.getReturnType(node.get("name"));
+            } else if (hasImport(getNodeType(node.getJmmParent().getChildren().get(0), table).getName(), table)) {
+                return new Type(getNodeType(node.getJmmParent().getChildren().get(0), table).getName(), false);
+            } else if (table.getSuper() != null) {
+                JmmNode a = node.getParent().getChildren().get(0);
+                String type = table.getLocalVariables(getMethodName(node)).get(0).getType().getName();
+                return new Type(type, false);
+            }
+
+            addReport(Report.newError(
+                    Stage.SEMANTIC,
+                    NodeUtils.getLine(node),
+                    NodeUtils.getColumn(node),
+                    "Method " + node.get("name") + " is not declared",
+                    null)
+            );
+
+            // In case, for example, the method is not declared (callToUndeclaredMethod file). This or stop immediately?
+            return null;
+        }
+
+        return null;
     }
 
 
