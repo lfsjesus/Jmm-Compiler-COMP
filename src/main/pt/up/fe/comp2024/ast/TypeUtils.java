@@ -48,8 +48,21 @@ public class TypeUtils {
 
 
     private static Type getVarExprType(JmmNode varRefExpr, SymbolTable table) {
-        // TODO: Simple implementation that needs to be expanded
+        String methodName = getMethodName(varRefExpr);
+
+
         return new Type(INT_TYPE_NAME, false);
+    }
+
+    public static String getMethodName(JmmNode node) {
+        while (node != null && !node.getKind().equals("MethodDecl")) {
+            node = node.getJmmParent();
+        }
+
+        if (node != null && node.hasAttribute("name")) {
+            return node.get("name");
+        }
+        return null;
     }
 
 
