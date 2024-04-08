@@ -7,6 +7,8 @@ import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp2024.ast.NodeUtils;
 import pt.up.fe.comp2024.ast.TypeUtils;
 
+import java.util.List;
+
 import static pt.up.fe.comp2024.ast.Kind.*;
 
 /**
@@ -34,11 +36,11 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
     @Override
     protected void buildVisitor() {
-
         addVisit(PROGRAM, this::visitProgram);
         addVisit(CLASS_DECL, this::visitClass);
         addVisit(METHOD_DECL, this::visitMethodDecl);
         addVisit(PARAM, this::visitParam);
+        addVisit(METHOD_RETURN, this::visitReturn);
         addVisit(RETURN_STMT, this::visitReturn);
         addVisit(ASSIGN_STMT, this::visitAssignStmt);
 
@@ -107,7 +109,8 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
     private String visitParam(JmmNode node, Void unused) {
 
         var typeCode = OptUtils.toOllirType(node.getJmmChild(0));
-        var id = node.get("name");
+
+        String id = node.getChildren().get(1).get("name");
 
         String code = id + typeCode;
 
@@ -130,8 +133,16 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         code.append(name);
 
         // param
-        var paramCode = visit(node.getJmmChild(1));
-        code.append("(" + paramCode + ")");
+        List<JmmNode> params = node.getChildren(PARAM);
+        code.append("(");
+        for (JmmNode param : params) {
+            code.append(visit(param));
+            code.append(", ");
+        }
+        if (!params.isEmpty()) {
+            code.delete(code.length() - 2, code.length());
+        }
+        code.append(")");
 
         // type
         var retType = OptUtils.toOllirType(node.getJmmChild(0));
@@ -140,16 +151,21 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
 
         // rest of its children stmts
-        var afterParam = 2;
-        for (int i = afterParam; i < node.getNumChildren(); i++) {
+        var afterParam = 1;
+        for (int i = afterParam; i < node.getNumChildren() - 1; i++) {
             var child = node.getJmmChild(i);
             var childCode = visit(child);
             code.append(childCode);
         }
 
+        //extract the return statement
+        var returnStmt = node.getJmmChild(node.getNumChildren() - 1);
+        var returnCode = visit(returnStmt);
+        code.append(returnCode);
+
+
         code.append(R_BRACKET);
         code.append(NL);
-
         return code.toString();
     }
 

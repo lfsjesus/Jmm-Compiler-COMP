@@ -3,12 +3,14 @@ package pt.up.fe.comp2024.optimization;
 import org.specs.comp.ollir.Instruction;
 import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.JmmNode;
+import pt.up.fe.comp2024.ast.Kind;
 import pt.up.fe.comp2024.ast.NodeUtils;
 import pt.up.fe.specs.util.exceptions.NotImplementedException;
 
 import java.util.List;
 import java.util.Optional;
 
+import static pt.up.fe.comp2024.ast.Kind.INT_TYPE;
 import static pt.up.fe.comp2024.ast.Kind.TYPE;
 
 public class OptUtils {
@@ -31,8 +33,19 @@ public class OptUtils {
     }
 
     public static String toOllirType(JmmNode typeNode) {
+        List<Kind> validTypes = List.of(Kind.INT_TYPE, Kind.BOOLEAN_TYPE, Kind.ARRAY_TYPE, Kind.VOID_TYPE);
 
-        TYPE.checkOrThrow(typeNode);
+        String typeKind = typeNode.getKind();
+
+        if (!validTypes.contains(Kind.fromString(typeKind))) {
+            throw new NotImplementedException("Type " + typeKind + " not supported");
+        }
+
+        // Handle array types
+        if (typeKind.equals("ArrayType")) {
+            String arrayType = typeNode.getChildren().get(0).get("name") + "[]";
+            return toOllirType(arrayType);
+        }
 
         String typeName = typeNode.get("name");
 
@@ -47,6 +60,9 @@ public class OptUtils {
 
         String type = "." + switch (typeName) {
             case "int" -> "i32";
+            case "boolean" -> "bool";
+            case "void" -> "V";
+            case "String[]" -> "array.String";
             default -> throw new NotImplementedException(typeName);
         };
 
