@@ -76,6 +76,8 @@ public class JasminGenerator {
         // TODO: Hardcoded to Object, needs to be expanded
         code.append(".super java/lang/Object").append(NL);
 
+
+
         // generate a single constructor method
         var defaultConstructor = """
                 ;default constructor
@@ -119,8 +121,9 @@ public class JasminGenerator {
         var methodName = method.getMethodName();
 
         // TODO: Hardcoded param types and return type, needs to be expanded
-        code.append("\n.method ").append(modifier).append(methodName).append("(I)I").append(NL);
-
+        //code.append("\n.method ").append(modifier).append(methodName).append("(I)I").append(NL);
+        for (Element argument : method.getParams())
+            code.append(this.getFieldType(argument.getType()));
         // Add limits
         code.append(TAB).append(".limit stack 99").append(NL);
         code.append(TAB).append(".limit locals 99").append(NL);
@@ -201,11 +204,45 @@ public class JasminGenerator {
         var code = new StringBuilder();
 
         // TODO: Hardcoded to int return type, needs to be expanded
+        if (returnInst.getOperand() != null){
+            code.append(generators.apply(returnInst.getOperand()));
+            code.append("ireturn").append(NL);
 
-        code.append(generators.apply(returnInst.getOperand()));
-        code.append("ireturn").append(NL);
+        }
+
+        //code.append(generators.apply(returnInst.getOperand()));
+
+        else{
+            code.append("return").append(NL);
+        }
+
 
         return code.toString();
     }
 
+    private String getFieldType(Type type) {
+        return switch (type.getTypeOfElement()) {
+            case ARRAYREF -> this.getArrayType(type);
+            case OBJECTREF -> this.getObjectType(type);
+            default -> this.getType(type.getTypeOfElement());
+        };
+    }
+
+    private String getType(ElementType type) {
+        return switch (type) {
+            case INT32 -> "I";
+            case BOOLEAN -> "Z";
+            case VOID -> "V";
+            case STRING -> "Ljava/lang/String;";
+            default -> null;
+        };
+    }
+
+    private String getArrayType(Type type) {
+        return "[" + this.getType(((ArrayType) type).getArrayType());
+    }
+
+    private String getObjectType(Type type) {
+        return "L" + this.getImportedClassName(((ClassType) type).getName()) + ";";
+    }
 }
