@@ -114,36 +114,39 @@ public class JasminGenerator {
 
 
     private String generateMethod(Method method) {
-
-        // set method
+        // Set the current method context
         currentMethod = method;
 
-        var code = new StringBuilder();
+        StringBuilder code = new StringBuilder();
 
-        // calculate modifier
-        var modifier = method.getMethodAccessModifier() != AccessModifier.DEFAULT ?
-                method.getMethodAccessModifier().name().toLowerCase() + " " :
-                "";
+        // Construct method declaration
+        String modifier = method.getMethodAccessModifier() != AccessModifier.DEFAULT ?
+                method.getMethodAccessModifier().name().toLowerCase() + " " : "";
+        code.append(NL).append(".method ").append(modifier)
+                .append(method.isStaticMethod() ? "static " : "")
+                .append(method.isFinalMethod() ? "final " : "")
+                .append(method.getMethodName());
 
-        var methodName = method.getMethodName();
+        // Append method parameters
+        code.append('(');
+        method.getParams().forEach(param -> code.append(generateTypeDescriptor(param.getType())));
+        code.append(')').append(generateTypeDescriptor(method.getReturnType())).append(NL); //generateTypeDescriptor not defined yet
 
-        // TODO: Hardcoded param types and return type, needs to be expanded
-        code.append("\n.method ").append(modifier).append(methodName).append("(I)I").append(NL);
+        // Add fixed limits for stack and locals
+        code.append(TAB).append(".limit stack 99").append(NL)
+                .append(TAB).append(".limit locals 99").append(NL);
 
-        // Add limits
-        code.append(TAB).append(".limit stack 99").append(NL);
-        code.append(TAB).append(".limit locals 99").append(NL);
-
-        for (var inst : method.getInstructions()) {
-            var instCode = StringLines.getLines(generators.apply(inst)).stream()
+        // Process instructions
+        method.getInstructions().forEach(inst -> {
+            String instCode = StringLines.getLines(generators.apply(inst)).stream()
                     .collect(Collectors.joining(NL + TAB, TAB, NL));
-
             code.append(instCode);
-        }
+        });
 
-        code.append(".end method\n");
+        // End method declaration
+        code.append(".end method").append(NL);
 
-        // unset method
+        // Reset the current method context
         currentMethod = null;
 
         return code.toString();
