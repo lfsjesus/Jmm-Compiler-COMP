@@ -70,57 +70,46 @@ public class JasminGenerator {
     }
 
 
-    public String generateClassUnit(ClassUnit classUnit) {
+    private String generateClassUnit(ClassUnit classUnit) {
         StringBuilder code = new StringBuilder();
 
         // Class declaration
-        code.append(generateClassDeclaration(classUnit));
+        String accessModifier = classUnit.getClassAccessModifier() != AccessModifier.DEFAULT ?
+                classUnit.getClassAccessModifier().name().toLowerCase() + " " : "";
+        String classModifiers = (classUnit.isStaticClass() ? "static " : "") + (classUnit.isFinalClass() ? "final " : "");
+        String packageName = classUnit.getPackage() != null ? classUnit.getPackage() + '/' : "";
+        String className = packageName + classUnit.getClassName();
 
-        // Class name
-        String className = generateClassName(classUnit);
-        code.append(className).append(System.lineSeparator());
+        code.append(".class ").append(accessModifier).append(classModifiers).append(className).append(NL);
 
         // Superclass
         String superClass = classUnit.getSuperClass() == null ? "java/lang/Object" : classUnit.getSuperClass();
-        code.append(".super ").append(superClass).append(System.lineSeparator()).append(System.lineSeparator());
+        code.append(".super ").append(superClass).append(NL).append(NL);
 
         // Fields
-        classUnit.getFields().forEach(field -> code.append(generateFieldCode(field)).append(System.lineSeparator()));
+        for (var field : classUnit.getFields()) {
+            code.append(generators.apply(field)).append(NL);
+        }
 
         // Default constructor
-        code.append(generateDefaultConstructor(superClass));
+        code.append(NL).append(String.format("""
+            ;default constructor
+            .method public <init>()V
+                aload_0
+                invokespecial %s/<init>()V
+                return
+            .end method
+            """, superClass));
 
-        // Methods, excluding the default constructor
-        classUnit.getMethods().stream()
-                .filter(method -> !method.isConstructMethod())
-                .forEach(method -> code.append(generateMethod(method)));
+        // Methods
+        for (var method : classUnit.getMethods()) {
+            if (!method.isConstructMethod()) { // Exclude constructor
+                code.append(generators.apply(method));
+            }
+        }
 
         return code.toString();
     }
-
-    private String generateClassDeclaration(ClassUnit classUnit) {
-        String accessModifier = classUnit.getClassAccessModifier() != AccessModifier.DEFAULT
-                ? classUnit.getClassAccessModifier().name().toLowerCase() + " "
-                : "";
-        return ".class " + accessModifier
-                + (classUnit.isStaticClass() ? "static " : "")
-                + (classUnit.isFinalClass() ? "final " : "");
-    }
-
-    private String generateClassName(ClassUnit classUnit) {
-        String packageName = classUnit.getPackage();
-        return packageName != null ? packageName + '/' + classUnit.getClassName() : classUnit.getClassName();
-    }
-
-
-    private String generateDefaultConstructor(String superClass) {
-        return ".method public <init>()V\n"
-                + TAB + "aload_0\n"
-                + TAB + "invokespecial " + superClass + "/<init>()V\n"
-                + TAB + "return\n"
-                + ".end method\n\n";
-    }
-
 
 
 
