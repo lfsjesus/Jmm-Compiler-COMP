@@ -10,6 +10,7 @@ import pt.up.fe.specs.util.utilities.StringLines;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -28,6 +29,8 @@ public class JasminGenerator {
 
     String code;
 
+    String className;
+
     Method currentMethod;
 
     private final FunctionClassMap<TreeNode, String> generators;
@@ -38,6 +41,7 @@ public class JasminGenerator {
         reports = new ArrayList<>();
         code = null;
         currentMethod = null;
+        className = "";
 
         this.generators = new FunctionClassMap<>();
         generators.put(ClassUnit.class, this::generateClassUnit);
@@ -48,6 +52,7 @@ public class JasminGenerator {
         generators.put(Operand.class, this::generateOperand);
         generators.put(BinaryOpInstruction.class, this::generateBinaryOp);
         generators.put(ReturnInstruction.class, this::generateReturn);
+
     }
 
     public List<Report> getReports() {
@@ -65,45 +70,44 @@ public class JasminGenerator {
     }
 
 
-    private String generateClassUnit(ClassUnit classUnit) {
+    public String generateClassUnit(ClassUnit classUnit) {
+        StringBuilder code = new StringBuilder();
 
-        var code = new StringBuilder();
+        // Class declaration
+        code.append(generateClassDeclaration(classUnit));
 
-        // generate class name
-        var className = ollirResult.getOllirClass().getClassName();
-        code.append(".class ").append(className).append(NL).append(NL);
+        // Class name
+        String className = generateClassName(classUnit);
+        code.append(className).append(System.lineSeparator());
 
-        // TODO: Hardcoded to Object, needs to be expanded
-        code.append(".super java/lang/Object").append(NL);
+        // Superclass
+        String superClass = classUnit.getSuperClass() == null ? "java/lang/Object" : classUnit.getSuperClass();
+        code.append(".super ").append(superClass).append(System.lineSeparator()).append(System.lineSeparator());
 
+        // Fields
+        classUnit.getFields().forEach(field -> code.append(generateFieldCode(field)).append(System.lineSeparator()));
 
+        // Default constructor
+        code.append(generateDefaultConstructor(superClass));
 
-        // generate a single constructor method
-        var defaultConstructor = """
-                ;default constructor
-                .method public <init>()V
-                    aload_0
-                    invokespecial java/lang/Object/<init>()V
-                    return
-                .end method
-                """;
-        code.append(defaultConstructor);
-
-        // generate code for all other methods
-        for (var method : ollirResult.getOllirClass().getMethods()) {
-
-            // Ignore constructor, since there is always one constructor
-            // that receives no arguments, and has been already added
-            // previously
-            if (method.isConstructMethod()) {
-                continue;
-            }
-
-            code.append(generators.apply(method));
-        }
+        // Methods, excluding the default constructor
+        classUnit.getMethods().stream()
+                .filter(method -> !method.isConstructMethod())
+                .forEach(method -> code.append(generateMethod(method)));
 
         return code.toString();
     }
+
+    private String generateClassDeclaration(ClassUnit classUnit) {
+        String accessModifier = classUnit.getClassAccessModifier() != AccessModifier.DEFAULT
+                ? classUnit.getClassAccessModifier().name().toLowerCase() + " "
+                : "";
+        return ".class " + accessModifier
+                + (classUnit.isStaticClass() ? "static " : "")
+                + (classUnit.isFinalClass() ? "final " : "");
+    }
+
+
 
 
     private String generateMethod(Method method) {
@@ -121,9 +125,8 @@ public class JasminGenerator {
         var methodName = method.getMethodName();
 
         // TODO: Hardcoded param types and return type, needs to be expanded
-        //code.append("\n.method ").append(modifier).append(methodName).append("(I)I").append(NL);
-        for (Element argument : method.getParams())
-            code.append(this.getFieldType(argument.getType()));
+        code.append("\n.method ").append(modifier).append(methodName).append("(I)I").append(NL);
+
         // Add limits
         code.append(TAB).append(".limit stack 99").append(NL);
         code.append(TAB).append(".limit locals 99").append(NL);
@@ -204,45 +207,12 @@ public class JasminGenerator {
         var code = new StringBuilder();
 
         // TODO: Hardcoded to int return type, needs to be expanded
-        if (returnInst.getOperand() != null){
-            code.append(generators.apply(returnInst.getOperand()));
-            code.append("ireturn").append(NL);
 
-        }
-
-        //code.append(generators.apply(returnInst.getOperand()));
-
-        else{
-            code.append("return").append(NL);
-        }
-
+        code.append(generators.apply(returnInst.getOperand()));
+        code.append("ireturn").append(NL);
 
         return code.toString();
     }
 
-    private String getFieldType(Type type) {
-        return switch (type.getTypeOfElement()) {
-            case ARRAYREF -> this.getArrayType(type);
-            case OBJECTREF -> this.getObjectType(type);
-            default -> this.getType(type.getTypeOfElement());
-        };
-    }
-
-    private String getType(ElementType type) {
-        return switch (type) {
-            case INT32 -> "I";
-            case BOOLEAN -> "Z";
-            case VOID -> "V";
-            case STRING -> "Ljava/lang/String;";
-            default -> null;
-        };
-    }
-
-    private String getArrayType(Type type) {
-        return "[" + this.getType(((ArrayType) type).getArrayType());
-    }
-
-    private String getObjectType(Type type) {
-        return "L" + this.getImportedClassName(((ClassType) type).getName()) + ";";
-    }
 }
+
