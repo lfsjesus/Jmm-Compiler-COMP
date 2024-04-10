@@ -53,8 +53,13 @@ public class UndeclaredVariable extends AnalysisVisitor {
             return null;
         }
 
+        // Check if it is an imported class since it is not in the symbol table
+        if (hasImport(varRefName, table)) {
+            return null;
+        }
+
         // Create error report
-        var message = String.format("Variable '%s' does not exist.", varRefName);
+        var message = String.format("Symbol '%s' is not a declared variable nor a imported class", varRefName);
         addReport(Report.newError(
                 Stage.SEMANTIC,
                 NodeUtils.getLine(varRefExpr),

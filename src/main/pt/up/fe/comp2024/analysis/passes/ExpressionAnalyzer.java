@@ -20,7 +20,7 @@ public class ExpressionAnalyzer extends AnalysisVisitor{
         addVisit(Kind.BINARY_EXPR, this::visitBinaryExpr);
         addVisit(Kind.PAREN_EXPR, this::visitParenExpr);
         //addVisit(Kind.NEW_CLASS_OBJ_EXPR, this::visitNewClassObjExpr);
-        //addVisit(Kind.NEW_ARRAY_EXPR, this::visitNewArrayExpr);
+        addVisit(Kind.NEW_ARRAY_EXPR, this::visitNewArrayExpr);
         addVisit(Kind.ARRAY_INIT_EXPR, this::visitArrayInitExpr);
         addVisit(Kind.ARRAY_ACCESS_EXPR, this::visitArrayAccessExpr);
         addVisit(Kind.ARRAY_LENGTH_EXPR, this::visitArrayLengthExpr);
@@ -85,6 +85,29 @@ public class ExpressionAnalyzer extends AnalysisVisitor{
         return null;
     }
 
+    // int[] a;
+    // a = new int[5];
+    private Void visitNewArrayExpr(JmmNode node, SymbolTable table) {
+        JmmNode assign = node.getJmmParent();
+
+        JmmNode varRef = assign.getChildren().get(0);
+
+        JmmNode newExpr = assign.getChildren().get(1);
+
+        String declaredType = getNodeType(varRef, table).getName();
+        String currentType = getNodeType(newExpr, table).getName();
+
+        if (!declaredType.equals(currentType)) {
+            addReport(Report.newError(Stage.SEMANTIC, NodeUtils.getLine(node), NodeUtils.getColumn(node), "Cannot assign array of type " + currentType + " to variable of type " + declaredType, null));
+        }
+
+        // check if children is a integer (number of elements)
+        if (node.getChildren().size() != 1 || !node.getChildren().get(0).isInstance(Kind.INTEGER_LITERAL)) {
+            addReport(Report.newError(Stage.SEMANTIC, NodeUtils.getLine(node), NodeUtils.getColumn(node), "Array must have a size", null));
+        }
+        return null;
+    }
+
     private Void visitArrayInitExpr(JmmNode node, SymbolTable table) {
         // loop through all children and check if they are of the same type
         Type type = null;
@@ -103,6 +126,7 @@ public class ExpressionAnalyzer extends AnalysisVisitor{
     }
 
     public Void visitMethodCallExpr(JmmNode node, SymbolTable table) {
+
         // check import
         if (hasImport(getNodeType(node, table).getName(), table)) {
             return null;
