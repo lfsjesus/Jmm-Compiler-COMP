@@ -264,5 +264,35 @@ public class JasminGenerator {
             default -> "";
         };
     }
+
+    private String generateCallInstruction(CallInstruction callInstruction) {
+        StringBuilder code = new StringBuilder();
+
+        // Append code for each argument
+        callInstruction.getArguments().forEach(operand -> code.append(generators.apply(operand)));
+
+        String callType = callInstruction.getInvocationType().name().toLowerCase();
+        switch (callInstruction.getInvocationType()) {
+            case NEW:
+                // For NEW, append the type and operand name
+                Operand operand = (Operand) callInstruction.getCaller();
+                code.append(callType).append(' ').append(operand.getName()).append(NL);
+                break;
+            default:
+                // For other types, append caller, method class/type, method name, and argument types
+                code.append(generators.apply(callInstruction.getCaller()));
+                String className = ((ClassType) callInstruction.getOperands().get(0).getType()).getName();
+                String methodName = ((LiteralElement) callInstruction.getMethodName()).getLiteral().replace("\"", "");
+
+                code.append(callType.toUpperCase()).append(' ').append(className).append('/').append(methodName)
+                        .append('(').append(callInstruction.getArguments().stream()
+                                .map(arg -> toJvmTypeDescriptor(arg.getType()))
+                                .collect(Collectors.joining()))
+                        .append(')').append(toJvmTypeDescriptor(callInstruction.getReturnType())).append(NL);
+                break;
+        }
+
+        return code.toString();
+    }
 }
 
