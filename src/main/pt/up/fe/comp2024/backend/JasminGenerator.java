@@ -113,6 +113,15 @@ public class JasminGenerator {
     }
 
 
+    private String generateDefaultConstructor(String superClass) {
+        return ".method public <init>()V\n"
+                + TAB + "aload_0\n"
+                + TAB + "invokespecial " + superClass + "/<init>()V\n"
+                + TAB + "return\n"
+                + ".end method\n\n";
+    }
+
+
 
 
     private String generateMethod(Method method) {
