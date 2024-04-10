@@ -185,10 +185,20 @@ public class JasminGenerator {
     }
 
     private String generateOperand(Operand operand) {
-        // get register
+        // Retrieve the virtual register for the operand from the current method's variable table.
         var reg = currentMethod.getVarTable().get(operand.getName()).getVirtualReg();
-        return "iload " + reg + NL;
+
+        // Determine the load instruction based on the operand's type.
+        String loadInstruction = switch (operand.getType().getTypeOfElement()) {
+            case INT32, BOOLEAN -> "iload ";
+            case THIS, OBJECTREF, ARRAYREF, STRING, CLASS -> "aload ";
+            default -> throw new IllegalArgumentException("Unsupported operand type");
+        };
+
+        // Return the load instruction followed by the register number and a newline.
+        return loadInstruction + reg + NL;
     }
+
 
     private String generateBinaryOp(BinaryOpInstruction binaryOp) {
         var code = new StringBuilder();
