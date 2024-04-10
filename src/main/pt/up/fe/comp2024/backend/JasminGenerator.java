@@ -171,7 +171,12 @@ public class JasminGenerator {
         var reg = currentMethod.getVarTable().get(operand.getName()).getVirtualReg();
 
         // TODO: Hardcoded for int type, needs to be expanded
-        code.append("istore ").append(reg).append(NL);
+        String storeInstruction = switch (operand.getType().getTypeOfElement()) {
+            case INT32, BOOLEAN -> "istore ";
+            case OBJECTREF, ARRAYREF, STRING, CLASS -> "astore ";
+            default -> throw new IllegalArgumentException("Unsupported operand type");
+        };
+        code.append(storeInstruction).append(reg).append(NL);
 
         return code.toString();
     }
