@@ -24,7 +24,7 @@ public class ExpressionAnalyzer extends AnalysisVisitor{
         addVisit(Kind.ARRAY_INIT_EXPR, this::visitArrayInitExpr);
         addVisit(Kind.ARRAY_ACCESS_EXPR, this::visitArrayAccessExpr);
         addVisit(Kind.ARRAY_LENGTH_EXPR, this::visitArrayLengthExpr);
-        addVisit(Kind.METHOD_CALL_EXPR, this::visitMethodCallExpr);
+        //addVisit(Kind.METHOD_CALL_EXPR, this::visitMethodCallExpr); // IT IS ENOGUH TO VISIT METHOD CALL
         addVisit(Kind.METHOD_CALL, this::visitMethodCallExpr);
         addVisit(Kind.NOT_EXPR, this::visitNotExpr);
         //addVisit(Kind.TRUE_LITERAL, this::visitTrueLiteral);

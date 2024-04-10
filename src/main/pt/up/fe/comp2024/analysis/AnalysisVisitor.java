@@ -54,7 +54,7 @@ public abstract class AnalysisVisitor extends PreorderJmmVisitor<SymbolTable, Vo
                 String methodName = getMethodName(node);
                 return getVarType(node.get("name"), methodName, table);
             case "ThisLiteral":
-                return new Type(node.get("type"), false);
+                return new Type(table.getClassName(), false);
             case "NewClassObjExpr":
                 return new Type(node.get("name"), false);
             case "NewArrayExpr":
