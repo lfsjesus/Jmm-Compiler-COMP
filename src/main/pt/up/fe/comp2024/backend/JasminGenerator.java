@@ -107,6 +107,11 @@ public class JasminGenerator {
                 + (classUnit.isFinalClass() ? "final " : "");
     }
 
+    private String generateClassName(ClassUnit classUnit) {
+        String packageName = classUnit.getPackage();
+        return packageName != null ? packageName + '/' + classUnit.getClassName() : classUnit.getClassName();
+    }
+
 
 
 
