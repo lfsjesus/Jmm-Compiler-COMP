@@ -210,12 +210,24 @@ public class JasminGenerator {
     }
 
     private String generateReturn(ReturnInstruction returnInst) {
-        var code = new StringBuilder();
+        StringBuilder code = new StringBuilder();
 
-        // TODO: Hardcoded to int return type, needs to be expanded
+        // Append the operand if there is a return value
+        if (returnInst.hasReturnValue()) {
+            code.append(generators.apply(returnInst.getOperand()));
+        }
 
-        code.append(generators.apply(returnInst.getOperand()));
-        code.append("ireturn").append(NL);
+        // Determine the return instruction based on the return type
+        String returnInstruction = switch (returnInst.getElementType()) {
+            case INT32, BOOLEAN -> "ireturn";
+            case OBJECTREF, ARRAYREF, STRING, CLASS -> "areturn";
+            case VOID -> "return";
+            // Include a default case to handle unexpected types safely
+            default -> "return"; // or throw an exception depending on the context
+        };
+
+        // Append the return instruction with a newline
+        code.append(returnInstruction).append(NL);
 
         return code.toString();
     }
