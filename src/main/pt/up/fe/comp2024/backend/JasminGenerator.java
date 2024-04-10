@@ -52,7 +52,10 @@ public class JasminGenerator {
         generators.put(Operand.class, this::generateOperand);
         generators.put(BinaryOpInstruction.class, this::generateBinaryOp);
         generators.put(ReturnInstruction.class, this::generateReturn);
-
+        generators.put(CallInstruction.class, this::generateCallInstruction);
+        generators.put(Field.class, this::generateField);
+        generators.put(GetFieldInstruction.class, this::generateGetFieldInstruction);
+        generators.put(PutFieldInstruction.class, this::generatePutFieldInstruction);
     }
 
     public List<Report> getReports() {
@@ -294,5 +297,67 @@ public class JasminGenerator {
 
         return code.toString();
     }
+
+    private String generateField(Field field) {
+        StringBuilder code = new StringBuilder(".field ");
+
+        // Append access modifier if not default, static and final modifiers
+        String modifier = field.getFieldAccessModifier() != AccessModifier.DEFAULT
+                ? field.getFieldAccessModifier().name().toLowerCase() + " " : "";
+        code.append(modifier)
+                .append(field.isStaticField() ? "static " : "")
+                .append(field.isFinalField() ? "final " : "");
+
+        // Append field name and type descriptor
+        String typeDescriptor = toJvmTypeDescriptor(field.getFieldType());
+        code.append(field.getFieldName()).append(' ').append(typeDescriptor);
+
+        // Append initialization value if present
+        if (field.isInitialized()) {
+            code.append(" = ").append(field.getInitialValue());
+        }
+
+        return code.toString();
+    }
+
+    private String generateGetFieldInstruction(GetFieldInstruction getFieldInstruction) {
+        StringBuilder code = new StringBuilder(generators.apply(getFieldInstruction.getObject()));
+
+        // Prepend the class name for 'this' object reference
+        String fieldReference = Objects.equals(getFieldInstruction.getObject().getName(), "this")
+                ? className + '/'
+                : "";
+        fieldReference += getFieldInstruction.getField().getName();
+
+        // Append the getfield instruction with field reference and type descriptor
+        code.append("getfield ")
+                .append(fieldReference).append(' ')
+                .append(toJvmTypeDescriptor(getFieldInstruction.getField().getType())).append(NL);
+
+        return code.toString();
+    }
+
+    private String generatePutFieldInstruction(PutFieldInstruction putFieldInstruction) {
+        StringBuilder code = new StringBuilder();
+
+        // Generate code for the object and value involved in the putfield instruction
+        code.append(generators.apply(putFieldInstruction.getObject()))
+                .append(generators.apply(putFieldInstruction.getValue()));
+
+        // Determine field reference, prepending class name for 'this' object
+        String fieldReference = Objects.equals(putFieldInstruction.getObject().getName(), "this")
+                ? className + '/'
+                : "";
+        fieldReference += putFieldInstruction.getField().getName();
+
+        // Append the putfield instruction with field reference and type descriptor
+        code.append("putfield ")
+                .append(fieldReference).append(' ')
+                .append(toJvmTypeDescriptor(putFieldInstruction.getField().getType())).append(NL);
+
+        return code.toString();
+    }
+
+
 }
 
