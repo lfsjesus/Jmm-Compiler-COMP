@@ -129,8 +129,8 @@ public class JasminGenerator {
 
         // Append method parameters
         code.append('(');
-        method.getParams().forEach(param -> code.append(generateTypeDescriptor(param.getType())));
-        code.append(')').append(generateTypeDescriptor(method.getReturnType())).append(NL); //generateTypeDescriptor not defined yet
+        method.getParams().forEach(param -> code.append(toJvmTypeDescriptor(param.getType())));
+        code.append(')').append(toJvmTypeDescriptor(method.getReturnType())).append(NL); //generateTypeDescriptor not defined yet
 
         // Add fixed limits for stack and locals
         code.append(TAB).append(".limit stack 99").append(NL)
@@ -220,5 +220,20 @@ public class JasminGenerator {
         return code.toString();
     }
 
+    private String toJvmTypeDescriptor(Type type) {
+        return switch (type.getTypeOfElement()) {
+            case VOID -> "V";
+            case INT32 -> "I";
+            case BOOLEAN -> "Z";
+            case STRING -> "java/lang/String";
+            case CLASS -> ((ClassType) type).getName();
+            case ARRAYREF -> {
+                ArrayType arrayType = (ArrayType) type;
+                String elementTypeDescriptor = toJvmTypeDescriptor(arrayType.getElementType());
+                yield "L".repeat(arrayType.getNumDimensions()) + elementTypeDescriptor + ";";
+            }
+            default -> "";
+        };
+    }
 }
 
