@@ -76,6 +76,7 @@ public class JasminGenerator {
         // TODO: Hardcoded to Object, needs to be expanded
         code.append(".super java/lang/Object").append(NL);
 
+
         // generate a single constructor method
         var defaultConstructor = """
                 ;default constructor
@@ -201,8 +202,9 @@ public class JasminGenerator {
         var code = new StringBuilder();
 
         // TODO: Hardcoded to int return type, needs to be expanded
-
-        code.append(generators.apply(returnInst.getOperand()));
+        if (returnInst.getOperand() != null) {
+            code.append(generators.apply(returnInst.getOperand()));
+        }
         code.append("ireturn").append(NL);
 
         return code.toString();
