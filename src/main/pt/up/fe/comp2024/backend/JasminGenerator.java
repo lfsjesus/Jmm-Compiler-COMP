@@ -52,7 +52,7 @@ public class JasminGenerator {
         generators.put(Operand.class, this::generateOperand);
         generators.put(BinaryOpInstruction.class, this::generateBinaryOp);
         generators.put(ReturnInstruction.class, this::generateReturn);
-        generators.put(CallInstruction.class, this::generateCallInstruction);
+        generators.put(CallInstruction.class, this::generateInstructionForMethodCall);
         generators.put(Field.class, this::generateField);
         generators.put(GetFieldInstruction.class, this::generateGetFieldInstruction);
         generators.put(PutFieldInstruction.class, this::generatePutFieldInstruction);
@@ -72,84 +72,110 @@ public class JasminGenerator {
         return code;
     }
 
-
     private String generateClassUnit(ClassUnit classUnit) {
-        StringBuilder code = new StringBuilder();
 
-        // Class declaration
-        String accessModifier = classUnit.getClassAccessModifier() != AccessModifier.DEFAULT ?
-                classUnit.getClassAccessModifier().name().toLowerCase() + " " : "";
-        String classModifiers = (classUnit.isStaticClass() ? "static " : "") + (classUnit.isFinalClass() ? "final " : "");
-        String packageName = classUnit.getPackage() != null ? classUnit.getPackage() + '/' : "";
-        String className = packageName + classUnit.getClassName();
+        var code = new StringBuilder();
 
-        code.append(".class ").append(accessModifier).append(classModifiers).append(className).append(NL);
+        var classAccessModifier = classUnit.getClassAccessModifier() != AccessModifier.DEFAULT ?
+                classUnit.getClassAccessModifier().name().toLowerCase() + " " :
+                "";
+        code.append(".class ").append(classAccessModifier);
+        if (classUnit.isStaticClass()) {
+            code.append("static ");
+        }
+        if (classUnit.isFinalClass()) {
+            code.append("final ");
+        }
 
-        // Superclass
-        String superClass = classUnit.getSuperClass() == null ? "java/lang/Object" : classUnit.getSuperClass();
-        code.append(".super ").append(superClass).append(NL).append(NL);
+        // generate class name
+        var packageName = classUnit.getPackage();
+        if (packageName != null) {
+            className = packageName + '/';
+        }
+        className += classUnit.getClassName();
+        code.append(className).append(NL);
 
-        // Fields
+        code.append(".super ");
+        var superClass = classUnit.getSuperClass();
+        if (superClass == null) {
+            superClass="java/lang/Object";
+        }
+        code.append(superClass).append(NL).append(NL);
+
         for (var field : classUnit.getFields()) {
             code.append(generators.apply(field)).append(NL);
         }
 
-        // Default constructor
-        code.append(NL).append(String.format("""
-            ;default constructor
-            .method public <init>()V
-                aload_0
-                invokespecial %s/<init>()V
-                return
-            .end method
-            """, superClass));
+        // generate a single constructor method
+        var defaultConstructor = String.format("""
+                ;default constructor
+                .method public <init>()V
+                    aload_0
+                    invokespecial %s/<init>()V
+                    return
+                .end method
+                """, superClass);
+        code.append(NL).append(defaultConstructor);
 
-        // Methods
+        // generate code for all other methods
         for (var method : classUnit.getMethods()) {
-            if (!method.isConstructMethod()) { // Exclude constructor
-                code.append(generators.apply(method));
+
+            // Ignore constructor, since there is always one constructor
+            // that receives no arguments, and has been already added
+            // previously
+            if (method.isConstructMethod()) {
+                continue;
             }
+
+            code.append(generators.apply(method));
         }
 
         return code.toString();
     }
 
-
-
     private String generateMethod(Method method) {
-        // Set the current method context
+
+        // set method
         currentMethod = method;
 
-        StringBuilder code = new StringBuilder();
+        var code = new StringBuilder();
 
-        // Construct method declaration
-        String modifier = method.getMethodAccessModifier() != AccessModifier.DEFAULT ?
-                method.getMethodAccessModifier().name().toLowerCase() + " " : "";
-        code.append(NL).append(".method ").append(modifier)
-                .append(method.isStaticMethod() ? "static " : "")
-                .append(method.isFinalMethod() ? "final " : "")
-                .append(method.getMethodName());
+        // calculate modifier
+        var modifier = method.getMethodAccessModifier() != AccessModifier.DEFAULT ?
+                method.getMethodAccessModifier().name().toLowerCase() + " " :
+                "";
+        code.append(NL).append(".method ").append(modifier);
+        if (method.isStaticMethod()) {
+            code.append("static ");
+        }
+        if (method.isFinalMethod()) {
+            code.append("final ");
+        }
 
-        // Append method parameters
+        var methodName = method.getMethodName();
+        code.append(methodName);
+
         code.append('(');
-        method.getParams().forEach(param -> code.append(toJvmTypeDescriptor(param.getType())));
-        code.append(')').append(toJvmTypeDescriptor(method.getReturnType())).append(NL); //generateTypeDescriptor not defined yet
+        for (var param : method.getParams()) {
+            code.append(toJvmTypeDescriptor(param.getType()));
+        }
+        var returnType = method.getReturnType();
+        code.append(')').append(toJvmTypeDescriptor(returnType)).append(NL);
 
-        // Add fixed limits for stack and locals
-        code.append(TAB).append(".limit stack 99").append(NL)
-                .append(TAB).append(".limit locals 99").append(NL);
+        // Add limits
+        code.append(TAB).append(".limit stack 99").append(NL);
+        code.append(TAB).append(".limit locals 99").append(NL);
 
-        // Process instructions
-        method.getInstructions().forEach(inst -> {
-            String instCode = StringLines.getLines(generators.apply(inst)).stream()
+        for (var inst : method.getInstructions()) {
+            var instCode = StringLines.getLines(generators.apply(inst)).stream()
                     .collect(Collectors.joining(NL + TAB, TAB, NL));
-            code.append(instCode);
-        });
 
-        // End method declaration
+            code.append(instCode);
+        }
+
         code.append(".end method").append(NL);
 
-        // Reset the current method context
+        // unset method
         currentMethod = null;
 
         return code.toString();
@@ -193,20 +219,15 @@ public class JasminGenerator {
     }
 
     private String generateOperand(Operand operand) {
-        // Retrieve the virtual register for the operand from the current method's variable table.
+        // get register
         var reg = currentMethod.getVarTable().get(operand.getName()).getVirtualReg();
 
-        // Determine the load instruction based on the operand's type.
-        String loadInstruction = switch (operand.getType().getTypeOfElement()) {
-            case INT32, BOOLEAN -> "iload ";
-            case THIS, OBJECTREF, ARRAYREF, STRING, CLASS -> "aload ";
-            default -> throw new IllegalArgumentException("Unsupported operand type");
+        return switch (operand.getType().getTypeOfElement()) {
+            case INT32, BOOLEAN -> "iload " + reg + NL;
+            case THIS, OBJECTREF, ARRAYREF, STRING, CLASS -> "aload " + reg + NL;
+            default -> "";
         };
-
-        // Return the load instruction followed by the register number and a newline.
-        return loadInstruction + reg + NL;
     }
-
 
     private String generateBinaryOp(BinaryOpInstruction binaryOp) {
         var code = new StringBuilder();
@@ -218,8 +239,8 @@ public class JasminGenerator {
         // apply operation
         var op = switch (binaryOp.getOperation().getOpType()) {
             case ADD -> "iadd";
-            case MUL -> "imul";
             case SUB -> "isub";
+            case MUL -> "imul";
             case DIV -> "idiv";
             default -> throw new NotImplementedException(binaryOp.getOperation().getOpType());
         };
@@ -259,105 +280,99 @@ public class JasminGenerator {
             case BOOLEAN -> "Z";
             case STRING -> "java/lang/String";
             case CLASS -> ((ClassType) type).getName();
-            case ARRAYREF -> {
-                ArrayType arrayType = (ArrayType) type;
-                String elementTypeDescriptor = toJvmTypeDescriptor(arrayType.getElementType());
-                yield "L".repeat(arrayType.getNumDimensions()) + elementTypeDescriptor + ";";
-            }
+            case ARRAYREF -> generateArrayTypeDescriptor((ArrayType) type);
             default -> "";
         };
     }
 
-    private String generateCallInstruction(CallInstruction callInstruction) {
-        StringBuilder code = new StringBuilder();
-
-        // Append code for each argument
-        callInstruction.getArguments().forEach(operand -> code.append(generators.apply(operand)));
-
-        String callType = callInstruction.getInvocationType().name().toLowerCase();
-        switch (callInstruction.getInvocationType()) {
-            case NEW:
-                // For NEW, append the type and operand name
-                Operand operand = (Operand) callInstruction.getCaller();
-                code.append(callType).append(' ').append(operand.getName()).append(NL);
-                break;
-            default:
-                // For other types, append caller, method class/type, method name, and argument types
-                code.append(generators.apply(callInstruction.getCaller()));
-                String className = ((ClassType) callInstruction.getOperands().get(0).getType()).getName();
-                String methodName = ((LiteralElement) callInstruction.getMethodName()).getLiteral().replace("\"", "");
-
-                code.append(callType.toUpperCase()).append(' ').append(className).append('/').append(methodName)
-                        .append('(').append(callInstruction.getArguments().stream()
-                                .map(arg -> toJvmTypeDescriptor(arg.getType()))
-                                .collect(Collectors.joining()))
-                        .append(')').append(toJvmTypeDescriptor(callInstruction.getReturnType())).append(NL);
-                break;
-        }
-
-        return code.toString();
+    private String generateArrayTypeDescriptor(ArrayType arrayType) {
+        String dimensions = "[".repeat(arrayType.getNumDimensions());
+        String elementTypeDescriptor = toJvmTypeDescriptor(arrayType.getElementType());
+        // If elementTypeDescriptor starts with 'L' or '[', it's an object or another array;
+        // Otherwise, it's a primitive type and doesn't need 'L' and ';' around it.
+        return dimensions + (elementTypeDescriptor.startsWith("L") || elementTypeDescriptor.startsWith("[") ? "" : "L")
+                + elementTypeDescriptor + (elementTypeDescriptor.startsWith("L") || elementTypeDescriptor.startsWith("[") ? "" : ";");
     }
 
     private String generateField(Field field) {
-        StringBuilder code = new StringBuilder(".field ");
-
-        // Append access modifier if not default, static and final modifiers
         String modifier = field.getFieldAccessModifier() != AccessModifier.DEFAULT
                 ? field.getFieldAccessModifier().name().toLowerCase() + " " : "";
-        code.append(modifier)
-                .append(field.isStaticField() ? "static " : "")
-                .append(field.isFinalField() ? "final " : "");
-
-        // Append field name and type descriptor
+        String modifiers = modifier + (field.isStaticField() ? "static " : "") + (field.isFinalField() ? "final " : "");
         String typeDescriptor = toJvmTypeDescriptor(field.getFieldType());
-        code.append(field.getFieldName()).append(' ').append(typeDescriptor);
+        String initialValue = field.isInitialized() ? " = " + field.getInitialValue() : "";
 
-        // Append initialization value if present
-        if (field.isInitialized()) {
-            code.append(" = ").append(field.getInitialValue());
-        }
-
-        return code.toString();
+        return ".field " + modifiers + field.getFieldName() + ' ' + typeDescriptor + initialValue + "\n";
     }
 
     private String generateGetFieldInstruction(GetFieldInstruction getFieldInstruction) {
-        StringBuilder code = new StringBuilder(generators.apply(getFieldInstruction.getObject()));
+        String objectCode = generators.apply(getFieldInstruction.getObject());
+        String fieldRef = getFieldReference(getFieldInstruction.getObject(), getFieldInstruction.getField());
+        String fieldTypeDescriptor = toJvmTypeDescriptor(getFieldInstruction.getField().getType());
 
-        // Prepend the class name for 'this' object reference
-        String fieldReference = Objects.equals(getFieldInstruction.getObject().getName(), "this")
-                ? className + '/'
-                : "";
-        fieldReference += getFieldInstruction.getField().getName();
-
-        // Append the getfield instruction with field reference and type descriptor
-        code.append("getfield ")
-                .append(fieldReference).append(' ')
-                .append(toJvmTypeDescriptor(getFieldInstruction.getField().getType())).append(NL);
-
-        return code.toString();
+        return objectCode + "getfield " + fieldRef + ' ' + fieldTypeDescriptor + "\n";
     }
 
     private String generatePutFieldInstruction(PutFieldInstruction putFieldInstruction) {
+        String objectCode = generators.apply(putFieldInstruction.getObject());
+        String valueCode = generators.apply(putFieldInstruction.getValue());
+        String fieldRef = getFieldReference(putFieldInstruction.getObject(), putFieldInstruction.getField());
+        String fieldTypeDescriptor = toJvmTypeDescriptor(putFieldInstruction.getField().getType());
+
+        return objectCode + valueCode + "putfield " + fieldRef + ' ' + fieldTypeDescriptor + "\n";
+    }
+
+    private String getFieldReference(Operand object, Operand field) {
+        return (Objects.equals(object.getName(), "this") ? className + '/' : "") + field.getName();
+    }
+
+
+    private String generateInstructionForMethodCall(CallInstruction callInstruction) {
         StringBuilder code = new StringBuilder();
 
-        // Generate code for the object and value involved in the putfield instruction
-        code.append(generators.apply(putFieldInstruction.getObject()))
-                .append(generators.apply(putFieldInstruction.getValue()));
+        // Append arguments
+        callInstruction.getArguments().forEach(arg -> code.append(generators.apply(arg)));
 
-        // Determine field reference, prepending class name for 'this' object
-        String fieldReference = Objects.equals(putFieldInstruction.getObject().getName(), "this")
-                ? className + '/'
-                : "";
-        fieldReference += putFieldInstruction.getField().getName();
+        // Handle the "new" call type separately
+        if (callInstruction.getInvocationType() == CallType.NEW) {
+            return handleNewCallType(code, callInstruction);
+        }
 
-        // Append the putfield instruction with field reference and type descriptor
-        code.append("putfield ")
-                .append(fieldReference).append(' ')
-                .append(toJvmTypeDescriptor(putFieldInstruction.getField().getType())).append(NL);
+        // Handle other call types
+        return handleOtherCallTypes(code, callInstruction);
+    }
 
+    private String handleNewCallType(StringBuilder code, CallInstruction callInstruction) {
+        code.append("new ")
+                .append(((Operand) callInstruction.getCaller()).getName())
+                .append(NL);
         return code.toString();
+    }
+
+    private String handleOtherCallTypes(StringBuilder code, CallInstruction callInstruction) {
+        code.append(generators.apply(callInstruction.getCaller()))
+                .append(callInstruction.getInvocationType().name()).append(' ')
+                .append(getClassAndMethodName(callInstruction));
+
+        // Append method signature
+        String methodSignature = callInstruction.getArguments().stream()
+                .map(arg -> toJvmTypeDescriptor(arg.getType()))
+                .collect(Collectors.joining("", "(", ")"))
+                + toJvmTypeDescriptor(callInstruction.getReturnType());
+
+        code.append(methodSignature).append(NL);
+        return code.toString();
+    }
+
+    private String getClassAndMethodName(CallInstruction callInstruction) {
+        String className = ((ClassType) callInstruction.getOperands().get(0).getType()).getName();
+        String methodName = ((LiteralElement) callInstruction.getMethodName()).getLiteral().replace("\"", "");
+        return className + '/' + methodName;
     }
 
 
 }
+
+
+
+
 
