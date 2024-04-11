@@ -25,7 +25,7 @@ public class ExpressionAnalyzer extends AnalysisVisitor{
         addVisit(Kind.ARRAY_ACCESS_EXPR, this::visitArrayAccessExpr);
         addVisit(Kind.ARRAY_LENGTH_EXPR, this::visitArrayLengthExpr);
         addVisit(Kind.METHOD_CALL_EXPR, this::visitMethodCallExpr);
-        addVisit(Kind.METHOD_CALL, this::visitMethodCallExpr);
+        //addVisit(Kind.METHOD_CALL, this::visitMethodCallExpr);
         addVisit(Kind.NOT_EXPR, this::visitNotExpr);
         //addVisit(Kind.TRUE_LITERAL, this::visitTrueLiteral);
         //addVisit(Kind.FALSE_LITERAL, this::visitFalseLiteral);
@@ -133,7 +133,7 @@ public class ExpressionAnalyzer extends AnalysisVisitor{
         // check if parameters types are correct
         List<Symbol> parameters = table.getParameters(methodName);
         // get passed arguments
-        List<JmmNode> arguments = node.getChildren();
+        List<JmmNode> arguments = node.getChildren(Kind.METHOD_CALL).get(0).getChildren();
 
         boolean varargs = (parameters.size() < arguments.size() && parameters.get(parameters.size() - 1).getType().isArray());
         varargs = varargs || (parameters.size() == arguments.size() && parameters.get(parameters.size() - 1).getType().isArray());
