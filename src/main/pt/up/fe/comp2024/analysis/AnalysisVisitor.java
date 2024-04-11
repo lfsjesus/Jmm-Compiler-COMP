@@ -54,11 +54,11 @@ public abstract class AnalysisVisitor extends PreorderJmmVisitor<SymbolTable, Vo
                 String methodName = getMethodName(node);
                 return getVarType(node.get("name"), methodName, table);
             case "ThisLiteral":
-                return new Type(node.get("type"), false);
+                return new Type(table.getClassName(), false);
             case "NewClassObjExpr":
                 return new Type(node.get("name"), false);
             case "NewArrayExpr":
-                return new Type(node.get("type"), false);
+                return new Type(node.get("name"), true);
             case "ArrayInitExpr":
                 return new Type(getNodeType(node.getChildren().get(0), table).getName(), true);
             case "ArrayAccessExpr":
@@ -174,7 +174,7 @@ public abstract class AnalysisVisitor extends PreorderJmmVisitor<SymbolTable, Vo
             }
         }
 
-        return new Type("Unknown", false);
+        return new Type(varName, false);
     }
 
     public boolean hasImport(String className, SymbolTable table) {
