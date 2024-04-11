@@ -1,8 +1,11 @@
 package pt.up.fe.comp2024.ast;
 
+import pt.up.fe.comp.jmm.analysis.table.Symbol;
 import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
 import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.JmmNode;
+
+import java.util.List;
 
 public class TypeUtils {
 
@@ -52,6 +55,42 @@ public class TypeUtils {
 
 
         return new Type(INT_TYPE_NAME, false);
+    }
+
+    public static Type getVarType(String varName, String methodName, SymbolTable table) {
+        List<Symbol> args = table.getParameters(methodName);
+        List<Symbol> locals = table.getLocalVariables(methodName);
+        List<Symbol> globals = table.getFields();
+        List<String> imports = table.getImports();
+        String extendsClass = table.getSuper();
+
+        if (imports.contains(varName)) {
+            return new Type(varName, false);
+        }
+
+        if (extendsClass != null && extendsClass.equals(varName)) {
+            return new Type(varName, false);
+        }
+
+        for (Symbol arg : args) {
+            if (arg.getName().equals(varName)) {
+                return arg.getType();
+            }
+        }
+
+        for (Symbol local : locals) {
+            if (local.getName().equals(varName)) {
+                return local.getType();
+            }
+        }
+
+        for (Symbol global : globals) {
+            if (global.getName().equals(varName)) {
+                return global.getType();
+            }
+        }
+
+        return new Type("Unknown", false);
     }
 
     public static String getMethodName(JmmNode node) {

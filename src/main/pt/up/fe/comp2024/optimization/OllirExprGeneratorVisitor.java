@@ -72,7 +72,8 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
     private OllirExprResult visitVarRef(JmmNode node, Void unused) {
 
         var id = node.get("name");
-        Type type = TypeUtils.getExprType(node, table);
+        String methodName = TypeUtils.getMethodName(node);
+        Type type = TypeUtils.getVarType(id, methodName, table);
         String ollirType = OptUtils.toOllirType(type);
 
         String code = id + ollirType;
