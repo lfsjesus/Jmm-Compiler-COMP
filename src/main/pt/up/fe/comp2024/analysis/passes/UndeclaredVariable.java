@@ -68,7 +68,7 @@ public class UndeclaredVariable extends AnalysisVisitor {
                 null)
         );
 
-        throw new RuntimeException(); // TO TEST. REMOVE THIS.
+        return null;
 
 
     }
