@@ -28,6 +28,7 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         addVisit(VAR_REF_EXPR, this::visitVarRef);
         addVisit(BINARY_EXPR, this::visitBinExpr);
         addVisit(INTEGER_LITERAL, this::visitInteger);
+        addVisit(METHOD_CALL, this::visitMethodCall);
 
         setDefaultVisit(this::defaultVisit);
     }
@@ -77,6 +78,16 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         String ollirType = OptUtils.toOllirType(type);
 
         String code = id + ollirType;
+
+        return new OllirExprResult(code);
+    }
+
+    private OllirExprResult visitMethodCall(JmmNode node, Void unused) {
+        var methodName = node.get("name");
+        var methodType = table.getReturnType(methodName);
+        var ollirType = OptUtils.toOllirType(methodType);
+
+        var code = methodName + ollirType;
 
         return new OllirExprResult(code);
     }
