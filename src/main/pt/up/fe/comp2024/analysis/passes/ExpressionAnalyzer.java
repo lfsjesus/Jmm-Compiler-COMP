@@ -127,6 +127,10 @@ public class ExpressionAnalyzer extends AnalysisVisitor{
 
     public Void visitMethodCallExpr(JmmNode node, SymbolTable table) {
 
+        // MAY BE THIS IS NOT THE BEST WAY
+        if (getNodeType(node, table) == null) {
+            return null;
+        }
         // check import
         if (hasImport(getNodeType(node, table).getName(), table)) {
             return null;

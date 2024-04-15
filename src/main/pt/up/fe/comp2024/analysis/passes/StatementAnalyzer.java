@@ -9,6 +9,9 @@ import pt.up.fe.comp2024.ast.Kind;
 import pt.up.fe.comp2024.ast.NodeUtils;
 import pt.up.fe.specs.util.SpecsCheck;
 
+import java.util.Arrays;
+import java.util.List;
+
 public class StatementAnalyzer extends AnalysisVisitor{
     private String currentMethod;
 
@@ -88,7 +91,18 @@ public class StatementAnalyzer extends AnalysisVisitor{
         Type leftType = getNodeType(left, table);
         Type rightType = getNodeType(right, table);
 
+        if (leftType == null || rightType == null) {
+            addReport(Report.newError(Stage.SEMANTIC, NodeUtils.getLine(node), NodeUtils.getColumn(node), "Incompatible types in assignment", null));
+            return null;
+        }
+
         if (hasImport(leftType.getName(), table) && hasImport(rightType.getName(), table)) {
+            return null;
+        }
+
+        List<Kind> primitiveTypes = Arrays.asList(Kind.INT_TYPE, Kind.BOOLEAN_TYPE, Kind.VOID_TYPE);
+
+        if (primitiveTypes.contains(left.getKind()) || hasImport(rightType.getName(), table)) { // we don't know what rightType is, if it's import, accept it
             return null;
         }
 

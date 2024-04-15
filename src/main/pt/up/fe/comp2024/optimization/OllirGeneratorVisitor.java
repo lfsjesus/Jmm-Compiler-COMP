@@ -220,6 +220,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
             code.append(table.getSuper());
         }
 
+
         code.append(L_BRACKET);
 
         code.append(NL);
