@@ -6,6 +6,8 @@ import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp.jmm.ast.PreorderJmmVisitor;
 import pt.up.fe.comp2024.ast.TypeUtils;
 
+import java.util.List;
+
 import static pt.up.fe.comp2024.ast.Kind.*;
 
 /**
@@ -28,8 +30,9 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         addVisit(VAR_REF_EXPR, this::visitVarRef);
         addVisit(BINARY_EXPR, this::visitBinExpr);
         addVisit(INTEGER_LITERAL, this::visitInteger);
-        addVisit(METHOD_CALL, this::visitMethodCall);
+        addVisit(METHOD_CALL_EXPR, this::visitMethodCallExpr);
 
+        addVisit(NEW_CLASS_OBJ_EXPR, this::visitNewClassObjExpr);
         setDefaultVisit(this::defaultVisit);
     }
 
@@ -43,9 +46,11 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
 
 
     private OllirExprResult visitBinExpr(JmmNode node, Void unused) {
+        JmmNode left = node.getJmmChild(0);
+        JmmNode right = node.getJmmChild(1);
 
-        var lhs = visit(node.getJmmChild(0));
-        var rhs = visit(node.getJmmChild(1));
+        var lhs = visit(left);
+        var rhs = visit(right);
 
         StringBuilder computation = new StringBuilder();
 
@@ -58,6 +63,7 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         String resOllirType = OptUtils.toOllirType(resType);
         String code = OptUtils.getTemp() + resOllirType;
 
+
         computation.append(code).append(SPACE)
                 .append(ASSIGN).append(resOllirType).append(SPACE)
                 .append(lhs.getCode()).append(SPACE);
@@ -65,6 +71,10 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         Type type = TypeUtils.getExprType(node, table);
         computation.append(node.get("op")).append(OptUtils.toOllirType(type)).append(SPACE)
                 .append(rhs.getCode()).append(END_STMT);
+
+
+
+
 
         return new OllirExprResult(code, computation);
     }
@@ -108,4 +118,137 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         return OllirExprResult.EMPTY;
     }
 
+    private OllirExprResult visitMethodCallExpr(JmmNode node, Void unused) {
+        StringBuilder code = new StringBuilder();
+        StringBuilder computation = new StringBuilder();
+
+        JmmNode caller = node.getJmmChild(0); // where method is being called
+        JmmNode methodCall = node.getJmmChild(1); // method being called
+        String methodName = methodCall.get("name");
+
+        if (methodName.equals("println")) {
+            System.out.println("println");
+        }
+        List<JmmNode> params = methodCall.getChildren();
+
+        /*
+        supposing int a;
+        a = 1;
+        io.println(a);
+
+        we need to generate the following code:
+        invokestatic(io, "println", a.i32).V;
+            */
+        String invokeType = getInvokeType(methodCall);
+
+        code.append(invokeType);
+        code.append("(");
+
+
+        //code.append(caller.get("name"));
+        switch (invokeType) {
+            case "invokestatic":
+                code.append(caller.get("name"));
+                break;
+            case "invokespecial":
+                code.append("this");
+                break;
+            case "invokevirtual":
+                code.append(caller.get("name"));
+                code.append(".");
+
+                Type type = TypeUtils.getExprType(caller, table);
+
+                code.append(type.getName());
+
+
+                break;
+        }
+
+        code.append(", \"");
+        code.append(methodName);
+        code.append("\"");
+
+        for (JmmNode param : params) {
+            code.append(", ");
+            code.append(visit(param).getCode()); // invokestatic(io, "println", a.i32, b.i32).V; -> a.i32, b.i32
+        }
+
+        JmmNode parent = node.getJmmParent();
+        Type thisType = null;
+        String temp = "";
+        boolean needTemp = false;
+        if (parent.isInstance(BINARY_EXPR)) {
+            needTemp = true;
+            JmmNode assignStmt = parent.getJmmParent();
+            if (assignStmt != null) {
+                thisType = TypeUtils.getExprType(assignStmt.getJmmChild(0), table);
+                code.append(")");
+                code.append(OptUtils.toOllirType(thisType));
+            }
+        }
+        else if (parent.isInstance(ASSIGN_STMT)) {
+            needTemp = true;
+            thisType = TypeUtils.getExprType(parent.getJmmChild(0), table);
+            code.append(")");
+            code.append(OptUtils.toOllirType(thisType));
+        }
+        else {
+            thisType = new Type("void", false);
+            code.append(")");
+            code.append(OptUtils.toOllirType(thisType));
+        }
+
+        if (!needTemp) {
+            code.append(END_STMT);
+            return new OllirExprResult(code.toString());
+        }
+
+        temp = OptUtils.getTemp() + OptUtils.toOllirType(thisType);
+        computation.append(temp).append(SPACE).append(ASSIGN).append(OptUtils.toOllirType(thisType)).append(SPACE).append(code).append(END_STMT);
+        return new OllirExprResult(temp + OptUtils.toOllirType(thisType), computation);
+    }
+
+    private String getInvokeType(JmmNode node) {
+        // if call on object of current class -> invokespecial
+        // if call on object of imported class -> invokestatic
+        // if call on object where method is defined in current class -> invokevirtual
+        if (node.get("name").equals("println")) {
+            System.out.println("io");
+        }
+        if (table.getMethods().contains(node.get("name"))) {
+            return "invokevirtual";
+        }
+
+        else if (table.getImports().contains("[" + node.getJmmParent().getChild(0).get("name")+ "]")) { // MAKE THIS BETTER
+            return "invokestatic";
+        }
+
+        return "invokespecial";
+    }
+
+    private OllirExprResult visitNewClassObjExpr(JmmNode node, Void unused) {
+        StringBuilder code = new StringBuilder();
+        StringBuilder computation = new StringBuilder();
+
+        String className = node.get("name");
+        code.append("new(");
+        code.append(className);
+        code.append(").");
+        code.append(className);
+
+        String type = OptUtils.toOllirType(new Type(className, false));
+
+        String temp = OptUtils.getTemp() + type;
+
+        computation.append(temp).append(SPACE).append(ASSIGN).append(type).append(SPACE).append(code).append(END_STMT);
+
+        // constructor: invokeespecial(tmp.CLASS, "").V;
+        String constructor = "invokespecial(" + temp + ", \"\").V;\n";
+
+        computation.append(constructor);
+
+        return new OllirExprResult(temp, computation);
+
+    }
 }

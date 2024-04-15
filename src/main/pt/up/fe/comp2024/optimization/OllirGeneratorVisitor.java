@@ -44,12 +44,11 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         addVisit(METHOD_RETURN, this::visitReturn);
         //addVisit(RETURN_STMT, this::visitReturn);
         addVisit(ASSIGN_STMT, this::visitAssignStmt);
-        addVisit(METHOD_CALL_EXPR, this::visitMethodCallExpr);
+
 
 
         setDefaultVisit(this::defaultVisit);
     }
-
 
     private String visitAssignStmt(JmmNode node, Void unused) {
 
@@ -134,6 +133,13 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
         // name
         var name = node.get("name");
+
+        /*
+        if (name.equals("main")) {
+            System.out.printf("HERE");
+        }
+
+         */
         code.append(name);
 
         // param
@@ -159,10 +165,14 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         var stop = (retType.equals(".V")) ? node.getNumChildren() : node.getNumChildren() - 1;
         for (int i = afterParam; i < stop; i++) {
             var child = node.getJmmChild(i);
+            String childCode = null;
             if (child.isInstance(EXPR_STMT)) {
                 child = child.getJmmChild(0);
+                childCode = exprVisitor.visit(child).getCode();
             }
-            var childCode = visit(child);
+            else {
+                childCode = visit(child);
+            }
             code.append(childCode);
         }
 
@@ -245,43 +255,6 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
                 "}\n";
     }
 
-    private String visitMethodCallExpr(JmmNode node, Void unused) {
-        StringBuilder code = new StringBuilder();
-        JmmNode caller = node.getJmmChild(0); // where method is being called
-        JmmNode methodCall = node.getJmmChild(1); // method being called
-        String methodName = methodCall.get("name");
-
-        List<JmmNode> params = methodCall.getChildren();
-
-        /*
-        supposing int a;
-        a = 1;
-        io.println(a);
-
-        we need to generate the following code:
-        invokestatic(io, "println", a.i32).V;
-            */
-
-        code.append("invokestatic(");
-        code.append(caller.get("name"));
-        code.append(", \"");
-        code.append(methodName);
-        code.append("\"");
-
-        for (JmmNode param : params) {
-            code.append(", ");
-            code.append(exprVisitor.visit(param).getCode());
-        }
-
-        code.append(").V;\n");
-
-
-
-
-
-        return code.toString();
-    }
-
 
     private String visitProgram(JmmNode node, Void unused) {
 
@@ -293,6 +266,8 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
         return code.toString();
     }
+
+
 
     /**
      * Default visitor. Visits every child node and return an empty string.
@@ -309,4 +284,6 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
         return "";
     }
+
+
 }

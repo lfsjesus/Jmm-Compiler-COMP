@@ -63,7 +63,9 @@ public class OptUtils {
             case "boolean" -> "bool";
             case "void" -> "V";
             case "String[]" -> "array.String";
-            default -> throw new NotImplementedException(typeName);
+            // else, it's .class
+
+            default -> typeName;
         };
 
         return type;

@@ -27,14 +27,13 @@ public class TypeUtils {
 
         var kind = Kind.fromString(expr.getKind());
 
-        Type type = switch (kind) {
+        return switch (kind) {
             case BINARY_EXPR -> getBinExprType(expr);
-            case VAR_REF_EXPR -> getVarExprType(expr, table);
+            case VAR_REF_EXPR -> getVarType(expr.get("name"), getMethodName(expr), table);
+            case THIS_LITERAL -> new Type(table.getClassName(), false); // IS THIS RIGHT??
             case INTEGER_LITERAL -> new Type(INT_TYPE_NAME, false);
             default -> throw new UnsupportedOperationException("Can't compute type for expression kind '" + kind + "'");
         };
-
-        return type;
     }
 
     private static Type getBinExprType(JmmNode binaryExpr) {
@@ -62,6 +61,7 @@ public class TypeUtils {
         List<Symbol> locals = table.getLocalVariables(methodName);
         List<Symbol> globals = table.getFields();
         List<String> imports = table.getImports();
+        String className = table.getClassName();
         String extendsClass = table.getSuper();
 
         if (imports.contains(varName)) {
@@ -69,6 +69,10 @@ public class TypeUtils {
         }
 
         if (extendsClass != null && extendsClass.equals(varName)) {
+            return new Type(varName, false);
+        }
+
+        if (className.equals(varName)) {
             return new Type(varName, false);
         }
 

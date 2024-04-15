@@ -158,18 +158,20 @@ public class ExpressionAnalyzer extends AnalysisVisitor{
         List<Symbol> parameters = table.getParameters(methodName);
         // get passed arguments
         List<JmmNode> arguments = node.getChildren(Kind.METHOD_CALL).get(0).getChildren();
+        boolean varargs = false;
+        if (!parameters.isEmpty()) {
+            varargs = (parameters.size() < arguments.size() && parameters.get(parameters.size() - 1).getType().isArray());
+            varargs = varargs || (parameters.size() == arguments.size() && parameters.get(parameters.size() - 1).getType().isArray());
 
-        boolean varargs = (parameters.size() < arguments.size() && parameters.get(parameters.size() - 1).getType().isArray());
-        varargs = varargs || (parameters.size() == arguments.size() && parameters.get(parameters.size() - 1).getType().isArray());
-
-        // check if varargs
-        if (parameters.size() > arguments.size() && !varargs) {
-            addReport(Report.newError(Stage.SEMANTIC, NodeUtils.getLine(node), NodeUtils.getColumn(node), "Method " + methodName + " has wrong number of arguments", null));
-            return null;
-        }
-        else if (parameters.size() < arguments.size() && !varargs) {
-            addReport(Report.newError(Stage.SEMANTIC, NodeUtils.getLine(node), NodeUtils.getColumn(node), "Method " + methodName + " has wrong number of arguments", null));
-            return null;
+            // check if varargs
+            if (parameters.size() > arguments.size() && !varargs) {
+                addReport(Report.newError(Stage.SEMANTIC, NodeUtils.getLine(node), NodeUtils.getColumn(node), "Method " + methodName + " has wrong number of arguments", null));
+                return null;
+            }
+            else if (parameters.size() < arguments.size() && !varargs) {
+                addReport(Report.newError(Stage.SEMANTIC, NodeUtils.getLine(node), NodeUtils.getColumn(node), "Method " + methodName + " has wrong number of arguments", null));
+                return null;
+            }
         }
 
         // check types
