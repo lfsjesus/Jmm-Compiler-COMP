@@ -11,6 +11,6 @@ class CompileArithmetic {
         a = 1;
         b = 2;
 
-        return a + b + b;
+        return a + b;
     }
 }
