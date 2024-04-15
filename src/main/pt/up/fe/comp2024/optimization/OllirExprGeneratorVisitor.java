@@ -72,10 +72,6 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         computation.append(node.get("op")).append(OptUtils.toOllirType(type)).append(SPACE)
                 .append(rhs.getCode()).append(END_STMT);
 
-
-
-
-
         return new OllirExprResult(code, computation);
     }
 
@@ -126,9 +122,6 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         JmmNode methodCall = node.getJmmChild(1); // method being called
         String methodName = methodCall.get("name");
 
-        if (methodName.equals("println")) {
-            System.out.println("println");
-        }
         List<JmmNode> params = methodCall.getChildren();
 
         /*
@@ -186,6 +179,7 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
                 code.append(")");
                 code.append(OptUtils.toOllirType(thisType));
             }
+            // HANDLE OTHER CASES SUCH AS RETURN STMT
         }
         else if (parent.isInstance(ASSIGN_STMT)) {
             needTemp = true;
@@ -206,7 +200,7 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
 
         temp = OptUtils.getTemp() + OptUtils.toOllirType(thisType);
         computation.append(temp).append(SPACE).append(ASSIGN).append(OptUtils.toOllirType(thisType)).append(SPACE).append(code).append(END_STMT);
-        return new OllirExprResult(temp + OptUtils.toOllirType(thisType), computation);
+        return new OllirExprResult(temp, computation);
     }
 
     private String getInvokeType(JmmNode node) {

@@ -13,6 +13,8 @@ public class AppTest {
     @Test
     public void testHelloWorld() {
         var code = SpecsIo.getResource("pt/up/fe/comp/cp2/apps/HelloWorld.jmm");
+        var ollirResult = TestUtils.optimize(code, Collections.emptyMap());
+        System.out.println(ollirResult.getOllirCode());
         var jasminResult = TestUtils.backend(code, Collections.emptyMap());
         System.out.println(jasminResult.getJasminCode());
         var result = TestUtils.runJasmin(jasminResult.getJasminCode(), Collections.emptyMap());
@@ -22,6 +24,8 @@ public class AppTest {
     @Test
     public void testSimple() {
         var code = SpecsIo.getResource("pt/up/fe/comp/cp2/apps/Simple.jmm");
+        var ollirResult = TestUtils.optimize(code, Collections.emptyMap());
+        System.out.println(ollirResult.getOllirCode());
         var jasminResult = TestUtils.backend(code, Collections.emptyMap());
         System.out.println(jasminResult.getJasminCode());
         var result = TestUtils.runJasmin(jasminResult.getJasminCode(), Collections.emptyMap());
