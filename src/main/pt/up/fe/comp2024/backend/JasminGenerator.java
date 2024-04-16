@@ -334,7 +334,7 @@ public class JasminGenerator {
 
         // Handle the "new" call type separately
         if (callInstruction.getInvocationType() == CallType.NEW) {
-            return handleNewCallType(code, callInstruction);
+            return handleNewCallType(code, callInstruction) + "dup" + NL;
         }
 
         // Handle other call types
@@ -356,8 +356,7 @@ public class JasminGenerator {
                 .append(getClassAndMethodName(callInstruction));
         */
         // whether we apply callInstruction.getCaller() or not depends on the caller
-
-        if (callInstruction.getInvocationType().equals(CallType.invokespecial)) {
+        if (callInstruction.getInvocationType().equals(CallType.invokespecial) || callInstruction.getInvocationType().equals(CallType.invokevirtual)) {
             code.append(generators.apply(callInstruction.getCaller()));
         }
 
@@ -371,7 +370,12 @@ public class JasminGenerator {
                 .collect(Collectors.joining("", "(", ")"))
                 + toJvmTypeDescriptor(callInstruction.getReturnType());
 
+
         code.append(methodSignature).append(NL);
+
+        if (callInstruction.getInvocationType().equals(CallType.invokespecial)) {
+            code.append("pop").append(NL);
+        }
         return code.toString();
     }
 
@@ -380,9 +384,14 @@ public class JasminGenerator {
         String className = ((ClassType) callInstruction.getOperands().get(0).getType()).getName();
         String methodName = ((LiteralElement) callInstruction.getMethodName()).getLiteral().replace("\"", "");
 
+        if (methodName.isEmpty()) {
+            methodName = "<init>";
+        }
+        CallType invocationType = callInstruction.getInvocationType();
         // if invoke tipe is static, put callername / methodname
-        if (callInstruction.getInvocationType().equals(CallType.invokestatic))
+        if (invocationType.equals(CallType.invokestatic))
             return callerName + '/' + methodName;
+
 
         return className + '/' + methodName;
     }
