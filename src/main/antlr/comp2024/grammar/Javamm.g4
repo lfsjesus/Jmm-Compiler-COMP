@@ -100,8 +100,8 @@ type
     | name=ID #ClassType
     ;
 
-methodDecl locals[boolean isPublic=false]
-    : (PUBLIC {$isPublic=true;})? STATIC type name=MAIN LPAREN param RPAREN // Main Method Declaration
+methodDecl locals[boolean isPublic=false, boolean isStatic=false]
+    : (PUBLIC {$isPublic=true;})? STATIC{$isStatic=true;} type name=MAIN LPAREN param RPAREN // Main Method Declaration
         LCURLY
         varDecl*
         stmt*

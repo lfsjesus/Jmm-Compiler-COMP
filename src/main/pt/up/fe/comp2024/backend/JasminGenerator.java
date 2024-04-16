@@ -349,9 +349,21 @@ public class JasminGenerator {
     }
 
     private String handleOtherCallTypes(StringBuilder code, CallInstruction callInstruction) {
+
+        /*
         code.append(generators.apply(callInstruction.getCaller()))
                 .append(callInstruction.getInvocationType().name()).append(' ')
                 .append(getClassAndMethodName(callInstruction));
+        */
+        // whether we apply callInstruction.getCaller() or not depends on the caller
+
+        if (callInstruction.getInvocationType().equals(CallType.invokespecial)) {
+            code.append(generators.apply(callInstruction.getCaller()));
+        }
+
+        code.append(callInstruction.getInvocationType().name()).append(' ')
+                .append(getClassAndMethodName(callInstruction));
+
 
         // Append method signature
         String methodSignature = callInstruction.getArguments().stream()
@@ -364,8 +376,14 @@ public class JasminGenerator {
     }
 
     private String getClassAndMethodName(CallInstruction callInstruction) {
+        String callerName = ((Operand) callInstruction.getCaller()).getName();
         String className = ((ClassType) callInstruction.getOperands().get(0).getType()).getName();
         String methodName = ((LiteralElement) callInstruction.getMethodName()).getLiteral().replace("\"", "");
+
+        // if invoke tipe is static, put callername / methodname
+        if (callInstruction.getInvocationType().equals(CallType.invokestatic))
+            return callerName + '/' + methodName;
+
         return className + '/' + methodName;
     }
 
