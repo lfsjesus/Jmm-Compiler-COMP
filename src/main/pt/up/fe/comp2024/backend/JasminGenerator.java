@@ -384,9 +384,6 @@ public class JasminGenerator {
         String className = ((ClassType) callInstruction.getOperands().get(0).getType()).getName();
         String methodName = ((LiteralElement) callInstruction.getMethodName()).getLiteral().replace("\"", "");
 
-        if (methodName.isEmpty()) {
-            methodName = "<init>";
-        }
         CallType invocationType = callInstruction.getInvocationType();
         // if invoke tipe is static, put callername / methodname
         if (invocationType.equals(CallType.invokestatic))

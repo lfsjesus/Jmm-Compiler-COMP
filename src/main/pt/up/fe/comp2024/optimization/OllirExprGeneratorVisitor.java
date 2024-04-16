@@ -239,7 +239,7 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         computation.append(temp).append(SPACE).append(ASSIGN).append(type).append(SPACE).append(code).append(END_STMT);
 
         // constructor: invokeespecial(tmp.CLASS, "").V;
-        String constructor = "invokespecial(" + temp + ", \"\").V;\n";
+        String constructor = "invokespecial(" + temp + ", \"<init>\").V;\n";
 
         computation.append(constructor);
 
