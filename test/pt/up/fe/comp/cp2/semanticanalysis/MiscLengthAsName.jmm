@@ -1,8 +1,9 @@
+import main;
 class MiscLengthAsName {
-    public int foo() {
-        int main;
+    public int foo(int main) {
+        int length;
 
-        main = [1, 2, 3].length;
+        length = [1, 2, 3].length;
         return main;
     }
 
