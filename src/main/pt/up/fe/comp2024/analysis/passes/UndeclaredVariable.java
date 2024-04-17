@@ -39,7 +39,15 @@ public class UndeclaredVariable extends AnalysisVisitor {
             );
         }
 
-
+        if (table.getImports().stream().map(imported -> imported.split(", ")[imported.split(",").length - 1]).distinct().count() != table.getImports().size()) {
+            addReport(Report.newError(
+                    Stage.SEMANTIC,
+                    NodeUtils.getLine(classDecl),
+                    NodeUtils.getColumn(classDecl),
+                    "Repeated imported class declaration",
+                    null)
+            );
+        }
 
         if (table.getFields().stream().distinct().count() != table.getFields().size()) {
             addReport(Report.newError(

@@ -143,7 +143,7 @@ public class JmmSymbolTableBuilder {
     private static List<String> buildImports(JmmNode root) {
         List<JmmNode> imports = root.getChildren(IMPORT_DECL);
         return imports.stream()
-                    .map(imp -> imp.get("packageName"))
+                    .map(imp -> imp.get("packageName").replaceAll("[\\[\\]]", ""))
                     .toList();
     }
 

@@ -177,18 +177,7 @@ public abstract class AnalysisVisitor extends PreorderJmmVisitor<SymbolTable, Vo
     public boolean hasImport(String className, SymbolTable table) {
         List<String> imports = table.getImports();
 
-        // each string is an import in form "[word1, word2, word3]". check if last word is the class name
-        for (String importName : imports) {
-            try {
-                String subString = importName.substring(importName.length() - className.length() - 1, importName.length() - 1);
-                if (subString.equals(className)) {
-                    return true;
-                }
-            } catch (Exception ignored) {
-            }
-        }
-
-        return false;
+        return table.getImports().stream().map(imported -> imported.split(", ")[imported.split(",").length - 1]).anyMatch(imported -> imported.equals(className));
 
     }
 
