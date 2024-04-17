@@ -196,6 +196,13 @@ public abstract class AnalysisVisitor extends PreorderJmmVisitor<SymbolTable, Vo
             // either it's in the table or accept if imported
             Type typeNode = getNodeType(node.getJmmParent().getChildren().get(0), table);
             if (typeNode == null) {
+                addReport(Report.newError(
+                        Stage.SEMANTIC,
+                        NodeUtils.getLine(node),
+                        NodeUtils.getColumn(node),
+                        "Unable to determine return type",
+                        null)
+                );
                 return null;
             }
             if (table.getReturnType(node.get("name")) != null) {

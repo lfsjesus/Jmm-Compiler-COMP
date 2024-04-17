@@ -2,10 +2,10 @@ import main;
 
 class MiscLengthAsName {
 
-    public int foo(int main) {
+    public int foo() {
         int a;
-        length = 1;
-        return 1;
+        a = true;
+        return a;
     }
 
     public static void main(String[] args) {
