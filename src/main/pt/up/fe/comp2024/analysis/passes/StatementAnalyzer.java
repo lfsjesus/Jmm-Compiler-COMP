@@ -1,4 +1,5 @@
 package pt.up.fe.comp2024.analysis.passes;
+import org.w3c.dom.Node;
 import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
 import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.JmmNode;
@@ -42,7 +43,7 @@ public class StatementAnalyzer extends AnalysisVisitor{
     }
 
     private Void visitIfStmt(JmmNode node, SymbolTable table) {
-        JmmNode condition = node.getChildren().get(0);
+        JmmNode condition = node.getChildren().get(0).getChild(0);
         JmmNode stmt = node.getChildren().get(1);
 
         Type conditionType = getNodeType(condition, table);
@@ -59,10 +60,10 @@ public class StatementAnalyzer extends AnalysisVisitor{
     }
 
     private Void visitReturnStmt(JmmNode node, SymbolTable table) {
-        JmmNode stmt = node.getChildren().get(0);
+        JmmNode stmt = node.isInstance(Kind.RETURN_STMT) ? node : node.getChildren().get(0);
 
         Type returnType = getNodeType(stmt, table);
-        Type declaredReturnType = getNodeType(node.getJmmParent(), table); // Check test arrayInit ASAP!
+        Type declaredReturnType = getNodeType(NodeUtils.getMethodNode(stmt), table);
 
         // check if it's import
         if (hasImport(getNodeType(stmt, table).getName(), table)) {

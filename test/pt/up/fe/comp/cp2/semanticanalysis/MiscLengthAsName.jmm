@@ -3,11 +3,15 @@ import main;
 class MiscLengthAsName {
 
     public int foo(int main) {
-        int a;
-
+        while(true) {
+            if (true) {
+                return 1;
+            }
+            else {
+                return 2;
+            }
+        }
         return 0;
-
-
     }
 
     public static void main(String[] args) {

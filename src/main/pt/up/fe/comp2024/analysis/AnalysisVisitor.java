@@ -67,6 +67,8 @@ public abstract class AnalysisVisitor extends PreorderJmmVisitor<SymbolTable, Vo
                 return new Type(arrayType, false);
             case "MethodCallExpr", "MethodCall":
                 return getReturnType(node, table);
+            case "ReturnStmt":
+                return getNodeType(node.getChild(0).getChild(0), table);
             case "BinaryExpr":
                 String operator = node.get("op");
                 checkOperation(node, table); // check if the operation is valid
