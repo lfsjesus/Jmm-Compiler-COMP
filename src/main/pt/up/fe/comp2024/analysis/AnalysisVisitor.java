@@ -51,7 +51,7 @@ public abstract class AnalysisVisitor extends PreorderJmmVisitor<SymbolTable, Vo
                 return new Type("boolean", false);
             case "IntegerLiteral", "ArrayLengthExpr":
                 return new Type("int", false);
-            case "VarRefExpr", "LengthLiteral":
+            case "VarRefExpr", "LengthLiteral", "MainLiteral":
                 String methodName = TypeUtils.getMethodName(node);
                 return getVarType(node.get("name"), methodName, table);
             case "ThisLiteral":

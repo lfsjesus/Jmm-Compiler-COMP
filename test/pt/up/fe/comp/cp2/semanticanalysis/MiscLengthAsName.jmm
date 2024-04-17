@@ -1,9 +1,9 @@
 class MiscLengthAsName {
     public int foo() {
-        int length;
+        int main;
 
-        length = [1, 2, 3].length;
-        return length;
+        main = [1, 2, 3].length;
+        return main;
     }
 
     public static void main(String[] args) {

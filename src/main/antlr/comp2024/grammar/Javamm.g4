@@ -167,6 +167,8 @@ expr
     | value=INTEGER #IntegerLiteral //
     | name=THIS #ThisLiteral //
     | name=LENGTH #LengthLiteral //
+    | name=MAIN #MainLiteral //
     | name=ID #VarRefExpr //
+
     ;
 
