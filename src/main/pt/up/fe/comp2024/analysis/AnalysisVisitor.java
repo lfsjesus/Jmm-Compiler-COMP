@@ -95,6 +95,10 @@ public abstract class AnalysisVisitor extends PreorderJmmVisitor<SymbolTable, Vo
         Type leftType = getNodeType(left, table);
         Type rightType = getNodeType(right, table);
 
+        if (leftType == null || rightType == null) {
+            return null;
+        }
+
         if (!leftType.equals(rightType)) {
             // add report
             addReport(Report.newError(
