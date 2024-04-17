@@ -194,10 +194,14 @@ public abstract class AnalysisVisitor extends PreorderJmmVisitor<SymbolTable, Vo
             return getReturnType(node.getChildren().get(node.getChildren().size() - 1), table);
         } else if (node.getKind().equals("MethodCall")) {
             // either it's in the table or accept if imported
+            Type typeNode = getNodeType(node.getJmmParent().getChildren().get(0), table);
+            if (typeNode == null) {
+                return null;
+            }
             if (table.getReturnType(node.get("name")) != null) {
                 return table.getReturnType(node.get("name"));
-            } else if (hasImport(getNodeType(node.getJmmParent().getChildren().get(0), table).getName(), table)) {
-                return new Type(getNodeType(node.getJmmParent().getChildren().get(0), table).getName(), false);
+            } else if (hasImport(typeNode.getName(), table)) {
+                return new Type(typeNode.getName(), false);
             } else if (table.getSuper() != null) {
                 JmmNode a = node.getParent().getChildren().get(0);
                 String type = table.getLocalVariables(TypeUtils.getMethodName(node)).get(0).getType().getName();

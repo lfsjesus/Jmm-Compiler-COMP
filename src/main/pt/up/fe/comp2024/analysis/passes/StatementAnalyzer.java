@@ -65,8 +65,12 @@ public class StatementAnalyzer extends AnalysisVisitor{
         Type returnType = getNodeType(stmt, table);
         Type declaredReturnType = getNodeType(NodeUtils.getMethodNode(stmt), table);
 
+        if (returnType == null) {
+            addReport(Report.newError(Stage.SEMANTIC, NodeUtils.getLine(stmt), NodeUtils.getColumn(stmt), "Unable to determine return type", null));
+            return null;
+        }
         // check if it's import
-        if (hasImport(getNodeType(stmt, table).getName(), table)) {
+        if (hasImport(returnType.getName(), table)) {
             return null;
         }
 
