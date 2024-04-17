@@ -1,5 +1,6 @@
-import App.io;
+
 import io;
+import a.b.io;
 
 class Test {
     public int f() {

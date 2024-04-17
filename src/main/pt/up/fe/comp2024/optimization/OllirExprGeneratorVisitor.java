@@ -214,8 +214,7 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         if (table.getMethods().contains(node.get("name"))) {
             return "invokevirtual";
         }
-
-        else if (table.getImports().contains("[" + node.getJmmParent().getChild(0).get("name")+ "]")) { // MAKE THIS BETTER
+        else if (table.getImports().stream().map(imported -> imported.split(", ")[imported.split(",").length - 1]).anyMatch(imported -> imported.equals(node.getJmmParent().getChild(0).get("name")))) {
             return "invokestatic";
         }
 
