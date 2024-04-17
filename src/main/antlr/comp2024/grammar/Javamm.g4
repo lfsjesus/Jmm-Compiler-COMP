@@ -117,7 +117,7 @@ methodDecl locals[boolean isPublic=false, boolean isStatic=false]
         RCURLY
     ;
 methodCall
-    : name=ID LPAREN (expr (COMMA expr)*)? RPAREN
+    : name=(ID|MAIN) LPAREN (expr (COMMA expr)*)? RPAREN
     ;
 
 methodReturn
