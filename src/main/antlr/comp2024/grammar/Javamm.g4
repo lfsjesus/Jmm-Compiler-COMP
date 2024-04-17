@@ -148,7 +148,7 @@ elseExpr
 
 expr
     : LPAREN expr RPAREN #ParenExpr //
-    | NEW name=ID LPAREN RPAREN #NewClassObjExpr //
+    | NEW name=(ID|MAIN) LPAREN RPAREN #NewClassObjExpr //
     | NEW name=(INT | FLOAT | DOUBLE | BOOLEAN) LBRACK expr RBRACK #NewArrayExpr //
     | LBRACK (expr (COMMA expr)*)? RBRACK #ArrayInitExpr //
     | expr LBRACK expr RBRACK #ArrayAccessExpr //
