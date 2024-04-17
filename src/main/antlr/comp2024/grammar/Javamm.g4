@@ -80,7 +80,7 @@ classDecl
     ;
 
 varArgs
-    : type VARARGS name=ID
+    : type VARARGS name=(ID|MAIN)
     ;
 
 varDecl

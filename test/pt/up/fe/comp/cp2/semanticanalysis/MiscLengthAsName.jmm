@@ -1,9 +1,8 @@
 import main;
+
 class MiscLengthAsName {
     public int foo(int main) {
-        int length;
 
-        length = [1, 2, 3].length;
         return main;
     }
 
