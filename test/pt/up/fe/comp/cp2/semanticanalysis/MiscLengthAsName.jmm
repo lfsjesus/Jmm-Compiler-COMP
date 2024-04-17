@@ -4,7 +4,7 @@ class MiscLengthAsName {
 
     public int foo(int main) {
         int a;
-        9 = 1;
+        length = 1;
         return 1;
     }
 

@@ -97,8 +97,9 @@ public class StatementAnalyzer extends AnalysisVisitor{
             return null;
         }
 
-        if (left.isInstance(Kind.INTEGER_LITERAL)) {
+        if (!left.isInstance(Kind.VAR_REF_EXPR) && !left.isInstance(Kind.ARRAY_ACCESS_EXPR) && !left.isInstance(Kind.MAIN_LITERAL) && !left.isInstance(Kind.LENGTH_LITERAL)) {
             addReport(Report.newError(Stage.SEMANTIC, NodeUtils.getLine(node), NodeUtils.getColumn(node), "Left side must be an Identifier", null));
+            return null;
         }
 
         if (hasImport(leftType.getName(), table) && hasImport(rightType.getName(), table)) {

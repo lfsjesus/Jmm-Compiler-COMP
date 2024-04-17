@@ -48,7 +48,7 @@ public class ExpressionAnalyzer extends AnalysisVisitor{
     }
 
     private Void visitParenExpr(JmmNode node, SymbolTable table) {
-        return checkOperation(node, table);
+        return visit(node.getChild(0), table);
     }
 
     private Void visitBinaryExpr(JmmNode node, SymbolTable table) {

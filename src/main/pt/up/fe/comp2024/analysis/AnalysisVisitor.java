@@ -167,7 +167,7 @@ public abstract class AnalysisVisitor extends PreorderJmmVisitor<SymbolTable, Vo
             }
         }
 
-        return new Type(varName, false);
+        return null;
     }
 
     public boolean hasImport(String className, SymbolTable table) {

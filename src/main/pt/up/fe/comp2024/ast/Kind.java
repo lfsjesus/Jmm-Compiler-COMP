@@ -41,6 +41,8 @@ public enum Kind {
     FALSE_LITERAL,
     INTEGER_LITERAL,
     THIS_LITERAL,
+    LENGTH_LITERAL,
+    MAIN_LITERAL,
     VAR_REF_EXPR;
 
 
