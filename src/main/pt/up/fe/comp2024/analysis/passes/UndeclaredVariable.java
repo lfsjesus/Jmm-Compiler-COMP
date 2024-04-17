@@ -34,7 +34,11 @@ public class UndeclaredVariable extends AnalysisVisitor {
             checkMainMethod(method);
         }
 
+        checkMethodUniqueName(method, table);
+
         checkMethodParameters(method, table);
+
+        checkMethodLocals(method, table);
 
         checkMethodReturnNumber(method);
 
@@ -128,6 +132,40 @@ public class UndeclaredVariable extends AnalysisVisitor {
             }
         }
 
+    }
+
+    private void checkMethodLocals(JmmNode methodDecl, SymbolTable table) {
+        List<JmmNode> locals = methodDecl.getChildren(Kind.VAR_DECL);
+
+        // check if there are any repeated locals
+        for (int i = 0; i < locals.size(); i++) {
+            for (int j = i + 1; j < locals.size(); j++) {
+                if (locals.get(i).getChild(1).get("name").equals(locals.get(j).getChild(1).get("name"))) {
+                    addReport(Report.newError(
+                            Stage.SEMANTIC,
+                            NodeUtils.getLine(locals.get(j)),
+                            NodeUtils.getColumn(locals.get(j)),
+                            "Local variable '" + locals.get(j).getChild(1).get("name") + "' is already declared",
+                            null)
+                    );
+                }
+            }
+        }
+
+    }
+
+    private void checkMethodUniqueName(JmmNode methodDecl, SymbolTable table) {
+        String methodName = methodDecl.get("name");
+        
+        if (table.getMethods().stream().filter(name -> name.equals(methodName)).count() > 1) {
+            addReport(Report.newError(
+                    Stage.SEMANTIC,
+                    NodeUtils.getLine(methodDecl),
+                    NodeUtils.getColumn(methodDecl),
+                    "Method '" + methodName + "' is already declared",
+                    null)
+            );
+        }
     }
 
     private void checkMethodReturnNumber(JmmNode methodDecl) {

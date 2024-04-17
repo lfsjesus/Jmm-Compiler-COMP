@@ -3,8 +3,14 @@ import main;
 class MiscLengthAsName {
 
     public int foo() {
-        boolean b;
-        b = c;
+        int a;
+
+        return a;
+    }
+
+    public int foo() {
+        int a;
+
         return a;
     }
 
