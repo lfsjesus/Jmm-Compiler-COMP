@@ -63,7 +63,8 @@ public abstract class AnalysisVisitor extends PreorderJmmVisitor<SymbolTable, Vo
             case "ArrayInitExpr":
                 return new Type(getNodeType(node.getChildren().get(0), table).getName(), true);
             case "ArrayAccessExpr":
-                return getNodeType(node.getChildren().get(0), table); // type of element is the same as the array
+                String arrayType = getNodeType(node.getChildren().get(0), table).getName();
+                return new Type(arrayType, false);
             case "MethodCallExpr", "MethodCall":
                 return getReturnType(node, table);
             case "BinaryExpr":

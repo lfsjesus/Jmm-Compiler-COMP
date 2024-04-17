@@ -1,8 +1,12 @@
 import main;
 
 class MiscLengthAsName {
-    public int foo(int main) {
 
+    public int foo(int main) {
+        int[] arr;
+        arr = new int[10];
+
+        arr[0] = 1;
         return main;
     }
 
