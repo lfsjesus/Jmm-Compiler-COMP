@@ -34,6 +34,10 @@ public class UndeclaredVariable extends AnalysisVisitor {
             checkMainMethod(method);
         }
 
+        checkMethodParameters(method, table);
+
+        checkMethodReturnNumber(method);
+
         return null;
     }
 
@@ -104,6 +108,43 @@ public class UndeclaredVariable extends AnalysisVisitor {
             );
         }
 
+    }
+
+    private void checkMethodParameters(JmmNode methodDecl, SymbolTable table) {
+        List<JmmNode> params = methodDecl.getChildren(Kind.PARAM);
+
+        // check if there are any repeated parameters
+        for (int i = 0; i < params.size(); i++) {
+            for (int j = i + 1; j < params.size(); j++) {
+                if (params.get(i).getChild(1).get("name").equals(params.get(j).getChild(1).get("name"))) {
+                    addReport(Report.newError(
+                            Stage.SEMANTIC,
+                            NodeUtils.getLine(params.get(j)),
+                            NodeUtils.getColumn(params.get(j)),
+                            "Parameter '" + params.get(j).getChild(1).get("name") + "' is already declared",
+                            null)
+                    );
+                }
+            }
+        }
+
+    }
+
+    private void checkMethodReturnNumber(JmmNode methodDecl) {
+        // Only allow regular METHOD_RETURN, as defined in grammar.
+        List<JmmNode> returnStmts = methodDecl.getChildren(Kind.RETURN_STMT);
+
+        boolean needsReturn = !methodDecl.getChild(0).isInstance(Kind.VOID_TYPE);
+
+        if (needsReturn && !returnStmts.isEmpty()) {
+            addReport(Report.newError(
+                    Stage.SEMANTIC,
+                    NodeUtils.getLine(methodDecl),
+                    NodeUtils.getColumn(methodDecl),
+                    "Method must return a (single) value",
+                    null)
+            );
+        }
     }
 
 
