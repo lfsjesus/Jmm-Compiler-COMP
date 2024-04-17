@@ -97,7 +97,7 @@ type
     | name=FLOAT #FloatType
     | name=DOUBLE #DoubleType
     | name=VOID #VoidType
-    | name=ID #ClassType
+    | name=(ID|MAIN) #ClassType
     ;
 
 methodDecl locals[boolean isPublic=false, boolean isStatic=false]
