@@ -5,6 +5,7 @@ class CompileBasic extends Quicksort {
 
     int intField;
     boolean boolField;
+    
 
     public int method1() {
         int intLocal1;

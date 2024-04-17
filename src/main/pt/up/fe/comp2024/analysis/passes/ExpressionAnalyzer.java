@@ -1,4 +1,5 @@
 package pt.up.fe.comp2024.analysis.passes;
+import org.w3c.dom.Node;
 import pt.up.fe.comp.jmm.analysis.table.Symbol;
 import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
 import pt.up.fe.comp.jmm.analysis.table.Type;
@@ -8,13 +9,12 @@ import pt.up.fe.comp.jmm.report.Stage;
 import pt.up.fe.comp2024.analysis.AnalysisVisitor;
 import pt.up.fe.comp2024.ast.Kind;
 import pt.up.fe.comp2024.ast.NodeUtils;
+import pt.up.fe.comp2024.ast.TypeUtils;
 import pt.up.fe.specs.util.SpecsCheck;
 
 import java.util.List;
 
 public class ExpressionAnalyzer extends AnalysisVisitor{
-    private String currentMethod;
-
     @Override
     public void buildVisitor() {
         addVisit(Kind.BINARY_EXPR, this::visitBinaryExpr);
@@ -126,6 +126,13 @@ public class ExpressionAnalyzer extends AnalysisVisitor{
     }
 
     public Void visitMethodCallExpr(JmmNode node, SymbolTable table) {
+        JmmNode parentMethod = NodeUtils.getMethodNode(node);
+        List<JmmNode> thisNodes = parentMethod.getDescendants(Kind.THIS_LITERAL);
+        boolean isStatic = NodeUtils.getBooleanAttribute(parentMethod, "isStatic", "false");
+
+        if (!thisNodes.isEmpty() && isStatic) {
+            addReport(Report.newError(Stage.SEMANTIC, NodeUtils.getLine(node), NodeUtils.getColumn(node), "This keyword is not allowed in static context", null));
+        }
 
         // MAY BE THIS IS NOT THE BEST WAY
         if (getNodeType(node, table) == null) {
@@ -145,6 +152,9 @@ public class ExpressionAnalyzer extends AnalysisVisitor{
             // get last
             methodName = node.getChildren().get(node.getChildren().size() - 1).get("name");
         }
+
+        // check if caller is not this and is in static context
+
 
         // check if it's the extend
         String superName = table.getSuper();

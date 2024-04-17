@@ -8,6 +8,7 @@ import pt.up.fe.comp.jmm.ast.PreorderJmmVisitor;
 import pt.up.fe.comp.jmm.report.Report;
 import pt.up.fe.comp.jmm.report.Stage;
 import pt.up.fe.comp2024.ast.NodeUtils;
+import pt.up.fe.comp2024.ast.TypeUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -50,8 +51,8 @@ public abstract class AnalysisVisitor extends PreorderJmmVisitor<SymbolTable, Vo
                 return new Type("boolean", false);
             case "IntegerLiteral", "ArrayLengthExpr":
                 return new Type("int", false);
-            case "VarRefExpr":
-                String methodName = getMethodName(node);
+            case "VarRefExpr", "LengthLiteral":
+                String methodName = TypeUtils.getMethodName(node);
                 return getVarType(node.get("name"), methodName, table);
             case "ThisLiteral":
                 return new Type(table.getClassName(), false);
@@ -129,17 +130,6 @@ public abstract class AnalysisVisitor extends PreorderJmmVisitor<SymbolTable, Vo
         return null;
     }
 
-    public String getMethodName(JmmNode node) {
-        while (node != null && !node.getKind().equals("MethodDecl")) {
-            node = node.getJmmParent();
-        }
-
-        if (node != null && node.hasAttribute("name")) {
-            return node.get("name");
-        }
-
-        return null;
-    }
 
     public Type getVarType(String varName, String methodName, SymbolTable table) {
         List<Symbol> args = table.getParameters(methodName);
@@ -207,7 +197,7 @@ public abstract class AnalysisVisitor extends PreorderJmmVisitor<SymbolTable, Vo
                 return new Type(getNodeType(node.getJmmParent().getChildren().get(0), table).getName(), false);
             } else if (table.getSuper() != null) {
                 JmmNode a = node.getParent().getChildren().get(0);
-                String type = table.getLocalVariables(getMethodName(node)).get(0).getType().getName();
+                String type = table.getLocalVariables(TypeUtils.getMethodName(node)).get(0).getType().getName();
                 return new Type(type, false);
             }
 

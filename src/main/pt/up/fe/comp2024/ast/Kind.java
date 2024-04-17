@@ -16,6 +16,7 @@ public enum Kind {
     ARRAY_TYPE,
     BOOLEAN_TYPE,
     VOID_TYPE,
+    STRING_TYPE,
     METHOD_DECL,
     PARAM,
     VAR_ARGS,

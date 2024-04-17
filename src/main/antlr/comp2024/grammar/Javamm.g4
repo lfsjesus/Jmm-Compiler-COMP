@@ -166,6 +166,7 @@ expr
     | expr op= SUB expr #BinaryExpr //
     | value=INTEGER #IntegerLiteral //
     | name=THIS #ThisLiteral //
+    | name=LENGTH #LengthLiteral //
     | name=ID #VarRefExpr //
     ;
 

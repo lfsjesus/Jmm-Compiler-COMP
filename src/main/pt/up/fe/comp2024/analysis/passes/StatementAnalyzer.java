@@ -100,9 +100,9 @@ public class StatementAnalyzer extends AnalysisVisitor{
             return null;
         }
 
-        List<Kind> primitiveTypes = Arrays.asList(Kind.INT_TYPE, Kind.BOOLEAN_TYPE, Kind.VOID_TYPE);
+        List<String> primitiveTypes = Arrays.asList("int", "boolean");
 
-        if (primitiveTypes.contains(left.getKind()) || hasImport(rightType.getName(), table)) { // we don't know what rightType is, if it's import, accept it
+        if (primitiveTypes.contains(leftType.getName()) && hasImport(rightType.getName(), table) && !right.isInstance(Kind.NEW_CLASS_OBJ_EXPR) ) { // we don't know what rightType is, if it's import, accept it
             return null;
         }
 

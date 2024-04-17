@@ -9,6 +9,8 @@ import pt.up.fe.comp2024.ast.Kind;
 import pt.up.fe.comp2024.ast.NodeUtils;
 import pt.up.fe.specs.util.SpecsCheck;
 
+import java.util.List;
+
 /**
  * Checks if the type of the expression in a return statement is compatible with the method return type.
  *
@@ -26,6 +28,12 @@ public class UndeclaredVariable extends AnalysisVisitor {
 
     private Void visitMethodDecl(JmmNode method, SymbolTable table) {
         currentMethod = method.get("name");
+
+        // if method is "main", check if it's static, return type and argument is String[]
+        if (currentMethod.equals("main")) {
+            checkMainMethod(method);
+        }
+
         return null;
     }
 
@@ -69,7 +77,32 @@ public class UndeclaredVariable extends AnalysisVisitor {
         );
 
         return null;
+    }
 
+    private void checkMainMethod(JmmNode mainMethodDecl) {
+        boolean isStatic = NodeUtils.getBooleanAttribute(mainMethodDecl, "isStatic", "false");
+        boolean isPublic = NodeUtils.getBooleanAttribute(mainMethodDecl, "isPublic", "false");
+        boolean isVoid = mainMethodDecl.getChild(0).isInstance(Kind.VOID_TYPE);
+
+        List<JmmNode> params = mainMethodDecl.getChildren(Kind.PARAM);
+
+        boolean singleParam = params.size() == 1;
+
+        JmmNode param = singleParam ? params.get(0) : null;
+        JmmNode arrayType = singleParam ? param.getChild(0) : null;
+
+        boolean isArray = singleParam && arrayType.isInstance(Kind.ARRAY_TYPE);
+        boolean isStringArray = isArray && arrayType.getChild(0).isInstance(Kind.STRING_TYPE);
+
+        if (!(isStatic && isPublic && isVoid && singleParam && isArray && isStringArray)) {
+            addReport(Report.newError(
+                    Stage.SEMANTIC,
+                    NodeUtils.getLine(mainMethodDecl),
+                    NodeUtils.getColumn(mainMethodDecl),
+                    "Main method must be public, static, void and receive a single parameter of type String[]",
+                    null)
+            );
+        }
 
     }
 

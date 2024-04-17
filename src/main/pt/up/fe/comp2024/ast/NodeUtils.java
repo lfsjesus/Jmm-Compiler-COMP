@@ -24,5 +24,12 @@ public class NodeUtils {
         return Boolean.parseBoolean(line);
     }
 
+    public static JmmNode getMethodNode(JmmNode node) {
+        while (node != null && !node.getKind().equals("MethodDecl")) {
+            node = node.getJmmParent();
+        }
+
+        return node;
+    }
 
 }

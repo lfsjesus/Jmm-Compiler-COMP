@@ -98,15 +98,14 @@ public class TypeUtils {
     }
 
     public static String getMethodName(JmmNode node) {
-        while (node != null && !node.getKind().equals("MethodDecl")) {
-            node = node.getJmmParent();
-        }
+        JmmNode methodNode = NodeUtils.getMethodNode(node);
 
-        if (node != null && node.hasAttribute("name")) {
-            return node.get("name");
+        if (methodNode != null && methodNode.hasAttribute("name")) {
+            return methodNode.get("name");
         }
         return null;
     }
+
 
 
     /**
