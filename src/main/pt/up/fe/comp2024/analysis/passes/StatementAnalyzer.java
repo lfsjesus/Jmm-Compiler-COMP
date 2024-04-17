@@ -69,7 +69,7 @@ public class StatementAnalyzer extends AnalysisVisitor{
             return null;
         }
 
-        if (!returnType.getName().equals(declaredReturnType.getName())) {
+        if (!returnType.equals(declaredReturnType)) {
             addReport(Report.newError(Stage.SEMANTIC, NodeUtils.getLine(stmt), NodeUtils.getColumn(stmt), "Return type does not match method return type", null));
         }
 
