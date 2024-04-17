@@ -1,18 +1,14 @@
 import main;
 
 class MiscLengthAsName {
-
+    int a;
+    int a;
     public int foo() {
         int a;
 
         return a;
     }
 
-    public int foo() {
-        int a;
-
-        return a;
-    }
 
     public static void main(String[] args) {
 
