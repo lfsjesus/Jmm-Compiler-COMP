@@ -1,3 +1,6 @@
+import io;
+import App.io;
+
 class Test {
     public int f() {
         int b;

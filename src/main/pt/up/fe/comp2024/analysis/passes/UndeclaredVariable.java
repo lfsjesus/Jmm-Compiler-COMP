@@ -28,6 +28,19 @@ public class UndeclaredVariable extends AnalysisVisitor {
     }
 
     private Void visitClassDecl(JmmNode classDecl, SymbolTable table) {
+        // check repeated imports
+        if (table.getImports().stream().distinct().count() != table.getImports().size()) {
+            addReport(Report.newError(
+                    Stage.SEMANTIC,
+                    NodeUtils.getLine(classDecl),
+                    NodeUtils.getColumn(classDecl),
+                    "Repeated import declaration",
+                    null)
+            );
+        }
+
+
+
         if (table.getFields().stream().distinct().count() != table.getFields().size()) {
             addReport(Report.newError(
                     Stage.SEMANTIC,
