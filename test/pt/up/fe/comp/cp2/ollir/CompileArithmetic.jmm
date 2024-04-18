@@ -1,16 +1,13 @@
-import a.b.c.D;  // importsComplex
-import Imported;  // importsSimple
+import a.b.c.Class;
 
 class Test extends Imported {
-    int intField;
-    boolean boolField;
 
+    public int f() {
+        Class var;
+        var = new Class();
 
-
-    public int h(D d) {
-        int a;
-        a = 0;
-        return this.bar(new D(), 2 * (1+1), this.super(true, false, 1, a), (new Imported()).fiz()); // miscComplexArgs
+        var.f();
+        return 0;
     }
 
 

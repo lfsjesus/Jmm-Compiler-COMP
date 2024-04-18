@@ -202,8 +202,11 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
                 break;
             case "invokevirtual":
                 code.append(codeName);
-                code.append(".");
-                code.append(table.getClassName());
+                // if it's this
+                if (codeName.equals("this")) {
+                    code.append(".");
+                    code.append(table.getClassName());
+                }
                 break;
         }
 
