@@ -62,6 +62,10 @@ public class TypeUtils {
     }
 
     public static Type getVarType(String varName, String methodName, SymbolTable table) {
+        if (varName.equals("this")) {
+            return new Type(table.getClassName(), false);
+        }
+
         List<Symbol> args = table.getParameters(methodName);
         List<Symbol> locals = table.getLocalVariables(methodName);
         List<Symbol> globals = table.getFields();
@@ -100,6 +104,33 @@ public class TypeUtils {
         }
 
         return new Type("Unknown", false);
+    }
+
+    public static boolean isVarDeclared(String varName, String methodName, SymbolTable table) {
+        List<Symbol> args = table.getParameters(methodName);
+        List<Symbol> locals = table.getLocalVariables(methodName);
+        List<Symbol> globals = table.getFields();
+
+
+        for (Symbol arg : args) {
+            if (arg.getName().equals(varName)) {
+                return true;
+            }
+        }
+
+        for (Symbol local : locals) {
+            if (local.getName().equals(varName)) {
+                return true;
+            }
+        }
+
+        for (Symbol global : globals) {
+            if (global.getName().equals(varName)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public static String getMethodName(JmmNode node) {

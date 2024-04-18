@@ -247,18 +247,16 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
     }
 
     private String getInvokeType(JmmNode node) {
-        // if call on object of current class -> invokespecial
-        // if call on object of imported class -> invokestatic
-        // if call on object where method is defined in current class -> invokevirtual
-        if (table.getImports().stream().map(imported -> imported.split(", ")[imported.split(",").length - 1]).anyMatch(imported -> imported.equals(node.getJmmParent().getChild(0).get("name")))) {
-            return "invokestatic";
-        }
-        else if (table.getMethods().contains(node.get("name"))) {
+        Type varType = TypeUtils.getVarType(node.getParent().getChild(0).get("name"), TypeUtils.getMethodName(node), table);
+        boolean isVarDeclared = TypeUtils.isVarDeclared(node.getParent().getChild(0).get("name"), TypeUtils.getMethodName(node), table);
+
+        boolean typeThisAndMethodIsDeclared = varType.getName().equals(table.getClassName()) && table.getMethods().stream().anyMatch(method -> method.equals(node.get("name")));
+        if (isVarDeclared || typeThisAndMethodIsDeclared) {
             return "invokevirtual";
         }
-
-
-        return "invokespecial";
+        else {
+            return "invokestatic";
+        }
     }
 
     private OllirExprResult visitNewClassObjExpr(JmmNode node, Void unused) {
