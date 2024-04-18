@@ -50,6 +50,8 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         setDefaultVisit(this::defaultVisit);
     }
 
+
+
     private String visitAssignStmt(JmmNode node, Void unused) {
 
         var lhs = exprVisitor.visit(node.getJmmChild(0));
@@ -274,6 +276,17 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
     private String visitProgram(JmmNode node, Void unused) {
 
         StringBuilder code = new StringBuilder();
+
+        // get from the table, and replace ", " with "."
+        List<String> imports = table.getImports().stream()
+                .map(imported -> imported.replace(", ", "."))
+                .toList();
+
+        for (String imported : imports) {
+            code.append("import ");
+            code.append(imported);
+            code.append(END_STMT);
+        }
 
         node.getChildren().stream()
                 .map(this::visit)

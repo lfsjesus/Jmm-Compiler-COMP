@@ -1,5 +1,5 @@
 import imp.Class;
-
+import io.b.c;
 class Main {
     public static void main(String[] args) {
         Class var;

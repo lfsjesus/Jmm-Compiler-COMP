@@ -34,6 +34,7 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         addVisit(TRUE_LITERAL, this::visitTrueLiteral);
         addVisit(FALSE_LITERAL, this::visitFalseLiteral);
         addVisit(METHOD_CALL_EXPR, this::visitMethodCallExpr);
+        addVisit(PAREN_EXPR, this::visitParenExpr);
 
         addVisit(NEW_CLASS_OBJ_EXPR, this::visitNewClassObjExpr);
         setDefaultVisit(this::defaultVisit);
@@ -246,7 +247,12 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         return new OllirExprResult(temp, computation);
     }
 
+    private OllirExprResult visitParenExpr(JmmNode node, Void unused) {
+        return visit(node.getJmmChild(0));
+    }
+
     private String getInvokeType(JmmNode node) {
+        // THIS IS FAILING IN COMPLEX TESTS. NEED TO FIX
         Type varType = TypeUtils.getVarType(node.getParent().getChild(0).get("name"), TypeUtils.getMethodName(node), table);
         boolean isVarDeclared = TypeUtils.isVarDeclared(node.getParent().getChild(0).get("name"), TypeUtils.getMethodName(node), table);
 
