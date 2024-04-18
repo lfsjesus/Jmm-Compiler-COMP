@@ -312,7 +312,18 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
 
         boolean typeThisAndMethodIsDeclared = varType.getName().equals(table.getClassName()) && table.getMethods().stream().anyMatch(method -> method.equals(node.get("name")));
         boolean extendsClassThis = table.getSuper() != null && table.getClassName().equals(varType.getName());
-        if (isVarDeclared || typeThisAndMethodIsDeclared || extendsClassThis) {
+
+        boolean isImportedAndNewObj = false;
+
+        try {
+            // check if varType name matches any imported class
+            isImportedAndNewObj = table.getImports().stream().map(imported -> imported.split(", ")[imported.split(",").length - 1]).anyMatch(imported -> imported.equals(varType.getName()));
+        }
+        catch (Exception e) {
+            // do nothing
+        }
+
+        if (isVarDeclared || typeThisAndMethodIsDeclared || extendsClassThis || isImportedAndNewObj) {
             return "invokevirtual";
         }
         else {

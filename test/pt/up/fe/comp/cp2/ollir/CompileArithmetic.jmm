@@ -1,9 +1,23 @@
-class Main extends Thing {
+import imp.Obj;
+import io;
 
-public int foo() {
-this.bar();
+class Simple {
 
-return 0;
-}
+    public int add(int a, int b){
+        int c;
+        boolean flag;
+        Simple s;
+        Obj obj;
+        c = 1;
+        s = new Simple();
+        obj = new Obj();
+        (new Obj()).test(new Simple());
+        return c;
+    }
 
+    public int test(Obj o){
+        int res;
+        res = o.foo();
+        return res;
+    }
 }
