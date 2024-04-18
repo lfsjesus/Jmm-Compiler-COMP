@@ -62,7 +62,7 @@ public class ExpressionAnalyzer extends AnalysisVisitor{
         Type arrayType = getNodeType(array, table);
         Type indexType = getNodeType(index, table);
 
-        // also check if index
+        // This means that getNodeType succeeded. However, methodcall visit doesn't know how to set arrayType
         if (array.isInstance(Kind.METHOD_CALL_EXPR)) {
             return null;
         }

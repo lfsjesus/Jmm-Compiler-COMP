@@ -5,8 +5,13 @@ class Test {
     int intField;
 
     public static void main(String[] args) {
-        int a;
+        boolean a;
         a = A.foo()[2];
     }
 
+    public int foo() {
+        int a;
+        9a[0] = a;
+        return 0;
+    }
 }
