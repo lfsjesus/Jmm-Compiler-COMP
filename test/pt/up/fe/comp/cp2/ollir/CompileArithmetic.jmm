@@ -1,16 +1,18 @@
-class Simple {
+import a.b.c.D;  // importsComplex
+import Imported;  // importsSimple
 
-    public static void main(String[] args) {
-        int n;
-        n = (new Simple()).foo((new Simple()).bar());
+class Test extends Imported {
+    int intField;
+    boolean boolField;
+
+
+
+    public int h(D d) {
+        int a;
+        a = 0;
+        return this.bar(new D(), 2 * (1+1), this.super(true, false, 1, a), (new Imported()).fiz()); // miscComplexArgs
     }
 
-    public int foo(int n) {
-        return n;
-    }
 
-    public int bar() {
-        return 1;
-    }
 
 }

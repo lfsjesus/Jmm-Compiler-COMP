@@ -257,6 +257,12 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
             code.append(")");
             code.append(OptUtils.toOllirType(thisType));
         }
+        else if (parent.isInstance(METHOD_RETURN)) {
+            needTemp = true;
+            thisType = table.getReturnType(TypeUtils.getMethodName(parent));
+            code.append(")");
+            code.append(OptUtils.toOllirType(thisType));
+        }
         else {
             thisType = new Type("void", false);
             code.append(")");
@@ -290,7 +296,8 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         boolean isVarDeclared = TypeUtils.isVarDeclared(parentNode.get("name"), TypeUtils.getMethodName(node), table);
 
         boolean typeThisAndMethodIsDeclared = varType.getName().equals(table.getClassName()) && table.getMethods().stream().anyMatch(method -> method.equals(node.get("name")));
-        if (isVarDeclared || typeThisAndMethodIsDeclared) {
+        boolean extendsClassThis = table.getSuper() != null && table.getClassName().equals(varType.getName());
+        if (isVarDeclared || typeThisAndMethodIsDeclared || extendsClassThis) {
             return "invokevirtual";
         }
         else {
