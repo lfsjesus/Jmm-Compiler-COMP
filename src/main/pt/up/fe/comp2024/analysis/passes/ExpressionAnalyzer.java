@@ -63,6 +63,9 @@ public class ExpressionAnalyzer extends AnalysisVisitor{
         Type indexType = getNodeType(index, table);
 
         // also check if index
+        if (array.isInstance(Kind.METHOD_CALL_EXPR)) {
+            return null;
+        }
 
         if (!arrayType.isArray()) {
             addReport(Report.newError(Stage.SEMANTIC, NodeUtils.getLine(node), NodeUtils.getColumn(node), "The type of the expression must be an array type but it resolved to " + arrayType.getName(), null));

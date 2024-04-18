@@ -1,18 +1,12 @@
-import java.util.List;
+import java.util.A;
 
-class Test extends List{
+class Test {
 
     int intField;
 
     public static void main(String[] args) {
-             List a;
-             a = List.bar();
-             return a;
+        int a;
+        a = A.foo()[2];
     }
 
-    
-    public String foo(String b) {
-            b= this.bar();
-            return b;
-    }
 }
