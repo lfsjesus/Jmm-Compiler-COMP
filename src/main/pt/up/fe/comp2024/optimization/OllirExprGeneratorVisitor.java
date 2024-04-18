@@ -318,6 +318,7 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         try {
             // check if varType name matches any imported class
             isImportedAndNewObj = table.getImports().stream().map(imported -> imported.split(", ")[imported.split(",").length - 1]).anyMatch(imported -> imported.equals(varType.getName()));
+            isImportedAndNewObj = isImportedAndNewObj && parentNode.isInstance(NEW_CLASS_OBJ_EXPR);
         }
         catch (Exception e) {
             // do nothing
