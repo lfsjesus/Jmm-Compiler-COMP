@@ -265,7 +265,15 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         }
         else if (parent.isInstance(METHOD_CALL)) {
             needTemp = true;
-            thisType = table.getReturnType(TypeUtils.getMethodName(parent));
+            try {
+                thisType = table.getReturnType(parent.get("name"));
+                if (thisType == null) {
+                    thisType = new Type("void", false);
+                }
+            }
+            catch (Exception e) {
+                thisType = new Type("void", false);
+            }
             code.append(")");
             code.append(OptUtils.toOllirType(thisType));
         }
@@ -277,7 +285,14 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         }
 
         else {
-            thisType = new Type("void", false);
+            // check if caller is not static: not in imports
+            if (table.getReturnType(methodName) != null && invokeType.equals("invokevirtual")) {
+                thisType = table.getReturnType(methodName);
+            }
+            else {
+                thisType = new Type("void", false);
+            }
+
             code.append(")");
             code.append(OptUtils.toOllirType(thisType));
         }
