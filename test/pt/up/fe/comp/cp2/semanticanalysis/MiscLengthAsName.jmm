@@ -1,16 +1,18 @@
 import java.util.List;
-class Test {
+
+class Test extends List{
 
     int intField;
 
     public static void main(String[] args) {
              List a;
-             a = List.add();
-
+             a = List.bar();
+             return a;
     }
 
     
     public String foo(String b) {
+            b= this.bar();
             return b;
     }
 }

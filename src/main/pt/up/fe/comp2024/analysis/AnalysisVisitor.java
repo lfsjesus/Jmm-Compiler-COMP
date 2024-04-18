@@ -195,9 +195,14 @@ public abstract class AnalysisVisitor extends PreorderJmmVisitor<SymbolTable, Vo
             } else if (hasImport(typeNode.getName(), table)) {
                 return new Type(typeNode.getName(), false);
             } else if (table.getSuper() != null) {
-                JmmNode a = node.getParent().getChildren().get(0);
-                String type = table.getLocalVariables(TypeUtils.getMethodName(node)).get(0).getType().getName();
-                return new Type(type, false);
+                //JmmNode a = node.getParent().getChildren().get(0);
+                //String type = table.getLocalVariables(TypeUtils.getMethodName(node)).get(0).getType().getName();
+                String superClassName = table.getSuper();
+                String className = table.getClassName();
+
+                if (typeNode.getName().equals(superClassName) || typeNode.getName().equals(className)) {
+                    return new Type(typeNode.getName(), false);
+                }
             }
 
             addReport(Report.newError(

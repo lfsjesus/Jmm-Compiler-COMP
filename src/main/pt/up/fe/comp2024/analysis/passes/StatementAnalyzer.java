@@ -119,7 +119,7 @@ public class StatementAnalyzer extends AnalysisVisitor{
         String extendedClass = table.getSuper();
 
         if (extendedClass != null) {
-            if (leftType.getName().equals(extendedClass) || rightType.getName().equals(extendedClass)) {
+            if (leftType.getName().equals(extendedClass) || rightType.getName().equals(extendedClass) || (rightType.getName().equals(table.getClassName()))) {
                 return null;
             }
         }
