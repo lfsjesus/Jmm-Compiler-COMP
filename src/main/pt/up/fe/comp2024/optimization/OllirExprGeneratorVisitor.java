@@ -170,22 +170,30 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         code.append("(");
 
 
+        String codeName = visit(caller).getCode();
+
+        var methodCallVisit = visit(methodCall);
+
+        String methodCallCode = methodCallVisit.getCode();
+        computation.append(methodCallVisit.getComputation());
         //code.append(caller.get("name"));
         switch (invokeType) {
             case "invokestatic":
-                code.append(caller.get("name"));
+                //code.append(caller.get("name"));
+                //String codeName = visit(caller).getCode();
+                code.append(codeName.split("\\.")[0]);
                 break;
             case "invokespecial":
                 code.append("this");
                 break;
             case "invokevirtual":
-                code.append(caller.get("name"));
-                code.append(".");
+                //String codeName = visit(caller).getCode();
+                code.append(codeName);
+                //code.append(".");
 
-                Type type = TypeUtils.getExprType(caller, table);
+                //Type type = TypeUtils.getExprType(caller, table);
 
-                code.append(type.getName());
-
+                //code.append(type.getName());
 
                 break;
         }
@@ -239,15 +247,13 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         // if call on object of current class -> invokespecial
         // if call on object of imported class -> invokestatic
         // if call on object where method is defined in current class -> invokevirtual
-        if (node.get("name").equals("println")) {
-            System.out.println("io");
-        }
-        if (table.getMethods().contains(node.get("name"))) {
-            return "invokevirtual";
-        }
-        else if (table.getImports().stream().map(imported -> imported.split(", ")[imported.split(",").length - 1]).anyMatch(imported -> imported.equals(node.getJmmParent().getChild(0).get("name")))) {
+        if (table.getImports().stream().map(imported -> imported.split(", ")[imported.split(",").length - 1]).anyMatch(imported -> imported.equals(node.getJmmParent().getChild(0).get("name")))) {
             return "invokestatic";
         }
+        else if (table.getMethods().contains(node.get("name"))) {
+            return "invokevirtual";
+        }
+
 
         return "invokespecial";
     }

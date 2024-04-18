@@ -1,25 +1,17 @@
-import io;
-import java.util.List;
 import A;
-class Simple extends A{
-    int field_int;
-    boolean field_bool;
+class Simple {
 
-     public int arithmetic(){
-        int local_int;
-        boolean local_boolean;
-        local_int = field_int;
-        field_int = 10;
-        local_boolean = field_bool;
-        field_bool = true;
-
-        return 0;
+    public static void main(String[] args) {
+        int n;
+        n = A.foo(new Simple());
     }
 
-
-
-    public static void main(String[] args){
+    public int foo(int n) {
+        return n;
     }
 
+    public int bar() {
+        return 1;
+    }
 
 }
