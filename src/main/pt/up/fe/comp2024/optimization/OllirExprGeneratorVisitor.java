@@ -171,6 +171,9 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
 
 
         String codeName = visit(caller).getCode();
+        if (codeName.isEmpty()) {
+            codeName = "this";
+        }
 
         var methodCallVisit = visit(methodCall);
 
