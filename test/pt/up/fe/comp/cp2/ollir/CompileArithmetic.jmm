@@ -6,25 +6,7 @@ class Test extends Imported {
     boolean boolField;
 
     public int f() {
-        D d;
-        D.foo(); // invokestatic
-        d = new D(); // invokespecial
-        d.foo(); // invokevirtual
-        return 0;
-    }
-
-    public int g() {
-        D d;
-        int i;
-        d = new D();
-        i = d.f(); // invokeVirtualWithAssign
-        return i;
-    }
-
-    public int h(D d) {
-        int a;
-        a = 0;
-        return this.bar(new D(), 2 * (1+1), this.super(true, false, 1, a), (new Imported()).fiz()); // miscComplexArgs
+        return intField;
     }
 
 
