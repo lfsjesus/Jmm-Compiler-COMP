@@ -40,6 +40,9 @@ public class JmmAnalysisImpl implements JmmAnalysis {
             try {
                 var passReports = analysisPass.analyze(rootNode, table);
                 reports.addAll(passReports);
+                if (!reports.isEmpty()) {
+                    break;
+                }
             } catch (Exception e) {
                 reports.add(Report.newError(Stage.SEMANTIC,
                         -1,
