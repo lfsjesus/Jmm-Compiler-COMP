@@ -1,11 +1,16 @@
-
-import A;
-
+import java.util.List;
 class Test {
-    public Test f() {
-        Test b;
-        b = A.bar();
 
-        return b;
+    int intField;
+
+    public static void main(String[] args) {
+             List a;
+             a = List.add();
+
+    }
+
+    
+    public String foo(String b) {
+            return b;
     }
 }

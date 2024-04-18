@@ -145,7 +145,7 @@ public abstract class AnalysisVisitor extends PreorderJmmVisitor<SymbolTable, Vo
         List<String> imports = table.getImports();
         String extendsClass = table.getSuper();
 
-        if (imports.contains(varName)) {
+        if (hasImport(varName, table)) {
             return new Type(varName, false);
         }
 
