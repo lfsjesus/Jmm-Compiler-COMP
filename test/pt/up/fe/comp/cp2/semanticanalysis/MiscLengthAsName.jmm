@@ -1,11 +1,11 @@
 
-import io;
-import a.b.io;
+import A;
 
 class Test {
-    public int f() {
-        int b;
-        b = 1;
-        return 0;
+    public Test f() {
+        Test b;
+        b = A.bar();
+
+        return b;
     }
 }

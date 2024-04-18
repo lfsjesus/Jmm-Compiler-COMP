@@ -106,7 +106,7 @@ public class StatementAnalyzer extends AnalysisVisitor{
             return null;
         }
 
-        if (hasImport(leftType.getName(), table) && hasImport(rightType.getName(), table)) {
+        if (hasImport(leftType.getName(), table) || hasImport(rightType.getName(), table)) {
             return null;
         }
 
