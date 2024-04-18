@@ -86,10 +86,12 @@ public class UndeclaredVariable extends AnalysisVisitor {
 
         // Check if exists a parameter or variable declaration with the same name as the variable reference
         var varRefName = varRefExpr.get("name");
+        JmmNode parentMethod = NodeUtils.getMethodNode(varRefExpr);
+        boolean isStatic = NodeUtils.getBooleanAttribute(parentMethod, "isStatic", "false");
 
         // Var is a field, return
         if (table.getFields().stream()
-                .anyMatch(param -> param.getName().equals(varRefName))) {
+                .anyMatch(param -> param.getName().equals(varRefName)) && !isStatic) {
             return null;
         }
 
