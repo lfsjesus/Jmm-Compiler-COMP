@@ -1,17 +1,12 @@
-import A;
-class Simple {
+import imp.Class;
 
+class Main {
     public static void main(String[] args) {
-        int n;
-        n = A.foo(new Simple());
-    }
+        Class var;
+        var = new Class();
 
-    public int foo(int n) {
-        return n;
-    }
+        var.f();
 
-    public int bar() {
-        return 1;
-    }
 
+    }
 }

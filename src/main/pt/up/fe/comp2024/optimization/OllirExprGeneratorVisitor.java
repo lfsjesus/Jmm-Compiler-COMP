@@ -187,7 +187,7 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
                 code.append(codeName.split("\\.")[0]);
                 break;
             case "invokespecial":
-                code.append("this");
+                code.append(codeName);
                 break;
             case "invokevirtual":
                 //String codeName = visit(caller).getCode();

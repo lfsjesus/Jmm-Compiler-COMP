@@ -1,17 +1,12 @@
-import java.util.A;
+import imp.Class;
 
-class Test {
-
-    int intField;
-
+class Main {
     public static void main(String[] args) {
-        boolean a;
-        a = A.foo()[2];
-    }
+        Class var;
+        var = new Class();
 
-    public int foo() {
-        int a;
-        9a[0] = a;
-        return 0;
+        var.f();
+
+
     }
 }
