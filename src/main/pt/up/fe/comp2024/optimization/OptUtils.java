@@ -33,7 +33,7 @@ public class OptUtils {
     }
 
     public static String toOllirType(JmmNode typeNode) {
-        List<Kind> validTypes = List.of(Kind.INT_TYPE, Kind.BOOLEAN_TYPE, Kind.ARRAY_TYPE, Kind.VOID_TYPE);
+        List<Kind> validTypes = List.of(Kind.INT_TYPE, Kind.BOOLEAN_TYPE, Kind.ARRAY_TYPE, Kind.VOID_TYPE, Kind.STRING_TYPE, Kind.CLASS_TYPE);
 
         String typeKind = typeNode.getKind();
 

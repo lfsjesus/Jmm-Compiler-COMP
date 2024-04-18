@@ -17,6 +17,7 @@ public enum Kind {
     BOOLEAN_TYPE,
     VOID_TYPE,
     STRING_TYPE,
+    CLASS_TYPE,
     METHOD_DECL,
     PARAM,
     VAR_ARGS,
@@ -60,7 +61,9 @@ public enum Kind {
     }
 
     public static Kind fromString(String kind) {
-
+        if (kind.equals("ClassType")) {
+            System.out.println("ClassType");
+        }
         for (Kind k : Kind.values()) {
             if (k.getNodeName().equals(kind)) {
                 return k;
