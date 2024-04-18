@@ -1,14 +1,9 @@
-import a.b.c.D;  // importsComplex
-import Imported;  // importsSimple
+class Main extends Thing {
 
-class Test extends Imported {
-    int intField;
-    boolean boolField;
+public int foo() {
+this.bar();
 
-    public int f() {
-        return intField;
-    }
-
-
+return 0;
+}
 
 }
