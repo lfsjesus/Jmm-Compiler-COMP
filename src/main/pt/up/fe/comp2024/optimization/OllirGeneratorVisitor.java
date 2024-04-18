@@ -181,15 +181,20 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         var stop = (retType.equals(".V")) ? node.getNumChildren() : node.getNumChildren() - 1;
         for (int i = afterParam; i < stop; i++) {
             var child = node.getJmmChild(i);
-            String childCode = null;
+            String childCode = "";
+            String computation = "";
             if (child.isInstance(EXPR_STMT)) {
                 child = child.getJmmChild(0);
-                childCode = exprVisitor.visit(child).getCode();
+                var childResult = exprVisitor.visit(child);
+                childCode = childResult.getCode();
+                computation = childResult.getComputation();
             }
             else {
                 childCode = visit(child);
             }
+            code.append(computation);
             code.append(childCode);
+
         }
 
         //extract the return statement

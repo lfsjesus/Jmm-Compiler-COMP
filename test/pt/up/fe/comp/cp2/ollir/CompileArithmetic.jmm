@@ -1,13 +1,30 @@
-import a.b.c.Class;
+import a.b.c.D;  // importsComplex
+import Imported;  // importsSimple
 
 class Test extends Imported {
+    int intField;
+    boolean boolField;
 
     public int f() {
-        Class var;
-        var = new Class();
-
-        var.f();
+        D d;
+        D.foo(); // invokestatic
+        d = new D(); // invokespecial
+        d.foo(); // invokevirtual
         return 0;
+    }
+
+    public int g() {
+        D d;
+        int i;
+        d = new D();
+        i = d.f(); // invokeVirtualWithAssign
+        return i;
+    }
+
+    public int h(D d) {
+        int a;
+        a = 0;
+        return this.bar(new D(), 2 * (1+1), this.super(true, false, 1, a), (new Imported()).fiz()); // miscComplexArgs
     }
 
 

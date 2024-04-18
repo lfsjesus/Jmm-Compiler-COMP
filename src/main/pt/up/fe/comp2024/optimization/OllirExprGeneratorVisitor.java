@@ -160,6 +160,29 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
 
         List<JmmNode> params = methodCall.getChildren();
 
+        //var methodCallVisit = visit(methodCall);
+
+        //String methodCallCode = methodCallVisit.getCode();
+
+        //code.append(methodCallVisit.getComputation());
+        //computation.append(methodCallVisit.getComputation());
+
+
+
+
+        // previous just work for simple params. we may need to compute the params before calling the method
+        // first, see if there are computations and append them. save them so we can append them later
+
+        // hashmap to store the computations of the params
+        HashMap<Integer, String> codes = new HashMap<>();
+
+        for (JmmNode param : params) {
+            var paramVisit = visit(param);
+            //computation.append(paramVisit.getComputation());
+            computation.append(paramVisit.getComputation());
+            codes.put(params.indexOf(param), paramVisit.getCode());
+        }
+
         String invokeType = getInvokeType(methodCall);
 
         code.append(invokeType);
@@ -173,23 +196,6 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
 
         if (codeName.isEmpty()) {
             codeName = "this";
-        }
-
-        var methodCallVisit = visit(methodCall);
-
-        String methodCallCode = methodCallVisit.getCode();
-        //code.append(methodCallCode);
-        computation.append(methodCallVisit.getComputation());
-        // previous just work for simple params. we may need to compute the params before calling the method
-        // first, see if there are computations and append them. save them so we can append them later
-
-        // hashmap to store the computations of the params
-        HashMap<Integer, String> codes = new HashMap<>();
-
-        for (JmmNode param : params) {
-            var paramVisit = visit(param);
-            computation.append(paramVisit.getComputation());
-            codes.put(params.indexOf(param), paramVisit.getCode());
         }
 
 
@@ -266,6 +272,7 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
             code.append(")");
             code.append(OptUtils.toOllirType(thisType));
         }
+
         else {
             thisType = new Type("void", false);
             code.append(")");
@@ -278,6 +285,8 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         }
 
         temp = OptUtils.getTemp() + OptUtils.toOllirType(thisType);
+
+
         computation.append(temp).append(SPACE).append(ASSIGN)
                 .append(OptUtils.toOllirType(thisType)).append(SPACE)
                 .append(code).append(END_STMT);
