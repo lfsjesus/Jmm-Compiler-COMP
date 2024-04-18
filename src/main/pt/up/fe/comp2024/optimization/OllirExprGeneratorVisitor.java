@@ -7,6 +7,8 @@ import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp.jmm.ast.PreorderJmmVisitor;
 import pt.up.fe.comp2024.ast.TypeUtils;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import static pt.up.fe.comp2024.ast.Kind.*;
@@ -34,12 +36,22 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         addVisit(TRUE_LITERAL, this::visitTrueLiteral);
         addVisit(FALSE_LITERAL, this::visitFalseLiteral);
         addVisit(METHOD_CALL_EXPR, this::visitMethodCallExpr);
+        addVisit(METHOD_CALL, this::visitMethodCall);
+
         addVisit(PAREN_EXPR, this::visitParenExpr);
 
         addVisit(NEW_CLASS_OBJ_EXPR, this::visitNewClassObjExpr);
         setDefaultVisit(this::defaultVisit);
     }
 
+    private OllirExprResult visitMethodCall(JmmNode node, Void unused) {
+
+        if (node.getNumChildren() == 0) {
+            return OllirExprResult.EMPTY;
+        }
+        return visit(node.getJmmChild(0));
+
+    }
 
     private OllirExprResult visitInteger(JmmNode node, Void unused) {
         var intType = new Type(TypeUtils.getIntTypeName(), false);
@@ -121,15 +133,6 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         return new OllirExprResult(code.toString(), computation.toString());
     }
 
-    private OllirExprResult visitMethodCall(JmmNode node, Void unused) {
-        var methodName = node.get("name");
-        var methodType = table.getReturnType(methodName);
-        var ollirType = OptUtils.toOllirType(methodType);
-
-        var code = methodName + ollirType;
-
-        return new OllirExprResult(code);
-    }
 
     /**
      * Default visitor. Visits every child node and return an empty result.
@@ -157,21 +160,17 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
 
         List<JmmNode> params = methodCall.getChildren();
 
-        /*
-        supposing int a;
-        a = 1;
-        io.println(a);
-
-        we need to generate the following code:
-        invokestatic(io, "println", a.i32).V;
-            */
         String invokeType = getInvokeType(methodCall);
 
         code.append(invokeType);
         code.append("(");
 
 
-        String codeName = visit(caller).getCode();
+        var methodCallerVisit = visit(caller);
+        String codeName = methodCallerVisit.getCode();
+
+        computation.append(methodCallerVisit.getComputation());
+
         if (codeName.isEmpty()) {
             codeName = "this";
         }
@@ -179,26 +178,32 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         var methodCallVisit = visit(methodCall);
 
         String methodCallCode = methodCallVisit.getCode();
+        //code.append(methodCallCode);
         computation.append(methodCallVisit.getComputation());
-        //code.append(caller.get("name"));
+        // previous just work for simple params. we may need to compute the params before calling the method
+        // first, see if there are computations and append them. save them so we can append them later
+
+        // hashmap to store the computations of the params
+        HashMap<Integer, String> codes = new HashMap<>();
+
+        for (JmmNode param : params) {
+            var paramVisit = visit(param);
+            computation.append(paramVisit.getComputation());
+            codes.put(params.indexOf(param), paramVisit.getCode());
+        }
+
+
         switch (invokeType) {
             case "invokestatic":
-                //code.append(caller.get("name"));
-                //String codeName = visit(caller).getCode();
                 code.append(codeName.split("\\.")[0]);
                 break;
             case "invokespecial":
                 code.append(codeName);
                 break;
             case "invokevirtual":
-                //String codeName = visit(caller).getCode();
                 code.append(codeName);
-                //code.append(".");
-
-                //Type type = TypeUtils.getExprType(caller, table);
-
-                //code.append(type.getName());
-
+                code.append(".");
+                code.append(table.getClassName());
                 break;
         }
 
@@ -206,10 +211,13 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         code.append(methodName);
         code.append("\"");
 
-        for (JmmNode param : params) {
+
+        for (int i = 0; i < params.size(); i++) {
             code.append(", ");
-            code.append(visit(param).getCode()); // invokestatic(io, "println", a.i32, b.i32).V; -> a.i32, b.i32
+            code.append(codes.get(i));
         }
+
+        // now that we have the computations, we can append them
 
         JmmNode parent = node.getJmmParent();
         Type thisType = null;
@@ -231,6 +239,24 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
             code.append(")");
             code.append(OptUtils.toOllirType(thisType));
         }
+        else if (parent.isInstance(NEW_CLASS_OBJ_EXPR)) {
+            needTemp = true;
+            thisType = new Type(parent.get("name"), false);
+            code.append(")");
+            code.append(OptUtils.toOllirType(thisType));
+        }
+        else if (parent.isInstance(PAREN_EXPR)) {
+            needTemp = true;
+            thisType = TypeUtils.getExprType(parent.getJmmChild(0), table);
+            code.append(")");
+            code.append(OptUtils.toOllirType(thisType));
+        }
+        else if (parent.isInstance(METHOD_CALL)) {
+            needTemp = true;
+            thisType = table.getReturnType(TypeUtils.getMethodName(parent));
+            code.append(")");
+            code.append(OptUtils.toOllirType(thisType));
+        }
         else {
             thisType = new Type("void", false);
             code.append(")");
@@ -239,11 +265,13 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
 
         if (!needTemp) {
             code.append(END_STMT);
-            return new OllirExprResult(code.toString());
+            return new OllirExprResult(code.toString(), computation.toString());
         }
 
         temp = OptUtils.getTemp() + OptUtils.toOllirType(thisType);
-        computation.append(temp).append(SPACE).append(ASSIGN).append(OptUtils.toOllirType(thisType)).append(SPACE).append(code).append(END_STMT);
+        computation.append(temp).append(SPACE).append(ASSIGN)
+                .append(OptUtils.toOllirType(thisType)).append(SPACE)
+                .append(code).append(END_STMT);
         return new OllirExprResult(temp, computation);
     }
 
@@ -253,8 +281,13 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
 
     private String getInvokeType(JmmNode node) {
         // THIS IS FAILING IN COMPLEX TESTS. NEED TO FIX
-        Type varType = TypeUtils.getVarType(node.getParent().getChild(0).get("name"), TypeUtils.getMethodName(node), table);
-        boolean isVarDeclared = TypeUtils.isVarDeclared(node.getParent().getChild(0).get("name"), TypeUtils.getMethodName(node), table);
+        JmmNode parentNode = node.getParent().getChild(0);
+
+        while (parentNode.isInstance(PAREN_EXPR)) {
+            parentNode = parentNode.getChild(0);
+        }
+        Type varType = TypeUtils.getVarType(parentNode.get("name"), TypeUtils.getMethodName(node), table);
+        boolean isVarDeclared = TypeUtils.isVarDeclared(parentNode.get("name"), TypeUtils.getMethodName(node), table);
 
         boolean typeThisAndMethodIsDeclared = varType.getName().equals(table.getClassName()) && table.getMethods().stream().anyMatch(method -> method.equals(node.get("name")));
         if (isVarDeclared || typeThisAndMethodIsDeclared) {
