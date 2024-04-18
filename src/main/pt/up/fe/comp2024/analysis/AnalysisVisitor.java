@@ -142,7 +142,6 @@ public abstract class AnalysisVisitor extends PreorderJmmVisitor<SymbolTable, Vo
         List<Symbol> args = table.getParameters(methodName);
         List<Symbol> locals = table.getLocalVariables(methodName);
         List<Symbol> globals = table.getFields();
-        List<String> imports = table.getImports();
         String extendsClass = table.getSuper();
 
         if (hasImport(varName, table)) {

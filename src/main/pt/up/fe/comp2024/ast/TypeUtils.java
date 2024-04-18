@@ -64,7 +64,7 @@ public class TypeUtils {
         String className = table.getClassName();
         String extendsClass = table.getSuper();
 
-        if (imports.contains(varName)) {
+        if (table.getImports().stream().map(imported -> imported.split(", ")[imported.split(",").length - 1]).anyMatch(imported -> imported.equals(varName))) {
             return new Type(varName, false);
         }
 
