@@ -31,6 +31,8 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         addVisit(VAR_REF_EXPR, this::visitVarRef);
         addVisit(BINARY_EXPR, this::visitBinExpr);
         addVisit(INTEGER_LITERAL, this::visitInteger);
+        addVisit(TRUE_LITERAL, this::visitTrueLiteral);
+        addVisit(FALSE_LITERAL, this::visitFalseLiteral);
         addVisit(METHOD_CALL_EXPR, this::visitMethodCallExpr);
 
         addVisit(NEW_CLASS_OBJ_EXPR, this::visitNewClassObjExpr);
@@ -42,6 +44,20 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         var intType = new Type(TypeUtils.getIntTypeName(), false);
         String ollirIntType = OptUtils.toOllirType(intType);
         String code = node.get("value") + ollirIntType;
+        return new OllirExprResult(code);
+    }
+
+    private OllirExprResult visitTrueLiteral(JmmNode node, Void unused) {
+        var boolType = new Type(TypeUtils.getBoolTypeName(), false);
+        String ollirBoolType = OptUtils.toOllirType(boolType);
+        String code = "1" + ollirBoolType;
+        return new OllirExprResult(code);
+    }
+
+    private OllirExprResult visitFalseLiteral(JmmNode node, Void unused) {
+        var boolType = new Type(TypeUtils.getBoolTypeName(), false);
+        String ollirBoolType = OptUtils.toOllirType(boolType);
+        String code = "0" + ollirBoolType;
         return new OllirExprResult(code);
     }
 
@@ -78,15 +94,30 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
 
 
     private OllirExprResult visitVarRef(JmmNode node, Void unused) {
-
         var id = node.get("name");
-        String methodName = TypeUtils.getMethodName(node);
-        Type type = TypeUtils.getVarType(id, methodName, table);
-        String ollirType = OptUtils.toOllirType(type);
+        // each field has name attribute, check matches
+        boolean isField = table.getFields().stream().anyMatch(field -> field.getName().equals(id));
+        StringBuilder computation = new StringBuilder();
+        StringBuilder code = new StringBuilder();
 
-        String code = id + ollirType;
+        String ollirType = OptUtils.toOllirType(TypeUtils.getVarType(id, TypeUtils.getMethodName(node), table));
 
-        return new OllirExprResult(code);
+        // check if node appears in the right side of an assignment: is second child of assign stmt
+        if (isField && node.getJmmParent().isInstance(ASSIGN_STMT) && node.getJmmParent().getChild(1).equals(node)) {
+            String temp = OptUtils.getTemp() + OptUtils.toOllirType(TypeUtils.getVarType(id, TypeUtils.getMethodName(node), table));
+            computation.append(temp).append(SPACE).append(ASSIGN).append(ollirType).append(SPACE).append("getfield(this, ").append(id).append(ollirType).append(")").append(ollirType).append(END_STMT);
+            code.append(temp);
+        }
+        else if (isField && node.getJmmParent().isInstance(ASSIGN_STMT) && node.getJmmParent().getChild(0).equals(node)) {
+            // use putfield: putfield(this, field.type, value.type).type -> this is an assignment like class_field = value
+            code.append("putfield(this, ").append(id).append(ollirType).append(",");
+        }
+        else {
+            code.append(id).append(ollirType);
+        }
+
+
+        return new OllirExprResult(code.toString(), computation.toString());
     }
 
     private OllirExprResult visitMethodCall(JmmNode node, Void unused) {

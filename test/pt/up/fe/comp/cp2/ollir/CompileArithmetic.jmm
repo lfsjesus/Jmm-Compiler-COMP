@@ -1,16 +1,25 @@
-class CompileArithmetic {
+import io;
+import java.util.List;
+import A;
+class Simple extends A{
+    int field_int;
+    boolean field_bool;
 
-    public static void main(String[] args) {
+     public int arithmetic(){
+        int local_int;
+        boolean local_boolean;
+        local_int = field_int;
+        field_int = 10;
+        local_boolean = field_bool;
+        field_bool = true;
 
+        return 0;
     }
 
-    public int foo() {
-        int a;
-        int b;
 
-        a = 1;
-        b = 2;
 
-        return a + b;
+    public static void main(String[] args){
     }
+
+
 }

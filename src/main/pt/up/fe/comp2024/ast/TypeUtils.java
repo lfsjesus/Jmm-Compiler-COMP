@@ -10,9 +10,14 @@ import java.util.List;
 public class TypeUtils {
 
     private static final String INT_TYPE_NAME = "int";
+    private static final String BOOL_TYPE_NAME = "boolean";
 
     public static String getIntTypeName() {
         return INT_TYPE_NAME;
+    }
+
+    public static String getBoolTypeName() {
+        return BOOL_TYPE_NAME;
     }
 
     /**

@@ -55,6 +55,8 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         var lhs = exprVisitor.visit(node.getJmmChild(0));
         var rhs = exprVisitor.visit(node.getJmmChild(1));
 
+        boolean fieldBeingAssigned = table.getFields().stream().anyMatch(field -> field.getName().equals(node.getJmmChild(0).get("name")));
+
         StringBuilder code = new StringBuilder();
 
         // code to compute the children
@@ -70,11 +72,19 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         code.append(lhs.getCode());
         code.append(SPACE);
 
-        code.append(ASSIGN);
-        code.append(typeString);
-        code.append(SPACE);
+        if (!fieldBeingAssigned) {
+            code.append(ASSIGN);
+            code.append(typeString);
+            code.append(SPACE);
+            code.append(rhs.getCode());
+        }
+        else {
+            code.append(rhs.getCode());
+            code.append(")");
+            code.append(".V");
+        }
 
-        code.append(rhs.getCode());
+
 
         code.append(END_STMT);
 
