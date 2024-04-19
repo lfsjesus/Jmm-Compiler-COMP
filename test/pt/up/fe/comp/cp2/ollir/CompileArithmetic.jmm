@@ -4,6 +4,8 @@ class Simple {
     int a;
 
      public int arithmetic(int a){
+        int a;
+        a = 9;
         io.println(a);
         return 0;
     }

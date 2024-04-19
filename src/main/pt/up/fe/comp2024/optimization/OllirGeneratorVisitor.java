@@ -57,7 +57,9 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         var lhs = exprVisitor.visit(node.getJmmChild(0));
         var rhs = exprVisitor.visit(node.getJmmChild(1));
 
-        boolean fieldBeingAssigned = table.getFields().stream().anyMatch(field -> field.getName().equals(node.getJmmChild(0).get("name")));
+        boolean fieldBeingAssigned = table.getFields().stream().anyMatch(field -> field.getName().equals(node.getJmmChild(0).get("name")) &&
+                                    table.getLocalVariables(TypeUtils.getMethodName(node)).stream().noneMatch(local -> local.getName().equals(node.getJmmChild(0).get("name"))) &&
+                                    table.getParameters(TypeUtils.getMethodName(node)).stream().noneMatch(param -> param.getName().equals(node.getJmmChild(0).get("name"))));
 
         StringBuilder code = new StringBuilder();
 
