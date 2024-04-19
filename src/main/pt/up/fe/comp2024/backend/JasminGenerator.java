@@ -394,16 +394,13 @@ public class JasminGenerator {
         };
     }
 
-    private String generateFullName(String name) {
-
+    private String generateFullName(String simpleName) {
         List<String> imports = ollirResult.getOllirClass().getImports();
-        for (String imp : imports) {
-            String impName = imp.substring(imp.lastIndexOf('.') + 1);
-            if (impName.equals(name)) {
-                return imp.replace('.', '/');
-            }
-        }
-        return name;
+        return imports.stream()
+                .filter(imp -> imp.endsWith("." + simpleName))
+                .findFirst()
+                .map(imp -> imp.replace('.', '/'))
+                .orElse(simpleName);
     }
 
 }
