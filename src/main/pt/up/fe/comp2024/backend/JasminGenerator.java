@@ -96,44 +96,22 @@ public class JasminGenerator {
 
     // Helper methods for class generation
     private void appendClassDeclaration(StringBuilder code, ClassUnit classUnit) {
-        // Start with the base declaration
-        code.append(".class ");
-
-        // Use switch-case to determine the access modifier text
-        switch (classUnit.getClassAccessModifier()) {
-            case PUBLIC:
-                code.append("public ");
-                break;
-            case PRIVATE:
-                code.append("private ");
-                break;
-            case PROTECTED:
-                code.append("protected ");
-                break;
-            case DEFAULT:
-                // No modifier needed, skip
-                break;
-        }
-
-        // Check for static and final modifiers
+        String classAccessModifier = classUnit.getClassAccessModifier() != AccessModifier.DEFAULT ?
+                classUnit.getClassAccessModifier().name().toLowerCase() + " " : "";
+        code.append(".class ").append(classAccessModifier);
         if (classUnit.isStaticClass()) {
             code.append("static ");
         }
         if (classUnit.isFinalClass()) {
             code.append("final ");
         }
-
-        // Append the fully qualified class name
-        String className = classUnit.getClassName();
         String packageName = classUnit.getPackage();
-        if (packageName != null && !packageName.isEmpty()) {
-            className = packageName + '/' + className;
+        if (packageName != null) {
+            className = packageName + '/';
         }
-
-        // Finish the declaration
+        className += classUnit.getClassName();
         code.append(className).append(NL);
     }
-
 
     private void appendSuperClass(StringBuilder code, ClassUnit classUnit) {
         String superClass = classUnit.getSuperClass();
@@ -192,8 +170,8 @@ public class JasminGenerator {
         }
 
         String fieldName = field.getFieldName();
-        String typeDescriptor = generateJasminType(field.getFieldType());
-        code.append(fieldName).append(' ').append(typeDescriptor);
+        String jasminType = generateJasminType(field.getFieldType());
+        code.append(fieldName).append(' ').append(jasminType);
 
         if (field.isInitialized()) {
             int initialValue = field.getInitialValue();
