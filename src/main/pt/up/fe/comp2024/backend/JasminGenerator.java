@@ -46,16 +46,16 @@ public class JasminGenerator {
         this.generators = new FunctionClassMap<>();
         generators.put(ClassUnit.class, this::generateClassCode);
         generators.put(Field.class, this::generateFieldDeclarationCode);
-        generators.put(GetFieldInstruction.class, this::generateGetFieldInstructionCode);
-        generators.put(PutFieldInstruction.class, this::generatePutFieldInstructionCode);
+        generators.put(GetFieldInstruction.class, this::generateGetFieldInstrCode);
+        generators.put(PutFieldInstruction.class, this::generatePutFieldInstrCode);
         generators.put(Method.class, this::generateMethodSignatureAndBodyCode);
-        generators.put(AssignInstruction.class, this::generateAssignmentInstructionCode);
-        generators.put(CallInstruction.class, this::generateCallInstructionCode);
-        generators.put(SingleOpInstruction.class, this::generateSingleOpInstructionCode);
+        generators.put(AssignInstruction.class, this::generateAssignmentInstrCode);
+        generators.put(CallInstruction.class, this::generateCallInstrCode);
+        generators.put(SingleOpInstruction.class, this::generateSingleOpInstrCode);
         generators.put(LiteralElement.class, this::generateLiteralElementCode);
         generators.put(Operand.class, this::generateLoadOperandCode);
-        generators.put(BinaryOpInstruction.class, this::generateBinaryOperationInstructionCode);
-        generators.put(ReturnInstruction.class, this::generateReturnInstructionCode);
+        generators.put(BinaryOpInstruction.class, this::generateBinaryOperationInstrCode);
+        generators.put(ReturnInstruction.class, this::generateReturnInstrCode);
     }
 
     public List<Report> getReports() {
@@ -168,7 +168,7 @@ public class JasminGenerator {
         code.append(generateTypeDescriptor(fieldInstruction.getField().getType())).append(NL);
     }
 
-    private String generateGetFieldInstructionCode(GetFieldInstruction getFieldInstruction) {
+    private String generateGetFieldInstrCode(GetFieldInstruction getFieldInstruction) {
         StringBuilder code = new StringBuilder();
         code.append(generators.apply(getFieldInstruction.getObject()));
 
@@ -178,7 +178,7 @@ public class JasminGenerator {
         return code.toString();
     }
 
-    private String generatePutFieldInstructionCode(PutFieldInstruction putFieldInstruction) {
+    private String generatePutFieldInstrCode(PutFieldInstruction putFieldInstruction) {
         StringBuilder code = new StringBuilder();
         code.append(generators.apply(putFieldInstruction.getObject()));
         code.append(generators.apply(putFieldInstruction.getValue()));
@@ -189,7 +189,7 @@ public class JasminGenerator {
         return code.toString();
     }
 
-    private String generateAssignmentInstructionCode(AssignInstruction assign) {
+    private String generateAssignmentInstrCode(AssignInstruction assign) {
         StringBuilder code = new StringBuilder();
 
         // generate code for loading what's on the right
@@ -282,7 +282,7 @@ public class JasminGenerator {
         };
     }
 
-    private String generateBinaryOperationInstructionCode(BinaryOpInstruction binaryOp) {
+    private String generateBinaryOperationInstrCode(BinaryOpInstruction binaryOp) {
         StringBuilder code = new StringBuilder();
 
         // load values on the left and on the right
@@ -303,7 +303,7 @@ public class JasminGenerator {
         return code.toString();
     }
 
-    private String generateReturnInstructionCode(ReturnInstruction returnInst) {
+    private String generateReturnInstrCode(ReturnInstruction returnInst) {
         StringBuilder code = new StringBuilder();  // Explicitly declare as StringBuilder
 
         if (returnInst.hasReturnValue()) {
@@ -321,7 +321,7 @@ public class JasminGenerator {
     }
 
 
-    private String generateCallInstructionCode(CallInstruction callInstruction) {
+    private String generateCallInstrCode(CallInstruction callInstruction) {
         StringBuilder code = new StringBuilder();
 
         CallType callType = callInstruction.getInvocationType();
@@ -361,7 +361,7 @@ public class JasminGenerator {
         return code.toString();
     }
 
-    private String generateSingleOpInstructionCode(SingleOpInstruction singleOp) {
+    private String generateSingleOpInstrCode(SingleOpInstruction singleOp) {
         return generators.apply(singleOp.getSingleOperand());
     }
 
