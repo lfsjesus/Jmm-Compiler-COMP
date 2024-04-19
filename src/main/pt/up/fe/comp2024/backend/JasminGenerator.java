@@ -283,14 +283,14 @@ public class JasminGenerator {
     }
 
     private String generateBinaryOperationCode(BinaryOpInstruction binaryOp) {
-        StringBuilder code = new StringBuilder();  // Use StringBuilder instead of var
+        StringBuilder code = new StringBuilder();
 
         // load values on the left and on the right
         code.append(generators.apply(binaryOp.getLeftOperand()));
         code.append(generators.apply(binaryOp.getRightOperand()));
 
         // apply operation
-        String op = switch (binaryOp.getOperation().getOpType()) {  // Use String instead of var
+        String op = switch (binaryOp.getOperation().getOpType()) {
             case ADD -> "iadd";
             case SUB -> "isub";
             case MUL -> "imul";
@@ -322,20 +322,20 @@ public class JasminGenerator {
 
 
     private String generateCallInstructionCode(CallInstruction callInstruction) {
-        var code = new StringBuilder();
+        StringBuilder code = new StringBuilder();
 
-        var callType = callInstruction.getInvocationType();
+        CallType callType = callInstruction.getInvocationType();
         if (callType == CallType.invokevirtual) {
             code.append(generators.apply(callInstruction.getCaller()));
         }
 
-        for (var operand : callInstruction.getArguments()) {
+        for (Element operand : callInstruction.getArguments()) {
             code.append(generators.apply(operand));
         }
 
         if (callType == CallType.NEW) {
             code.append(callType.name().toLowerCase()).append(' ');
-            var operand = (Operand) callInstruction.getCaller();
+            Operand operand = (Operand) callInstruction.getCaller();
             code.append(operand.getName()).append(NL);
         }
         else {
@@ -348,13 +348,13 @@ public class JasminGenerator {
             }
             code.append(callType.name()).append(' ');
             code.append(className).append('/');
-            var name = ((LiteralElement) callInstruction.getMethodName()).getLiteral().replace("\"", "");
+            String name = ((LiteralElement) callInstruction.getMethodName()).getLiteral().replace("\"", "");
             code.append(name);
             code.append('(');
-            for (var arg : callInstruction.getArguments()) {
+            for (Element arg : callInstruction.getArguments()) {
                 code.append(generateTypeDescriptor(arg.getType()));
             }
-            var returnType = callInstruction.getReturnType();
+            Type returnType = callInstruction.getReturnType();
             code.append(')').append(generateTypeDescriptor(returnType)).append(NL);
         }
 
