@@ -35,7 +35,8 @@ public class TypeUtils {
         return switch (kind) {
             case BINARY_EXPR -> getBinExprType(expr);
             case VAR_REF_EXPR -> getVarType(expr.get("name"), getMethodName(expr), table);
-            case THIS_LITERAL -> new Type(table.getClassName(), false); // IS THIS RIGHT??
+            case THIS_LITERAL -> new Type(table.getClassName(), false);
+            case LENGTH_LITERAL -> getVarType("length", getMethodName(expr), table);
             case INTEGER_LITERAL -> new Type(INT_TYPE_NAME, false);
             default -> throw new UnsupportedOperationException("Can't compute type for expression kind '" + kind + "'");
         };

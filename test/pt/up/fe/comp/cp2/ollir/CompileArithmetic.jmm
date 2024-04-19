@@ -1,15 +1,19 @@
-import A.B.C;
-class ThisTest extends C {
+import io;
 
-    public int foo() {
-        int a;
-        a = this.thistest();
-        return a;
-    }
+class Simple {
+    int a;
 
-    public int thistest() {
-        C c;
-        c = this;
+     public int arithmetic(int a){
+        io.println(a);
         return 0;
     }
+
+
+    public static void main(String[] args){
+        Simple s;
+        s = new Simple();
+        s.arithmetic(100);
+    }
+
+
 }

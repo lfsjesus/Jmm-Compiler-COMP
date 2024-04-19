@@ -40,6 +40,8 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
 
         addVisit(PAREN_EXPR, this::visitParenExpr);
         addVisit(THIS_LITERAL, this::visitVarRef);
+        addVisit(LENGTH_LITERAL, this::visitVarRef);
+        addVisit(MAIN_LITERAL, this::visitVarRef);
         addVisit(NEW_CLASS_OBJ_EXPR, this::visitNewClassObjExpr);
         setDefaultVisit(this::defaultVisit);
     }
@@ -109,7 +111,9 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
     private OllirExprResult visitVarRef(JmmNode node, Void unused) {
         var id = node.get("name");
         // each field has name attribute, check matches
-        boolean isField = table.getFields().stream().anyMatch(field -> field.getName().equals(id));
+        boolean isField = table.getFields().stream().anyMatch(field -> field.getName().equals(id))
+                            && table.getLocalVariables(TypeUtils.getMethodName(node)).stream().noneMatch(local -> local.getName().equals(id))
+                            && table.getParameters(TypeUtils.getMethodName(node)).stream().noneMatch(param -> param.getName().equals(id));
         StringBuilder computation = new StringBuilder();
         StringBuilder code = new StringBuilder();
 
