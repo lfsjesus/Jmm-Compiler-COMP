@@ -122,17 +122,14 @@ public class JasminGenerator {
     }
 
     private void generateFields(StringBuilder code, ClassUnit classUnit) {
-        for (Field field : classUnit.getFields()) {
-            code.append(generators.apply(field)).append(NL);
-        }
+        classUnit.getFields().stream()
+                .map(field -> generators.apply(field) + NL)
+                .forEach(code::append);
     }
 
     private void generateDefaultConstructor(StringBuilder code, ClassUnit classUnit) {
-        String superClass = classUnit.getSuperClass();
-        if (superClass == null || superClass.equals("Object")) {
-            superClass = "java/lang/Object";
-        }
-        superClass = generateFullName(superClass);
+        String superName = classUnit.getSuperClass();
+        superName = (superName == null || superName.equals("Object")) ? "java/lang/Object" : superName;
         String defaultConstructor = String.format("""
             ;default constructor
             .method public <init>()V
@@ -140,7 +137,7 @@ public class JasminGenerator {
                 invokespecial %s/<init>()V
                 return
             .end method
-            """, superClass);
+            """, generateFullName(superName));
         code.append(NL).append(defaultConstructor);
     }
 
@@ -264,10 +261,10 @@ public class JasminGenerator {
         String instCode = StringLines.getLines(generators.apply(inst)).stream()
                 .collect(Collectors.joining(NL + TAB, TAB, NL));
         code.append(instCode);
-        handleNonVoidReturn(inst, code);
+        handlePopAfterInvoke(inst, code);
     }
 
-    private void handleNonVoidReturn(Instruction inst, StringBuilder code) {
+    private void handlePopAfterInvoke(Instruction inst, StringBuilder code) {
         if (inst instanceof CallInstruction && !((CallInstruction) inst).getReturnType().getTypeOfElement().equals(ElementType.VOID)) {
             if (((CallInstruction) inst).getInvocationType() != CallType.NEW) {
                 code.append("pop").append(NL);
