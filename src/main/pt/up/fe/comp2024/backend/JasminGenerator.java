@@ -254,9 +254,9 @@ public class JasminGenerator {
         code.append(TAB).append(".limit locals ").append(99).append(NL);
     }
     private void appendInstruction(StringBuilder code, Instruction inst) {
-        String instCode = StringLines.getLines(generators.apply(inst)).stream()
+        String instruction = StringLines.getLines(generators.apply(inst)).stream()
                 .collect(Collectors.joining(NL + TAB, TAB, NL));
-        code.append(instCode);
+        code.append(instruction);
         handlePopAfterInvoke(inst, code);
     }
 
