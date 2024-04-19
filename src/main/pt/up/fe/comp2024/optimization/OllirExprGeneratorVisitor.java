@@ -238,8 +238,13 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         if (parent.isInstance(BINARY_EXPR)) {
             needTemp = true;
             JmmNode assignStmt = parent.getJmmParent();
-            if (assignStmt != null) {
+            if (assignStmt != null && invokeType.equals("invokevirtual")) {
                 thisType = TypeUtils.getExprType(assignStmt.getJmmChild(0), table);
+                code.append(")");
+                code.append(OptUtils.toOllirType(thisType));
+            }
+            else {
+                thisType = new Type("void", false);
                 code.append(")");
                 code.append(OptUtils.toOllirType(thisType));
             }
@@ -266,12 +271,22 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         else if (parent.isInstance(METHOD_CALL)) {
             needTemp = true;
             try {
-                thisType = table.getReturnType(parent.get("name"));
+                thisType = table.getReturnType(node.getChild(1).get("name"));
                 if (thisType == null) {
-                    thisType = new Type("void", false);
+                    if (invokeType.equals("invokevirtual")) {
+                        // what is my index on the parent?
+                        int index = parent.getChildren().indexOf(node);
+                        // get type of param in the same index of parent
+                        thisType = table.getParameters(parent.get("name")).get(index).getType();
+                    }
                 }
+
             }
             catch (Exception e) {
+                thisType = new Type("void", false);
+            }
+
+            if (thisType == null) {
                 thisType = new Type("void", false);
             }
             code.append(")");
@@ -342,9 +357,9 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         if (isVarDeclared || typeThisAndMethodIsDeclared || extendsClassThis || isImportedAndNewObj) {
             return "invokevirtual";
         }
-        else {
-            return "invokestatic";
-        }
+
+        return "invokestatic";
+
     }
 
     private OllirExprResult visitNewClassObjExpr(JmmNode node, Void unused) {
