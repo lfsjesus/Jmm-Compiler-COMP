@@ -11,12 +11,7 @@ import pt.up.fe.specs.util.SpecsCheck;
 
 import java.util.List;
 
-/**
- * Checks if the type of the expression in a return statement is compatible with the method return type.
- *
- * @author JBispo
- */
-public class UndeclaredVariable extends AnalysisVisitor {
+public class EssentialAnalyzer extends AnalysisVisitor {
 
     private String currentMethod;
 
@@ -65,7 +60,6 @@ public class UndeclaredVariable extends AnalysisVisitor {
     private Void visitMethodDecl(JmmNode method, SymbolTable table) {
         currentMethod = method.get("name");
 
-        // if method is "main", check if it's static, return type and argument is String[]
         if (currentMethod.equals("main")) {
             checkMainMethod(method);
         }
@@ -84,7 +78,7 @@ public class UndeclaredVariable extends AnalysisVisitor {
     private Void visitVarRefExpr(JmmNode varRefExpr, SymbolTable table) {
         SpecsCheck.checkNotNull(currentMethod, () -> "Expected current method to be set");
 
-        // Check if exists a parameter or variable declaration with the same name as the variable reference
+        // Check if exists a parameter or variable declaration with the same name as the variable
         var varRefName = varRefExpr.get("name");
         JmmNode parentMethod = NodeUtils.getMethodNode(varRefExpr);
         boolean isStatic = NodeUtils.getBooleanAttribute(parentMethod, "isStatic", "false");
@@ -155,7 +149,7 @@ public class UndeclaredVariable extends AnalysisVisitor {
     private void checkMethodParameters(JmmNode methodDecl, SymbolTable table) {
         List<JmmNode> params = methodDecl.getChildren(Kind.PARAM);
 
-        // check if there are any repeated parameters
+        // check if there are repeated parameters
         for (int i = 0; i < params.size(); i++) {
             for (int j = i + 1; j < params.size(); j++) {
                 if (params.get(i).getChild(1).get("name").equals(params.get(j).getChild(1).get("name"))) {
@@ -175,7 +169,7 @@ public class UndeclaredVariable extends AnalysisVisitor {
     private void checkMethodLocals(JmmNode methodDecl, SymbolTable table) {
         List<JmmNode> locals = methodDecl.getChildren(Kind.VAR_DECL);
 
-        // check if there are parameters with the same name as locals
+        // check if there are parameters with the same name as a local
         List<JmmNode> params = methodDecl.getChildren(Kind.PARAM);
         for (JmmNode local : locals) {
             for (JmmNode param : params) {

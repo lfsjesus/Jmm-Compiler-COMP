@@ -8,23 +8,18 @@ import pt.up.fe.comp.jmm.report.Stage;
 import pt.up.fe.comp2024.analysis.AnalysisVisitor;
 import pt.up.fe.comp2024.ast.Kind;
 import pt.up.fe.comp2024.ast.NodeUtils;
-import pt.up.fe.specs.util.SpecsCheck;
 
 import java.util.Arrays;
 import java.util.List;
 
 public class StatementAnalyzer extends AnalysisVisitor{
-    private String currentMethod;
-
     @Override
     public void buildVisitor() {
         addVisit(Kind.ASSIGN_STMT, this::visitAssignStmt);
         addVisit(Kind.IF_STMT, this::visitIfStmt);
         addVisit(Kind.WHILE_STMT, this::visitWhileStmt);
-        addVisit(Kind.RETURN_STMT, this::visitReturnStmt); // is this needed?
+        addVisit(Kind.RETURN_STMT, this::visitReturnStmt);
         addVisit(Kind.METHOD_RETURN, this::visitReturnStmt);
-        //addVisit(Kind.CURLY_STMT, this::visitCurlyStmt);
-        //addVisit(Kind.EXPR_STMT, this::visitExprStmt);
     }
 
     private Void visitWhileStmt(JmmNode node, SymbolTable table) {
@@ -69,11 +64,13 @@ public class StatementAnalyzer extends AnalysisVisitor{
             addReport(Report.newError(Stage.SEMANTIC, NodeUtils.getLine(stmt), NodeUtils.getColumn(stmt), "Unable to determine return type", null));
             return null;
         }
-        // check if it's import
+
+        // check if the return type is an import
         if (hasImport(returnType.getName(), table)) {
             return null;
         }
 
+        // check if the return type matches the method return type
         if (!returnType.equals(declaredReturnType)) {
             addReport(Report.newError(Stage.SEMANTIC, NodeUtils.getLine(stmt), NodeUtils.getColumn(stmt), "Return type does not match method return type", null));
         }
@@ -83,10 +80,7 @@ public class StatementAnalyzer extends AnalysisVisitor{
             visit(child, table);
         }
 
-        // checkNode(methodname, node)
-
         return null;
-
     }
 
     private Void visitAssignStmt(JmmNode node, SymbolTable table) {
@@ -96,15 +90,17 @@ public class StatementAnalyzer extends AnalysisVisitor{
         Type leftType = getNodeType(left, table);
         Type rightType = getNodeType(right, table);
 
+        // Something went wrong when trying to get the type of the left or right side
         if (leftType == null || rightType == null) {
             addReport(Report.newError(Stage.SEMANTIC, NodeUtils.getLine(node), NodeUtils.getColumn(node), "Incompatible types in assignment", null));
             return null;
         }
 
+        // Take care of the case where the left side is an array access
         if (!left.isInstance(Kind.VAR_REF_EXPR) &&
                 !(left.isInstance(Kind.ARRAY_ACCESS_EXPR) && (left.getChild(0).isInstance(Kind.VAR_REF_EXPR) ||
-                                                            left.getChild(0).isInstance(Kind.MAIN_LITERAL) ||
-                                                            left.getChild(0).isInstance(Kind.LENGTH_LITERAL))) &&
+                        left.getChild(0).isInstance(Kind.MAIN_LITERAL) ||
+                        left.getChild(0).isInstance(Kind.LENGTH_LITERAL))) &&
                 !left.isInstance(Kind.MAIN_LITERAL) &&
                 !left.isInstance(Kind.LENGTH_LITERAL)) {
             addReport(Report.newError(Stage.SEMANTIC, NodeUtils.getLine(node), NodeUtils.getColumn(node), "Left side must be an Identifier", null));
@@ -117,7 +113,8 @@ public class StatementAnalyzer extends AnalysisVisitor{
 
         List<String> primitiveTypes = Arrays.asList("int", "boolean");
 
-        if (primitiveTypes.contains(leftType.getName()) && hasImport(rightType.getName(), table) && !right.isInstance(Kind.NEW_CLASS_OBJ_EXPR) ) { // we don't know what rightType is, if it's import, accept it
+        // Check if the left side is a primitive type and the right side is an import
+        if (primitiveTypes.contains(leftType.getName()) && hasImport(rightType.getName(), table) && !right.isInstance(Kind.NEW_CLASS_OBJ_EXPR)) { // we don't know what rightType is, if it's import, accept it
             return null;
         }
 
@@ -134,5 +131,5 @@ public class StatementAnalyzer extends AnalysisVisitor{
         }
 
         return null;
-        }
+    }
 }

@@ -37,7 +37,6 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         addVisit(FALSE_LITERAL, this::visitFalseLiteral);
         addVisit(METHOD_CALL_EXPR, this::visitMethodCallExpr);
         addVisit(METHOD_CALL, this::visitMethodCall);
-
         addVisit(PAREN_EXPR, this::visitParenExpr);
         addVisit(THIS_LITERAL, this::visitVarRef);
         addVisit(LENGTH_LITERAL, this::visitVarRef);
@@ -47,7 +46,6 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
     }
 
     private OllirExprResult visitMethodCall(JmmNode node, Void unused) {
-
         if (node.getNumChildren() == 0) {
             return OllirExprResult.EMPTY;
         }
@@ -90,7 +88,6 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         computation.append(lhs.getComputation());
         computation.append(rhs.getComputation());
 
-        // code to compute self
         Type resType = TypeUtils.getExprType(node, table);
         String resOllirType = OptUtils.toOllirType(resType);
         String code = OptUtils.getTemp() + resOllirType;
@@ -110,7 +107,7 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
 
     private OllirExprResult visitVarRef(JmmNode node, Void unused) {
         var id = node.get("name");
-        // each field has name attribute, check matches
+
         boolean isField = table.getFields().stream().anyMatch(field -> field.getName().equals(id))
                             && table.getLocalVariables(TypeUtils.getMethodName(node)).stream().noneMatch(local -> local.getName().equals(id))
                             && table.getParameters(TypeUtils.getMethodName(node)).stream().noneMatch(param -> param.getName().equals(id));
@@ -119,7 +116,6 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
 
         String ollirType = OptUtils.toOllirType(TypeUtils.getVarType(id, TypeUtils.getMethodName(node), table));
 
-        // check if node appears in the right side of an assignment: is second child of assign stmt
         if (isField &&
                 ((node.getJmmParent().isInstance(ASSIGN_STMT) && node.getJmmParent().getChild(1).equals(node)) ||
                 (node.getJmmParent().isInstance(METHOD_RETURN)) ||
@@ -133,7 +129,6 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
             code.append(temp);
         }
         else if (isField && node.getJmmParent().isInstance(ASSIGN_STMT) && node.getJmmParent().getChild(0).equals(node)) {
-            // use putfield: putfield(this, field.type, value.type).type -> this is an assignment like class_field = value
             code.append("putfield(this, ").append(id).append(ollirType).append(",");
         }
         else {
@@ -144,16 +139,7 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         return new OllirExprResult(code.toString(), computation.toString());
     }
 
-
-    /**
-     * Default visitor. Visits every child node and return an empty result.
-     *
-     * @param node
-     * @param unused
-     * @return
-     */
     private OllirExprResult defaultVisit(JmmNode node, Void unused) {
-
         for (var child : node.getChildren()) {
             visit(child);
         }
@@ -165,31 +151,17 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         StringBuilder code = new StringBuilder();
         StringBuilder computation = new StringBuilder();
 
-        JmmNode caller = node.getJmmChild(0); // where method is being called
-        JmmNode methodCall = node.getJmmChild(1); // method being called
+        JmmNode caller = node.getJmmChild(0);
+        JmmNode methodCall = node.getJmmChild(1);
+
         String methodName = methodCall.get("name");
 
         List<JmmNode> params = methodCall.getChildren();
 
-        //var methodCallVisit = visit(methodCall);
-
-        //String methodCallCode = methodCallVisit.getCode();
-
-        //code.append(methodCallVisit.getComputation());
-        //computation.append(methodCallVisit.getComputation());
-
-
-
-
-        // previous just work for simple params. we may need to compute the params before calling the method
-        // first, see if there are computations and append them. save them so we can append them later
-
-        // hashmap to store the computations of the params
         HashMap<Integer, String> codes = new HashMap<>();
 
         for (JmmNode param : params) {
             var paramVisit = visit(param);
-            //computation.append(paramVisit.getComputation());
             computation.append(paramVisit.getComputation());
             codes.put(params.indexOf(param), paramVisit.getCode());
         }
@@ -219,7 +191,6 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
                 break;
             case "invokevirtual":
                 code.append(codeName);
-                // if it's this
                 if (codeName.equals("this")) {
                     code.append(".");
                     code.append(table.getClassName());
@@ -231,18 +202,16 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         code.append(methodName);
         code.append("\"");
 
-
         for (int i = 0; i < params.size(); i++) {
             code.append(", ");
             code.append(codes.get(i));
         }
 
-        // now that we have the computations, we can append them
-
         JmmNode parent = node.getJmmParent();
         Type thisType = null;
         String temp = "";
         boolean needTemp = false;
+
         if (parent.isInstance(BINARY_EXPR)) {
             needTemp = true;
             JmmNode assignStmt = parent.getJmmParent();
@@ -256,7 +225,6 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
                 code.append(")");
                 code.append(OptUtils.toOllirType(thisType));
             }
-            // HANDLE OTHER CASES SUCH AS RETURN STMT
         }
         else if (parent.isInstance(ASSIGN_STMT)) {
             needTemp = true;
@@ -282,9 +250,7 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
                 thisType = table.getReturnType(node.getChild(1).get("name"));
                 if (thisType == null) {
                     if (invokeType.equals("invokevirtual")) {
-                        // what is my index on the parent?
                         int index = parent.getChildren().indexOf(node);
-                        // get type of param in the same index of parent
                         thisType = table.getParameters(parent.get("name")).get(index).getType();
                     }
                 }
@@ -308,7 +274,7 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         }
 
         else {
-            // check if caller is not static: not in imports
+            // check if caller is not static
             if (table.getReturnType(methodName) != null && invokeType.equals("invokevirtual")) {
                 thisType = table.getReturnType(methodName);
             }
@@ -327,7 +293,6 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
 
         temp = OptUtils.getTemp() + OptUtils.toOllirType(thisType);
 
-
         computation.append(temp).append(SPACE).append(ASSIGN)
                 .append(OptUtils.toOllirType(thisType)).append(SPACE)
                 .append(code).append(END_STMT);
@@ -339,7 +304,6 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
     }
 
     private String getInvokeType(JmmNode node) {
-        // THIS IS FAILING IN COMPLEX TESTS. NEED TO FIX
         JmmNode parentNode = node.getParent().getChild(0);
 
         while (parentNode.isInstance(PAREN_EXPR)) {
@@ -386,7 +350,6 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
 
         computation.append(temp).append(SPACE).append(ASSIGN).append(type).append(SPACE).append(code).append(END_STMT);
 
-        // constructor: invokeespecial(tmp.CLASS, "").V;
         String constructor = "invokespecial(" + temp + ", \"<init>\").V;\n";
 
         computation.append(constructor);

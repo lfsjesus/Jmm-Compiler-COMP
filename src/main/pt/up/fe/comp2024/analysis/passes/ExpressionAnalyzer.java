@@ -9,8 +9,6 @@ import pt.up.fe.comp.jmm.report.Stage;
 import pt.up.fe.comp2024.analysis.AnalysisVisitor;
 import pt.up.fe.comp2024.ast.Kind;
 import pt.up.fe.comp2024.ast.NodeUtils;
-import pt.up.fe.comp2024.ast.TypeUtils;
-import pt.up.fe.specs.util.SpecsCheck;
 
 import java.util.List;
 
@@ -19,19 +17,12 @@ public class ExpressionAnalyzer extends AnalysisVisitor{
     public void buildVisitor() {
         addVisit(Kind.BINARY_EXPR, this::visitBinaryExpr);
         addVisit(Kind.PAREN_EXPR, this::visitParenExpr);
-        //addVisit(Kind.NEW_CLASS_OBJ_EXPR, this::visitNewClassObjExpr);
         addVisit(Kind.NEW_ARRAY_EXPR, this::visitNewArrayExpr);
         addVisit(Kind.ARRAY_INIT_EXPR, this::visitArrayInitExpr);
         addVisit(Kind.ARRAY_ACCESS_EXPR, this::visitArrayAccessExpr);
         addVisit(Kind.ARRAY_LENGTH_EXPR, this::visitArrayLengthExpr);
         addVisit(Kind.METHOD_CALL_EXPR, this::visitMethodCallExpr); // NOT NEEDED
-        //addVisit(Kind.METHOD_CALL, this::visitMethodCallExpr);
         addVisit(Kind.NOT_EXPR, this::visitNotExpr);
-        //addVisit(Kind.TRUE_LITERAL, this::visitTrueLiteral);
-        //addVisit(Kind.FALSE_LITERAL, this::visitFalseLiteral);
-        //addVisit(Kind.INTEGER_LITERAL, this::visitIntegerLiteral);
-        //addVisit(Kind.THIS_LITERAL, this::visitThisLiteral);
-        //addVisit(Kind.VAR_REF_EXPR, this::visitVarRefExpr);
     }
 
     private Void visitNotExpr(JmmNode node, SymbolTable table) {
@@ -62,7 +53,6 @@ public class ExpressionAnalyzer extends AnalysisVisitor{
         Type arrayType = getNodeType(array, table);
         Type indexType = getNodeType(index, table);
 
-        // This means that getNodeType succeeded. However, methodcall visit doesn't know how to set arrayType
         if (array.isInstance(Kind.METHOD_CALL_EXPR)) {
             return null;
         }
@@ -90,13 +80,9 @@ public class ExpressionAnalyzer extends AnalysisVisitor{
         return null;
     }
 
-    // int[] a;
-    // a = new int[5];
     private Void visitNewArrayExpr(JmmNode node, SymbolTable table) {
         JmmNode assign = node.getJmmParent();
-
         JmmNode varRef = assign.getChildren().get(0);
-
         JmmNode newExpr = assign.getChildren().get(1);
 
         String declaredType = getNodeType(varRef, table).getName();
@@ -106,7 +92,6 @@ public class ExpressionAnalyzer extends AnalysisVisitor{
             addReport(Report.newError(Stage.SEMANTIC, NodeUtils.getLine(node), NodeUtils.getColumn(node), "Cannot assign array of type " + currentType + " to variable of type " + declaredType, null));
         }
 
-        // check if children is a integer (number of elements)
         if (node.getChildren().size() != 1 || !node.getChildren().get(0).isInstance(Kind.INTEGER_LITERAL)) {
             addReport(Report.newError(Stage.SEMANTIC, NodeUtils.getLine(node), NodeUtils.getColumn(node), "Array must have a size", null));
         }
@@ -114,7 +99,6 @@ public class ExpressionAnalyzer extends AnalysisVisitor{
     }
 
     private Void visitArrayInitExpr(JmmNode node, SymbolTable table) {
-        // loop through all children and check if they are of the same type
         Type type = null;
 
         for (JmmNode child : node.getChildren()) {
@@ -139,7 +123,7 @@ public class ExpressionAnalyzer extends AnalysisVisitor{
             addReport(Report.newError(Stage.SEMANTIC, NodeUtils.getLine(node), NodeUtils.getColumn(node), "This keyword is not allowed in static context", null));
         }
 
-        // MAY BE THIS IS NOT THE BEST WAY
+        // Meaning that some error occurred while checking the method call, better return
         if (getNodeType(node, table) == null) {
             return null;
         }
@@ -158,25 +142,23 @@ public class ExpressionAnalyzer extends AnalysisVisitor{
             methodName = node.getChildren().get(node.getChildren().size() - 1).get("name");
         }
 
-        // check if caller is not this and is in static context
-
-
-        // check if it's the extend
         String superName = table.getSuper();
         String currentClass = table.getClassName();
+
+        // check if it is a super call
         if (superName != null && (superName.equals(getNodeType(node, table).getName()) || currentClass.equals(getNodeType(node, table).getName()))) {
             return null;
         }
 
+        // check if method is declared
         if (!table.getMethods().contains(methodName)) {
             addReport(Report.newError(Stage.SEMANTIC, NodeUtils.getLine(node), NodeUtils.getColumn(node), "Method " + methodName + " is not declared", null));
             return null;
         }
 
-        // check if parameters types are correct
         List<Symbol> parameters = table.getParameters(methodName);
-        // get passed arguments
         List<JmmNode> arguments = node.getChildren(Kind.METHOD_CALL).get(0).getChildren();
+
         boolean varargs = false;
         if (!parameters.isEmpty()) {
             varargs = (parameters.size() < arguments.size() && parameters.get(parameters.size() - 1).getType().isArray());
@@ -193,7 +175,7 @@ public class ExpressionAnalyzer extends AnalysisVisitor{
             }
         }
 
-        // check types
+        // check if types correspond
         for (int i = 0; i < parameters.size(); i++) {
             Type parameterType = parameters.get(i).getType();
             Type argumentType = getNodeType(arguments.get(i), table);
@@ -208,11 +190,6 @@ public class ExpressionAnalyzer extends AnalysisVisitor{
                 return null;
             }
         }
-
-
         return null;
     }
-
-
-
 }

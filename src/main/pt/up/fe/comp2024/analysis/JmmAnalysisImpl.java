@@ -9,7 +9,7 @@ import pt.up.fe.comp.jmm.report.Report;
 import pt.up.fe.comp.jmm.report.Stage;
 import pt.up.fe.comp2024.analysis.passes.ExpressionAnalyzer;
 import pt.up.fe.comp2024.analysis.passes.StatementAnalyzer;
-import pt.up.fe.comp2024.analysis.passes.UndeclaredVariable;
+import pt.up.fe.comp2024.analysis.passes.EssentialAnalyzer;
 import pt.up.fe.comp2024.symboltable.JmmSymbolTableBuilder;
 
 import java.util.ArrayList;
@@ -22,7 +22,7 @@ public class JmmAnalysisImpl implements JmmAnalysis {
 
     public JmmAnalysisImpl() {
 
-        this.analysisPasses = List.of(new UndeclaredVariable(), new ExpressionAnalyzer(), new StatementAnalyzer());
+        this.analysisPasses = List.of(new EssentialAnalyzer(), new ExpressionAnalyzer(), new StatementAnalyzer());
 
     }
 

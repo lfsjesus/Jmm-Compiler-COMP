@@ -80,7 +80,7 @@ public abstract class AnalysisVisitor extends PreorderJmmVisitor<SymbolTable, Vo
             case "ParenExpr":
                 return getNodeType(node.getChildren().get(0), table);
             case "MethodDecl":
-                return table.getReturnType(node.get("name")); // MAKES SENSE TO HAVE GETRETURNTYPE?
+                return table.getReturnType(node.get("name"));
             default:
                 return new Type("Unknown", false);
         }
@@ -100,7 +100,6 @@ public abstract class AnalysisVisitor extends PreorderJmmVisitor<SymbolTable, Vo
         }
 
         if (!leftType.equals(rightType)) {
-            // add report
             addReport(Report.newError(
                     Stage.SEMANTIC,
                     NodeUtils.getLine(node),
@@ -112,7 +111,6 @@ public abstract class AnalysisVisitor extends PreorderJmmVisitor<SymbolTable, Vo
 
         if (operator.equals("&&")) {
             if (!leftType.getName().equals("boolean") || !rightType.getName().equals("boolean")) {
-                // add report
                 addReport(Report.newError(
                         Stage.SEMANTIC,
                         NodeUtils.getLine(node),
@@ -123,7 +121,6 @@ public abstract class AnalysisVisitor extends PreorderJmmVisitor<SymbolTable, Vo
             }
         } else if (operator.equals("+") || operator.equals("-") || operator.equals("*") || operator.equals("/")) {
             if (!leftType.getName().equals("int") || !rightType.getName().equals("int")) {
-                // add report
                 addReport(Report.newError(
                         Stage.SEMANTIC,
                         NodeUtils.getLine(node),
@@ -175,7 +172,6 @@ public abstract class AnalysisVisitor extends PreorderJmmVisitor<SymbolTable, Vo
 
     public boolean hasImport(String className, SymbolTable table) {
         List<String> imports = table.getImports();
-
         return table.getImports().stream().map(imported -> imported.split(", ")[imported.split(",").length - 1]).anyMatch(imported -> imported.equals(className));
 
     }
@@ -195,8 +191,6 @@ public abstract class AnalysisVisitor extends PreorderJmmVisitor<SymbolTable, Vo
             } else if (hasImport(typeNode.getName(), table)) {
                 return new Type(typeNode.getName(), false);
             } else if (table.getSuper() != null) {
-                //JmmNode a = node.getParent().getChildren().get(0);
-                //String type = table.getLocalVariables(TypeUtils.getMethodName(node)).get(0).getType().getName();
                 String superClassName = table.getSuper();
                 String className = table.getClassName();
 
@@ -213,7 +207,6 @@ public abstract class AnalysisVisitor extends PreorderJmmVisitor<SymbolTable, Vo
                     null)
             );
 
-            // In case, for example, the method is not declared (callToUndeclaredMethod file). This or stop immediately?
             return null;
         }
 
