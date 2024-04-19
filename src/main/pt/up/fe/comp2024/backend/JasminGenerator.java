@@ -349,47 +349,56 @@ public class JasminGenerator {
         StringBuilder code = new StringBuilder();
 
         CallType callType = callInstruction.getInvocationType();
-        String className = null;
 
-        // Process initial parts based on call type
+        // Handle method invocation based on the type of call
         switch (callType) {
             case invokevirtual:
                 code.append(generators.apply(callInstruction.getCaller()));
                 break;
             case NEW:
-                Operand newOperand = (Operand) callInstruction.getCaller();
-                className = newOperand.getName();
-                code.append(callType.name().toLowerCase()).append(' ').append(className).append(NL);
-                return code.toString();
-            case invokespecial:
-                code.append(generators.apply(callInstruction.getCaller()));
-                // Fall through to common handling below
+                handleNewInstruction(callInstruction, code);
+                break;
             case invokestatic:
-                Operand staticOperand = (Operand) callInstruction.getCaller();
-                className = generateFullyQualified(staticOperand.getName());
+            case invokespecial:
+                handleInvokeSpecialOrStatic(callInstruction, callType, code);
                 break;
             default:
-                ClassType classTypeOperand = (ClassType) callInstruction.getCaller().getType();
-                className = generateFullyQualified(classTypeOperand.getName());
-                break;
+                throw new IllegalArgumentException("Unsupported call type: " + callType);
         }
 
-        // Append method call details
-        code.append(callType.name()).append(' ').append(className).append('/');
-        String methodName = ((LiteralElement) callInstruction.getMethodName()).getLiteral().replace("\"", "");
-        code.append(methodName).append('(');
-
-        // Append arguments' types
-        for (Element arg : callInstruction.getArguments()) {
-            code.append(generateTypeDescriptor(arg.getType()));
+        // Append arguments for all types except NEW
+        if (callType != CallType.NEW) {
+            appendArgumentsAndReturn(callInstruction, code);
         }
-
-        // Append return type
-        Type returnType = callInstruction.getReturnType();
-        code.append(')').append(generateTypeDescriptor(returnType)).append(NL);
 
         return code.toString();
     }
+
+    private void handleNewInstruction(CallInstruction callInstruction, StringBuilder code) {
+        code.append(CallType.NEW.name().toLowerCase()).append(' ');
+        Operand operand = (Operand) callInstruction.getCaller();
+        code.append(operand.getName()).append(NL);
+    }
+
+    private void handleInvokeSpecialOrStatic(CallInstruction callInstruction, CallType callType, StringBuilder code) {
+        if (callType == CallType.invokespecial) {
+            code.append(generators.apply(callInstruction.getCaller()));
+        }
+        String className = generateFullyQualified(((Operand) callInstruction.getCaller()).getName());
+        code.append(callType.name()).append(' ').append(className).append('/');
+    }
+
+    private void appendArgumentsAndReturn(CallInstruction callInstruction, StringBuilder code) {
+        String name = ((LiteralElement) callInstruction.getMethodName()).getLiteral().replace("\"", "");
+        code.append(name);
+        code.append('(');
+        for (Element arg : callInstruction.getArguments()) {
+            code.append(generateTypeDescriptor(arg.getType()));
+        }
+        Type returnType = callInstruction.getReturnType();
+        code.append(')').append(generateTypeDescriptor(returnType)).append(NL);
+    }
+
 
     private String generateSingleOpInstrCode(SingleOpInstruction singleOp) {
         return generators.apply(singleOp.getSingleOperand());
