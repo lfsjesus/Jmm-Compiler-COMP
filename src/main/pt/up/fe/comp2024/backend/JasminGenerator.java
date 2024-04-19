@@ -213,37 +213,19 @@ public class JasminGenerator {
         return code.toString();
     }
 
-    private void appendMethodSignature(StringBuilder code, String methodName, List<Element> params, Type returnType) {
-        code.append(methodName).append('(');
-        for (Element param : params) {
-            code.append(generateTypeDescriptor(param.getType()));
-        }
-        code.append(')').append(generateTypeDescriptor(returnType)).append(NL);
-    }
-
-    private void appendMethodInvocation(StringBuilder code, CallInstruction callInstruction) {
-        String className = callInstruction.getInvocationType() == CallType.invokestatic ?
-                generateFullyQualified(((Operand) callInstruction.getCaller()).getName()) :
-                generateFullyQualified(((ClassType) callInstruction.getCaller().getType()).getName());
-
-        code.append(callInstruction.getInvocationType().name().toLowerCase()).append(' ');
-        code.append(className).append('/');
-        var name = ((LiteralElement) callInstruction.getMethodName()).getLiteral().replace("\"", "");
-        code.append(name).append('(');
-        for (var arg : callInstruction.getArguments()) {
-            code.append(generateTypeDescriptor(arg.getType()));
-        }
-        var returnType = callInstruction.getReturnType();
-        code.append(')').append(generateTypeDescriptor(returnType)).append(NL);
-    }
-
     private String generateMethodSignatureAndBodyCode(Method method) {
         currentMethod = method;
+
         StringBuilder code = new StringBuilder();
-        String modifier = method.getMethodAccessModifier() != AccessModifier.DEFAULT ?
-                method.getMethodAccessModifier().name().toLowerCase() + " " : "";
+
+        // calculate modifier
+        var modifier = method.getMethodAccessModifier() != AccessModifier.DEFAULT ?
+                method.getMethodAccessModifier().name().toLowerCase() + " " :
+                "";
 
         code.append(NL).append(".method ").append(modifier);
+
+        // This will only happen with 'main' in Java--
         if (method.isStaticMethod()) {
             code.append("static ");
         }
@@ -251,7 +233,16 @@ public class JasminGenerator {
             code.append("final ");
         }
 
-        appendMethodSignature(code, method.getMethodName(), method.getParams(), method.getReturnType());
+        String methodName = method.getMethodName();
+        code.append(methodName);
+
+        code.append('(');
+        for (Element param : method.getParams()) {
+            code.append(generateTypeDescriptor(param.getType()));
+        }
+
+        Type returnType = method.getReturnType();
+        code.append(')').append(generateTypeDescriptor(returnType)).append(NL);
 
         // Stack and locals limits
         code.append(TAB).append(".limit stack 99").append(NL);
@@ -260,41 +251,24 @@ public class JasminGenerator {
         for (Instruction inst : method.getInstructions()) {
             String instCode = StringLines.getLines(generators.apply(inst)).stream()
                     .collect(Collectors.joining(NL + TAB, TAB, NL));
+
+
             code.append(instCode);
+            // check non void return
             if (inst instanceof CallInstruction && !((CallInstruction) inst).getReturnType().getTypeOfElement().equals(ElementType.VOID)) {
                 if (((CallInstruction) inst).getInvocationType() != CallType.NEW) {
                     code.append("pop").append(NL);
                 }
             }
         }
+
         code.append(".end method").append(NL);
+
+        // unset method
         currentMethod = null;
-        return code.toString();
-    }
-
-
-    private String generateCallInstructionCode(CallInstruction callInstruction) {
-        StringBuilder code = new StringBuilder();
-
-        if (callInstruction.getInvocationType() == CallType.invokevirtual) {
-            code.append(generators.apply(callInstruction.getCaller()));
-        }
-
-        for (var operand : callInstruction.getArguments()) {
-            code.append(generators.apply(operand));
-        }
-
-        if (callInstruction.getInvocationType() == CallType.NEW) {
-            code.append(callInstruction.getInvocationType().name().toLowerCase()).append(' ');
-            var operand = (Operand) callInstruction.getCaller();
-            code.append(operand.getName()).append(NL);
-        } else {
-            appendMethodInvocation(code, callInstruction);
-        }
 
         return code.toString();
     }
-
 
     private String generateLoadOperandCode(Operand operand) {
         // get register
@@ -345,6 +319,45 @@ public class JasminGenerator {
         return code.toString();
     }
 
+    private String generateCallInstructionCode(CallInstruction callInstruction) {
+        var code = new StringBuilder();
+
+        var callType = callInstruction.getInvocationType();
+        if (callType == CallType.invokevirtual) {
+            code.append(generators.apply(callInstruction.getCaller()));
+        }
+
+        for (var operand : callInstruction.getArguments()) {
+            code.append(generators.apply(operand));
+        }
+
+        if (callType == CallType.NEW) {
+            code.append(callType.name().toLowerCase()).append(' ');
+            var operand = (Operand) callInstruction.getCaller();
+            code.append(operand.getName()).append(NL);
+        }
+        else {
+            String className = callType == CallType.invokestatic ?
+                    generateFullyQualified(((Operand) callInstruction.getCaller()).getName()) :
+                    generateFullyQualified(((ClassType) callInstruction.getCaller().getType()).getName());
+
+            if (callType == CallType.invokespecial) {
+                code.append(generators.apply(callInstruction.getCaller()));
+            }
+            code.append(callType.name()).append(' ');
+            code.append(className).append('/');
+            var name = ((LiteralElement) callInstruction.getMethodName()).getLiteral().replace("\"", "");
+            code.append(name);
+            code.append('(');
+            for (var arg : callInstruction.getArguments()) {
+                code.append(generateTypeDescriptor(arg.getType()));
+            }
+            var returnType = callInstruction.getReturnType();
+            code.append(')').append(generateTypeDescriptor(returnType)).append(NL);
+        }
+
+        return code.toString();
+    }
 
     private String generateSingleOpInstructionCode(SingleOpInstruction singleOp) {
         return generators.apply(singleOp.getSingleOperand());
