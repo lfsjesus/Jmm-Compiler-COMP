@@ -219,7 +219,7 @@ public class JasminGenerator {
         StringBuilder code = new StringBuilder();
 
         // calculate modifier
-        var modifier = method.getMethodAccessModifier() != AccessModifier.DEFAULT ?
+        String modifier = method.getMethodAccessModifier() != AccessModifier.DEFAULT ?
                 method.getMethodAccessModifier().name().toLowerCase() + " " :
                 "";
 
@@ -249,9 +249,9 @@ public class JasminGenerator {
         code.append(TAB).append(".limit locals 99").append(NL);
 
         for (Instruction inst : method.getInstructions()) {
+            // Explicitly use String for instCode
             String instCode = StringLines.getLines(generators.apply(inst)).stream()
                     .collect(Collectors.joining(NL + TAB, TAB, NL));
-
 
             code.append(instCode);
             // check non void return
@@ -269,6 +269,7 @@ public class JasminGenerator {
 
         return code.toString();
     }
+
 
     private String generateLoadOperandCode(Operand operand) {
         // get register
