@@ -118,7 +118,8 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         // check if node appears in the right side of an assignment: is second child of assign stmt
         if (isField &&
                 ((node.getJmmParent().isInstance(ASSIGN_STMT) && node.getJmmParent().getChild(1).equals(node)) ||
-                (node.getJmmParent().isInstance(METHOD_RETURN))))
+                (node.getJmmParent().isInstance(METHOD_RETURN)) ||
+                (node.getJmmParent().isInstance(METHOD_CALL))))
                 {
             String temp = OptUtils.getTemp() + OptUtils.toOllirType(TypeUtils.getVarType(id, TypeUtils.getMethodName(node), table));
             computation.append(temp).append(SPACE).append(ASSIGN).append(ollirType).append(SPACE).append("getfield(this, ").append(id).append(ollirType).append(")").append(ollirType).append(END_STMT);
