@@ -201,7 +201,7 @@ public class JasminGenerator {
             // we need to make sure it is not an assign instruction
             if (inst instanceof CallInstruction) {
                 var callInst = (CallInstruction) inst;
-                if (callInst.getInvocationType() == CallType.invokevirtual) {
+                if (callInst.getInvocationType() == CallType.invokespecial) {
                     instCode += "pop" + NL;
                 }
             }
