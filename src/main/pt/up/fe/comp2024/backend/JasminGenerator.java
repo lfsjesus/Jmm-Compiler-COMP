@@ -394,8 +394,9 @@ public class JasminGenerator {
     }
 
     private String generateFullyQualified(String name) {
-        var imports = ollirResult.getOllirClass().getImports();
-        for (var imp : imports) {
+
+        List<java.lang.String> imports = ollirResult.getOllirClass().getImports();
+        for (String imp : imports) {
             String impClassName = imp.substring(imp.lastIndexOf('.') + 1);
             if (impClassName.equals(name)) {
                 return imp.replace('.', '/');
