@@ -52,7 +52,7 @@ public class JasminGenerator {
         generators.put(AssignInstruction.class, this::generateAssignmentInstructionCode);
         generators.put(CallInstruction.class, this::generateCallInstructionCode);
         generators.put(SingleOpInstruction.class, this::generateSingleOpInstructionCode);
-        generators.put(LiteralElement.class, this::generateLiteral);
+        generators.put(LiteralElement.class, this::generateLoadConstantCode);
         generators.put(Operand.class, this::generateOperand);
         generators.put(BinaryOpInstruction.class, this::generateBinaryOp);
         generators.put(ReturnInstruction.class, this::generateReturn);
@@ -272,54 +272,6 @@ public class JasminGenerator {
         return code.toString();
     }
 
-    private String generateCallInstructionCode(CallInstruction callInstruction) {
-        var code = new StringBuilder();
-
-        var callType = callInstruction.getInvocationType();
-        if (callType == CallType.invokevirtual) {
-            code.append(generators.apply(callInstruction.getCaller()));
-        }
-
-        for (var operand : callInstruction.getArguments()) {
-            code.append(generators.apply(operand));
-        }
-
-        if (callType == CallType.NEW) {
-            code.append(callType.name().toLowerCase()).append(' ');
-            var operand = (Operand) callInstruction.getCaller();
-            code.append(operand.getName()).append(NL);
-        }
-        else {
-            String className = callType == CallType.invokestatic ?
-                    generateFullyQualified(((Operand) callInstruction.getCaller()).getName()) :
-                    generateFullyQualified(((ClassType) callInstruction.getCaller().getType()).getName());
-
-            if (callType == CallType.invokespecial) {
-                code.append(generators.apply(callInstruction.getCaller()));
-            }
-            code.append(callType.name()).append(' ');
-            code.append(className).append('/');
-            var name = ((LiteralElement) callInstruction.getMethodName()).getLiteral().replace("\"", "");
-            code.append(name);
-            code.append('(');
-            for (var arg : callInstruction.getArguments()) {
-                code.append(generateTypeDescriptor(arg.getType()));
-            }
-            var returnType = callInstruction.getReturnType();
-            code.append(')').append(generateTypeDescriptor(returnType)).append(NL);
-        }
-
-        return code.toString();
-    }
-
-    private String generateSingleOpInstructionCode(SingleOpInstruction singleOp) {
-        return generators.apply(singleOp.getSingleOperand());
-    }
-
-    private String generateLiteral(LiteralElement literal) {
-        return "ldc " + literal.getLiteral() + NL;
-    }
-
     private String generateOperand(Operand operand) {
         // get register
         var reg = currentMethod.getVarTable().get(operand.getName()).getVirtualReg();
@@ -368,6 +320,56 @@ public class JasminGenerator {
 
         return code.toString();
     }
+
+    private String generateCallInstructionCode(CallInstruction callInstruction) {
+        var code = new StringBuilder();
+
+        var callType = callInstruction.getInvocationType();
+        if (callType == CallType.invokevirtual) {
+            code.append(generators.apply(callInstruction.getCaller()));
+        }
+
+        for (var operand : callInstruction.getArguments()) {
+            code.append(generators.apply(operand));
+        }
+
+        if (callType == CallType.NEW) {
+            code.append(callType.name().toLowerCase()).append(' ');
+            var operand = (Operand) callInstruction.getCaller();
+            code.append(operand.getName()).append(NL);
+        }
+        else {
+            String className = callType == CallType.invokestatic ?
+                    generateFullyQualified(((Operand) callInstruction.getCaller()).getName()) :
+                    generateFullyQualified(((ClassType) callInstruction.getCaller().getType()).getName());
+
+            if (callType == CallType.invokespecial) {
+                code.append(generators.apply(callInstruction.getCaller()));
+            }
+            code.append(callType.name()).append(' ');
+            code.append(className).append('/');
+            var name = ((LiteralElement) callInstruction.getMethodName()).getLiteral().replace("\"", "");
+            code.append(name);
+            code.append('(');
+            for (var arg : callInstruction.getArguments()) {
+                code.append(generateTypeDescriptor(arg.getType()));
+            }
+            var returnType = callInstruction.getReturnType();
+            code.append(')').append(generateTypeDescriptor(returnType)).append(NL);
+        }
+
+        return code.toString();
+    }
+
+    private String generateSingleOpInstructionCode(SingleOpInstruction singleOp) {
+        return generators.apply(singleOp.getSingleOperand());
+    }
+
+    private String generateLoadConstantCode(LiteralElement literal) {
+        return "ldc " + literal.getLiteral() + NL;
+    }
+
+
 
     private String generateTypeDescriptor(Type type) {
         var elementType = type.getTypeOfElement();
