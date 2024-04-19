@@ -52,7 +52,7 @@ public class JasminGenerator {
         generators.put(AssignInstruction.class, this::generateAssignmentInstructionCode);
         generators.put(CallInstruction.class, this::generateCallInstructionCode);
         generators.put(SingleOpInstruction.class, this::generateSingleOpInstructionCode);
-        generators.put(LiteralElement.class, this::generateLoadConstantCode);
+        generators.put(LiteralElement.class, this::generateLiteralElementCode);
         generators.put(Operand.class, this::generateLoadOperandCode);
         generators.put(BinaryOpInstruction.class, this::generateBinaryOperationCode);
         generators.put(ReturnInstruction.class, this::generateReturnInstructionCode);
@@ -365,7 +365,7 @@ public class JasminGenerator {
         return generators.apply(singleOp.getSingleOperand());
     }
 
-    private String generateLoadConstantCode(LiteralElement literal) {
+    private String generateLiteralElementCode(LiteralElement literal) {
         return "ldc " + literal.getLiteral() + NL;
     }
 
