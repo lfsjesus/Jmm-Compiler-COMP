@@ -40,7 +40,7 @@ public class AppTest {
         var jasminResult = TestUtils.backend(code, Collections.emptyMap());
         System.out.println(jasminResult.getJasminCode());
         var result = TestUtils.runJasmin(jasminResult.getJasminCode(), Collections.emptyMap());
-        assertEquals("10", result.strip());
+        assertEquals("9", result.strip());
     }
 
 }

@@ -1,19 +1,19 @@
 import io;
-import java.util.List;
-import A;
 
-class Simple extends A{
+
+class Simple {
     int field_int;
     boolean field_bool;
 
-     public int method_int(){
-        field_int = 10;
-        io.println(field_int);
-        return field_int;
+     public int method_int(int a){
+        int b;
+        b = a + (2 + field_int);
+        io.println(b);
+        return a;
     }
 
     public static void main(String[] args){
-
+       new Simple().method_int(9);
     }
 
 }

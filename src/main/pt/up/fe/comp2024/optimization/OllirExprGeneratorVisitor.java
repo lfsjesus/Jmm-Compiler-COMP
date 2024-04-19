@@ -119,7 +119,9 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         if (isField &&
                 ((node.getJmmParent().isInstance(ASSIGN_STMT) && node.getJmmParent().getChild(1).equals(node)) ||
                 (node.getJmmParent().isInstance(METHOD_RETURN)) ||
-                (node.getJmmParent().isInstance(METHOD_CALL))))
+                (node.getJmmParent().isInstance(METHOD_CALL)) ||
+                (node.getJmmParent().isInstance(BINARY_EXPR))))
+
                 {
             String temp = OptUtils.getTemp() + OptUtils.toOllirType(TypeUtils.getVarType(id, TypeUtils.getMethodName(node), table));
             computation.append(temp).append(SPACE).append(ASSIGN).append(ollirType).append(SPACE).append("getfield(this, ").append(id).append(ollirType).append(")").append(ollirType).append(END_STMT);
