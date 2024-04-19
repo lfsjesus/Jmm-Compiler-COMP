@@ -50,8 +50,8 @@ public class JasminGenerator {
         generators.put(PutFieldInstruction.class, this::generatePutFieldInstructionCode);
         generators.put(Method.class, this::generateMethodSignatureAndBodyCode);
         generators.put(AssignInstruction.class, this::generateAssignmentInstructionCode);
-        generators.put(CallInstruction.class, this::generateCallInst);
-        generators.put(SingleOpInstruction.class, this::generateSingleOp);
+        generators.put(CallInstruction.class, this::generateCallInstructionCode);
+        generators.put(SingleOpInstruction.class, this::generateSingleOpInstructionCode);
         generators.put(LiteralElement.class, this::generateLiteral);
         generators.put(Operand.class, this::generateOperand);
         generators.put(BinaryOpInstruction.class, this::generateBinaryOp);
@@ -272,7 +272,7 @@ public class JasminGenerator {
         return code.toString();
     }
 
-    private String generateCallInst(CallInstruction callInstruction) {
+    private String generateCallInstructionCode(CallInstruction callInstruction) {
         var code = new StringBuilder();
 
         var callType = callInstruction.getInvocationType();
@@ -312,7 +312,7 @@ public class JasminGenerator {
         return code.toString();
     }
 
-    private String generateSingleOp(SingleOpInstruction singleOp) {
+    private String generateSingleOpInstructionCode(SingleOpInstruction singleOp) {
         return generators.apply(singleOp.getSingleOperand());
     }
 
