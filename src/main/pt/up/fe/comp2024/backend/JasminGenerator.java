@@ -232,12 +232,9 @@ public class JasminGenerator {
             throw new NotImplementedException(lhs.getClass());
         }
 
-        // get register
-        int reg = currentMethod.getVarTable().get(operand.getName()).getVirtualReg();
-
         switch (operand.getType().getTypeOfElement()) {
-            case INT32, BOOLEAN -> code.append("istore ").append(reg).append(NL);
-            case OBJECTREF, ARRAYREF, STRING, CLASS -> code.append("astore ").append(reg).append(NL);
+            case INT32, BOOLEAN -> code.append("istore ").append(currentMethod.getVarTable().get(operand.getName()).getVirtualReg()).append(NL);
+            case OBJECTREF, ARRAYREF, STRING, CLASS -> code.append("astore ").append(currentMethod.getVarTable().get(operand.getName()).getVirtualReg()).append(NL);
         }
 
         return code.toString();
