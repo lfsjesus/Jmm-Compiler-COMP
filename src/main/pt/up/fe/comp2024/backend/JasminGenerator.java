@@ -304,13 +304,13 @@ public class JasminGenerator {
     }
 
     private String generateReturnInstructionCode(ReturnInstruction returnInst) {
-        var code = new StringBuilder();
+        StringBuilder code = new StringBuilder();  // Explicitly declare as StringBuilder
 
         if (returnInst.hasReturnValue()) {
             code.append(generators.apply(returnInst.getOperand()));
         }
 
-        var returnType = returnInst.getElementType();
+        ElementType returnType = returnInst.getElementType();  // Explicitly declare as ElementType
         switch (returnType) {
             case VOID -> code.append("return").append(NL);
             case INT32, BOOLEAN -> code.append("ireturn").append(NL);
@@ -319,6 +319,7 @@ public class JasminGenerator {
 
         return code.toString();
     }
+
 
     private String generateCallInstructionCode(CallInstruction callInstruction) {
         var code = new StringBuilder();
