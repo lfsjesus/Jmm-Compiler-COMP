@@ -345,46 +345,70 @@ public class JasminGenerator {
         return code.toString();
     }
 
-
     private String generateCallInstrCode(CallInstruction callInstruction) {
         StringBuilder code = new StringBuilder();
 
-        CallType callType = callInstruction.getInvocationType();
-        if (callType.equals(CallType.invokevirtual)) {
-            code.append(generators.apply(callInstruction.getCaller()));
-        }
+        // Append the caller code, common to all call types
+        code.append(generators.apply(callInstruction.getCaller()));
 
+        // Append code for each argument
         for (Element operand : callInstruction.getArguments()) {
             code.append(generators.apply(operand));
         }
 
-        if (callType.equals(CallType.NEW)) {
-            code.append(callType.name().toLowerCase()).append(' ');
-            Operand operand = (Operand) callInstruction.getCaller();
-            code.append(operand.getName()).append(NL);
-        }
-        else {
-            String className = callType.equals(CallType.invokestatic) ?
-                    generateFullyQualified(((Operand) callInstruction.getCaller()).getName()) :
-                    generateFullyQualified(((ClassType) callInstruction.getCaller().getType()).getName());
-
-            if (callType.equals(CallType.invokespecial)) {
-                code.append(generators.apply(callInstruction.getCaller()));
-            }
-            code.append(callType.name()).append(' ');
-            code.append(className).append('/');
-            String name = ((LiteralElement) callInstruction.getMethodName()).getLiteral().replace("\"", "");
-            code.append(name);
-            code.append('(');
-            for (Element arg : callInstruction.getArguments()) {
-                code.append(generateTypeDescriptor(arg.getType()));
-            }
-            Type returnType = callInstruction.getReturnType();
-            code.append(')').append(generateTypeDescriptor(returnType)).append(NL);
+        // Delegate to specific methods based on the call type
+        switch (callInstruction.getInvocationType()) {
+            case NEW:
+                appendNewCall(code, callInstruction);
+                break;
+            case invokevirtual:
+            case invokestatic:
+            case invokespecial:
+                appendRegularCall(code, callInstruction);
+                break;
+            default:
+                throw new NotImplementedException("Unsupported call type: " + callInstruction.getInvocationType());
         }
 
         return code.toString();
     }
+
+    private void appendNewCall(StringBuilder code, CallInstruction callInstruction) {
+        code.append(callInstruction.getInvocationType().name().toLowerCase()).append(' ');
+        Operand operand = (Operand) callInstruction.getCaller();
+        code.append(operand.getName()).append(NL);
+    }
+
+    private void appendRegularCall(StringBuilder code, CallInstruction callInstruction) {
+        String className = generateClassName(callInstruction);
+        code.append(callInstruction.getInvocationType().name()).append(' ');
+        code.append(className).append('/');
+        String methodName = extractMethodName(callInstruction);
+        code.append(methodName).append('(');
+        appendMethodArguments(code, callInstruction);
+        Type returnType = callInstruction.getReturnType();
+        code.append(')').append(generateTypeDescriptor(returnType)).append(NL);
+    }
+
+    private String generateClassName(CallInstruction callInstruction) {
+        if (callInstruction.getInvocationType().equals(CallType.invokestatic)) {
+            return generateFullyQualified(((Operand) callInstruction.getCaller()).getName());
+        } else {
+            return generateFullyQualified(((ClassType) callInstruction.getCaller().getType()).getName());
+        }
+    }
+
+    private String extractMethodName(CallInstruction callInstruction) {
+        LiteralElement methodNameElement = (LiteralElement) callInstruction.getMethodName();
+        return methodNameElement.getLiteral().replace("\"", "");
+    }
+
+    private void appendMethodArguments(StringBuilder code, CallInstruction callInstruction) {
+        for (Element arg : callInstruction.getArguments()) {
+            code.append(generateTypeDescriptor(arg.getType()));
+        }
+    }
+
 
     private String generateSingleOpInstrCode(SingleOpInstruction singleOp) {
         return generators.apply(singleOp.getSingleOperand());
