@@ -350,7 +350,7 @@ public class JasminGenerator {
         StringBuilder code = new StringBuilder();
 
         CallType callType = callInstruction.getInvocationType();
-        if (callType == CallType.invokevirtual) {
+        if (callType.equals(CallType.invokevirtual)) {
             code.append(generators.apply(callInstruction.getCaller()));
         }
 
@@ -358,17 +358,17 @@ public class JasminGenerator {
             code.append(generators.apply(operand));
         }
 
-        if (callType == CallType.NEW) {
+        if (callType.equals(CallType.NEW)) {
             code.append(callType.name().toLowerCase()).append(' ');
             Operand operand = (Operand) callInstruction.getCaller();
             code.append(operand.getName()).append(NL);
         }
         else {
-            String className = callType == CallType.invokestatic ?
+            String className = callType.equals(CallType.invokestatic) ?
                     generateFullyQualified(((Operand) callInstruction.getCaller()).getName()) :
                     generateFullyQualified(((ClassType) callInstruction.getCaller().getType()).getName());
 
-            if (callType == CallType.invokespecial) {
+            if (callType.equals(CallType.invokespecial)) {
                 code.append(generators.apply(callInstruction.getCaller()));
             }
             code.append(callType.name()).append(' ');
