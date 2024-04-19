@@ -118,7 +118,7 @@ public class JasminGenerator {
         if (superClass == null || superClass.equals("Object")) {
             superClass = "java/lang/Object";
         }
-        superClass = generateFullyQualified(superClass);
+        superClass = generateFullName(superClass);
         code.append(".super ").append(superClass).append(NL).append(NL);
     }
 
@@ -133,7 +133,7 @@ public class JasminGenerator {
         if (superClass == null || superClass.equals("Object")) {
             superClass = "java/lang/Object";
         }
-        superClass = generateFullyQualified(superClass);
+        superClass = generateFullName(superClass);
         String defaultConstructor = String.format("""
             ;default constructor
             .method public <init>()V
@@ -365,8 +365,8 @@ public class JasminGenerator {
                 }
 
                 String className = (callType == CallType.invokestatic) ?
-                        generateFullyQualified(((Operand) callInstruction.getCaller()).getName()) :
-                        generateFullyQualified(((ClassType) callInstruction.getCaller().getType()).getName());
+                        generateFullName(((Operand) callInstruction.getCaller()).getName()) :
+                        generateFullName(((ClassType) callInstruction.getCaller().getType()).getName());
 
                 code.append(callType.name()).append(' ');
                 code.append(className).append('/');
@@ -412,7 +412,7 @@ public class JasminGenerator {
             case INT32 -> "I";
             case BOOLEAN -> "Z";
             case STRING -> "Ljava/lang/String;";
-            case OBJECTREF, CLASS -> "L" + generateFullyQualified(((ClassType) type).getName()) + ";";
+            case OBJECTREF, CLASS -> "L" + generateFullName(((ClassType) type).getName()) + ";";
             case ARRAYREF -> {
                 StringBuilder code = new StringBuilder();
                 ArrayType arrayType = (ArrayType) type;
@@ -427,7 +427,7 @@ public class JasminGenerator {
         };
     }
 
-    private String generateFullyQualified(String name) {
+    private String generateFullName(String name) {
 
         List<String> imports = ollirResult.getOllirClass().getImports();
         for (String imp : imports) {
