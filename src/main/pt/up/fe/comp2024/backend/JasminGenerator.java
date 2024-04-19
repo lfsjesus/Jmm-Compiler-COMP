@@ -244,7 +244,7 @@ public class JasminGenerator {
     }
 
     private void appendMethodBody(StringBuilder code, Method method) {
-        appendStackAndLocalsLimits(code); // Example of extracting stack and locals setting
+        appendStackAndLocalsLimits(code);
         method.getInstructions().forEach(inst -> appendInstruction(code, inst));
         code.append(".end method").append(NL);
     }
@@ -271,22 +271,14 @@ public class JasminGenerator {
     private String generateMethodSignatureAndBodyCode(Method method) {
         StringBuilder code = new StringBuilder();
         currentMethod = method;
-
-        // Append the method signature using the refactored method
         appendMethodSignature(code, method);
-
-        // Append the method body including instructions and stack limits using the refactored methods
         appendMethodBody(code, method);
-
-        // Unset the current method context after completion
         currentMethod = null;
-
         return code.toString();
     }
 
 
     private String generateLoadOperandCode(Operand operand) {
-        // get register
         int reg = currentMethod.getVarTable().get(operand.getName()).getVirtualReg();
 
         return switch (operand.getType().getTypeOfElement()) {
