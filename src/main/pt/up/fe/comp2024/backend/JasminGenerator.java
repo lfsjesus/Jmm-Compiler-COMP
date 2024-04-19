@@ -279,23 +279,19 @@ public class JasminGenerator {
 
 
     private String generateLoadOperandCode(Operand operand) {
-        int reg = currentMethod.getVarTable().get(operand.getName()).getVirtualReg();
+        int register = currentMethod.getVarTable().get(operand.getName()).getVirtualReg();
 
         return switch (operand.getType().getTypeOfElement()) {
-            case INT32, BOOLEAN -> "iload " + reg + NL;
-            case THIS, OBJECTREF, ARRAYREF, STRING, CLASS -> "aload " + reg + NL;
+            case INT32, BOOLEAN -> "iload " + register + NL;
+            case THIS, OBJECTREF, ARRAYREF, STRING, CLASS -> "aload " + register + NL;
             default -> "";
         };
     }
 
     private String generateBinaryOperationInstrCode(BinaryOpInstruction binaryOp) {
         StringBuilder code = new StringBuilder();
-
-        // load values on the left and on the right
         code.append(generators.apply(binaryOp.getLeftOperand()));
         code.append(generators.apply(binaryOp.getRightOperand()));
-
-        // apply operation
         String op = switch (binaryOp.getOperation().getOpType()) {
             case ADD -> "iadd";
             case SUB -> "isub";
@@ -316,8 +312,8 @@ public class JasminGenerator {
             code.append(generators.apply(returnInst.getOperand()));
         }
 
-        ElementType returnType = returnInst.getElementType();  // Explicitly declare as ElementType
-        switch (returnType) {
+        ElementType type = returnInst.getElementType();
+        switch (type) {
             case VOID -> code.append("return").append(NL);
             case INT32, BOOLEAN -> code.append("ireturn").append(NL);
             case OBJECTREF, ARRAYREF, STRING, CLASS -> code.append("areturn").append(NL);
