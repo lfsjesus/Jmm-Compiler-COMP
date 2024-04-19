@@ -145,6 +145,7 @@ public class JasminGenerator {
         code.append(NL).append(defaultConstructor);
     }
 
+    // Method generation
     private void generateMethods(StringBuilder code, ClassUnit classUnit) {
         for (Method method : classUnit.getMethods()) {
             if (!method.isConstructMethod()) {  // assuming constructor method means default constructor
@@ -153,6 +154,7 @@ public class JasminGenerator {
         }
     }
 
+    // Field generation
     private String generateFieldDeclarationCode(Field field) {
         StringBuilder code = new StringBuilder();
 
@@ -179,18 +181,21 @@ public class JasminGenerator {
         return code.toString();
     }
 
+    // Field access instructions
     private void appendClassNameIfThisReference(StringBuilder code, String objectName) {
         if (Objects.equals(objectName, "this")) {
             code.append(className).append('/');
         }
     }
 
+    // Field access instructions
     private void generateFieldAccessCode(StringBuilder code, FieldInstruction fieldInstruction) {
         appendClassNameIfThisReference(code, fieldInstruction.getObject().getName());
         code.append(fieldInstruction.getField().getName()).append(' ');
         code.append(generateTypeDescriptor(fieldInstruction.getField().getType())).append(NL);
     }
 
+    // Instruction generation
     private String generateGetFieldInstrCode(GetFieldInstruction getFieldInstruction) {
         StringBuilder code = new StringBuilder();
         code.append(generators.apply(getFieldInstruction.getObject()));
@@ -201,6 +206,7 @@ public class JasminGenerator {
         return code.toString();
     }
 
+    // Instruction generation
     private String generatePutFieldInstrCode(PutFieldInstruction putFieldInstruction) {
         StringBuilder code = new StringBuilder();
         code.append(generators.apply(putFieldInstruction.getObject()));
@@ -212,6 +218,7 @@ public class JasminGenerator {
         return code.toString();
     }
 
+    // Instruction generation
     private String generateAssignmentInstrCode(AssignInstruction assign) {
         StringBuilder code = new StringBuilder();
 
