@@ -195,6 +195,18 @@ public class JasminGenerator {
             String instCode = StringLines.getLines(generators.apply(inst)).stream()
                     .collect(Collectors.joining(NL + TAB, TAB, NL));
 
+
+            // if we call a mmethod like this.int() it puts things on the stack
+            // so we need to pop them
+            // we need to make sure it is not an assign instruction
+            if (inst instanceof CallInstruction) {
+                var callInst = (CallInstruction) inst;
+                if (callInst.getInvocationType() == CallType.invokevirtual) {
+                    instCode += "pop" + NL;
+                }
+            }
+
+
             code.append(instCode);
         }
 
@@ -301,7 +313,6 @@ public class JasminGenerator {
             }
             var returnType = callInstruction.getReturnType();
             code.append(')').append(generateTypeDescriptor(returnType)).append(NL);
-
         }
 
         return code.toString();
