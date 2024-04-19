@@ -4,11 +4,9 @@ import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
 import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.AJmmVisitor;
 import pt.up.fe.comp.jmm.ast.JmmNode;
-import pt.up.fe.comp.jmm.ast.PreorderJmmVisitor;
 import pt.up.fe.comp2024.ast.TypeUtils;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 import static pt.up.fe.comp2024.ast.Kind.*;
@@ -158,12 +156,12 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
 
         List<JmmNode> params = methodCall.getChildren();
 
-        HashMap<Integer, String> codes = new HashMap<>();
+        List<String> codes = new ArrayList<>();
 
         for (JmmNode param : params) {
             var paramVisit = visit(param);
             computation.append(paramVisit.getComputation());
-            codes.put(params.indexOf(param), paramVisit.getCode());
+            codes.add(paramVisit.getCode());
         }
 
         String invokeType = getInvokeType(methodCall);
