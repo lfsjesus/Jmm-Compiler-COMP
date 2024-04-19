@@ -77,26 +77,12 @@ public class JasminGenerator {
 
 
     private String generateClassCode(ClassUnit classUnit) {
+
         StringBuilder code = new StringBuilder();
 
-        appendClassDeclaration(code, classUnit);
-        appendSuperClass(code, classUnit);
-
-        // Field generation
-        generateFields(code, classUnit);
-
-        // Default constructor
-        generateDefaultConstructor(code, classUnit);
-
-        // Methods generation
-        generateMethods(code, classUnit);
-
-        return code.toString();
-    }
-
-    private void appendClassDeclaration(StringBuilder code, ClassUnit classUnit) {
         String classAccessModifier = classUnit.getClassAccessModifier() != AccessModifier.DEFAULT ?
-                classUnit.getClassAccessModifier().name().toLowerCase() + " " : "";
+                classUnit.getClassAccessModifier().name().toLowerCase() + " " :
+                "";
         code.append(".class ").append(classAccessModifier);
         if (classUnit.isStaticClass()) {
             code.append("static ");
@@ -104,52 +90,49 @@ public class JasminGenerator {
         if (classUnit.isFinalClass()) {
             code.append("final ");
         }
+
+        // generate class name
         String packageName = classUnit.getPackage();
         if (packageName != null) {
             className = packageName + '/';
         }
+
         className += classUnit.getClassName();
         code.append(className).append(NL);
-    }
 
-    private void appendSuperClass(StringBuilder code, ClassUnit classUnit) {
+        code.append(".super ");
         String superClass = classUnit.getSuperClass();
         if (superClass == null || superClass.equals("Object")) {
-            superClass = "java/lang/Object";
+            superClass="java/lang/Object";
         }
         superClass = generateFullyQualified(superClass);
-        code.append(".super ").append(superClass).append(NL).append(NL);
-    }
+        code.append(superClass).append(NL).append(NL);
 
-    private void generateFields(StringBuilder code, ClassUnit classUnit) {
         for (Field field : classUnit.getFields()) {
             code.append(generators.apply(field)).append(NL);
         }
-    }
 
-    private void generateDefaultConstructor(StringBuilder code, ClassUnit classUnit) {
-        String superClass = classUnit.getSuperClass();
-        if (superClass == null || superClass.equals("Object")) {
-            superClass = "java/lang/Object";
-        }
-        superClass = generateFullyQualified(superClass);
+        // generate a single constructor method
         String defaultConstructor = String.format("""
-            ;default constructor
-            .method public <init>()V
-                aload_0
-                invokespecial %s/<init>()V
-                return
-            .end method
-            """, superClass);
+                ;default constructor
+                .method public <init>()V
+                    aload_0
+                    invokespecial %s/<init>()V
+                    return
+                .end method
+                """, superClass);
         code.append(NL).append(defaultConstructor);
-    }
 
-    private void generateMethods(StringBuilder code, ClassUnit classUnit) {
         for (Method method : classUnit.getMethods()) {
-            if (!method.isConstructMethod()) {  // assuming constructor method means default constructor
-                code.append(generators.apply(method));
+            // Ignore constructor because it was already generated
+            if (method.isConstructMethod()) {
+                continue;
             }
+
+            code.append(generators.apply(method));
         }
+
+        return code.toString();
     }
 
     private String generateFieldDeclarationCode(Field field) {
