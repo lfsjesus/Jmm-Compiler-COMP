@@ -302,9 +302,6 @@ public class JasminGenerator {
             var returnType = callInstruction.getReturnType();
             code.append(')').append(generateTypeDescriptor(returnType)).append(NL);
 
-            if (returnType.getTypeOfElement() != ElementType.VOID && callType != CallType.invokestatic) {
-                code.append("pop").append(NL);
-            }
         }
 
         return code.toString();
