@@ -305,14 +305,14 @@ public class JasminGenerator {
         return code.toString();
     }
 
-    private String generateReturnInstrCode(ReturnInstruction returnInst) {
+    private String generateReturnInstrCode(ReturnInstruction instruction) {
         StringBuilder code = new StringBuilder();  // Explicitly declare as StringBuilder
 
-        if (returnInst.hasReturnValue()) {
-            code.append(generators.apply(returnInst.getOperand()));
+        if (instruction.hasReturnValue()) {
+            code.append(generators.apply(instruction.getOperand()));
         }
 
-        ElementType type = returnInst.getElementType();
+        ElementType type = instruction.getElementType();
         switch (type) {
             case VOID -> code.append("return").append(NL);
             case INT32, BOOLEAN -> code.append("ireturn").append(NL);
@@ -323,49 +323,45 @@ public class JasminGenerator {
     }
 
 
-    private String generateCallInstrCode(CallInstruction callInstruction) {
+    private String generateCallInstrCode(CallInstruction instruction) {
         StringBuilder code = new StringBuilder();
 
-        CallType callType = callInstruction.getInvocationType();
-        switch (callType) {
+        CallType invocationType = instruction.getInvocationType();
+        switch (invocationType) {
             case invokevirtual:
-                code.append(generators.apply(callInstruction.getCaller()));
+                code.append(generators.apply(instruction.getCaller()));
                 // Fall through to append arguments
             case invokestatic:
             case invokespecial:
-                for (Element operand : callInstruction.getArguments()) {
-                    code.append(generators.apply(operand));
+                instruction.getArguments().forEach(arg -> code.append(generators.apply(arg)));
+
+                if (invocationType.equals(CallType.invokespecial)) {
+                    code.append(generators.apply(instruction.getCaller()));
                 }
 
-                if (callType == CallType.invokespecial) {
-                    code.append(generators.apply(callInstruction.getCaller()));
-                }
+                String name = (invocationType.equals(CallType.invokestatic)) ?
+                        generateFullName(((Operand) instruction.getCaller()).getName()) :
+                        generateFullName(((ClassType) instruction.getCaller().getType()).getName());
 
-                String className = (callType == CallType.invokestatic) ?
-                        generateFullName(((Operand) callInstruction.getCaller()).getName()) :
-                        generateFullName(((ClassType) callInstruction.getCaller().getType()).getName());
-
-                code.append(callType.name()).append(' ');
-                code.append(className).append('/');
-                String methodName = ((LiteralElement) callInstruction.getMethodName()).getLiteral().replace("\"", "");
+                code.append(invocationType.name()).append(' ');
+                code.append(name).append('/');
+                String methodName = ((LiteralElement) instruction.getMethodName()).getLiteral().replace("\"", "");
                 code.append(methodName);
                 code.append('(');
-                for (Element arg : callInstruction.getArguments()) {
-                    code.append(generateJasminType(arg.getType()));
-                }
-                Type returnType = callInstruction.getReturnType();
-                code.append(')').append(generateJasminType(returnType)).append(NL);
+                instruction.getArguments().forEach(arg -> code.append(generateJasminType(arg.getType())));
+                Type ret = instruction.getReturnType();
+                code.append(')').append(generateJasminType(ret)).append(NL);
                 break;
 
             case NEW:
-                code.append(callType.name().toLowerCase()).append(' ');
-                Operand operand = (Operand) callInstruction.getCaller();
+                code.append(invocationType.name().toLowerCase()).append(' ');
+                Operand operand = (Operand) instruction.getCaller();
                 code.append(operand.getName()).append(NL);
                 break;
 
             default:
                 // Optionally handle unexpected cases
-                throw new IllegalStateException("Unsupported invocation type: " + callType);
+                throw new IllegalStateException("Unsupported invocation type: " + invocationType);
         }
 
         return code.toString();
