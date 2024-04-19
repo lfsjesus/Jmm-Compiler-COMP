@@ -218,58 +218,53 @@ public class JasminGenerator {
         return code.toString();
     }
 
-    private String generateMethodSignatureAndBodyCode(Method method) {
-        currentMethod = method;
-
-        StringBuilder code = new StringBuilder();
-
-        // calculate modifier
+    private void appendMethodSignature(StringBuilder code, Method method) {
         String modifier = method.getMethodAccessModifier() != AccessModifier.DEFAULT ?
-                method.getMethodAccessModifier().name().toLowerCase() + " " :
-                "";
-
+                method.getMethodAccessModifier().name().toLowerCase() + " " : "";
         code.append(NL).append(".method ").append(modifier);
+        if (method.isStaticMethod()) code.append("static ");
+        if (method.isFinalMethod()) code.append("final ");
+        code.append(method.getMethodName()).append('(');
+        method.getParams().forEach(param -> code.append(generateTypeDescriptor(param.getType())));
+        code.append(')').append(generateTypeDescriptor(method.getReturnType())).append(NL);
+    }
 
-        // This will only happen with 'main' in Java--
-        if (method.isStaticMethod()) {
-            code.append("static ");
-        }
-        if (method.isFinalMethod()) {
-            code.append("final ");
-        }
+    private void appendMethodBody(StringBuilder code, Method method) {
+        appendStackAndLocalsLimits(code); // Example of extracting stack and locals setting
+        method.getInstructions().forEach(inst -> appendInstruction(code, inst));
+        code.append(".end method").append(NL);
+    }
 
-        String methodName = method.getMethodName();
-        code.append(methodName);
+    private void appendStackAndLocalsLimits(StringBuilder code) {
+        code.append(TAB).append(".limit stack ").append(99).append(NL);
+        code.append(TAB).append(".limit locals ").append(99).append(NL);
+    }
+    private void appendInstruction(StringBuilder code, Instruction inst) {
+        String instCode = StringLines.getLines(generators.apply(inst)).stream()
+                .collect(Collectors.joining(NL + TAB, TAB, NL));
+        code.append(instCode);
+        handleNonVoidReturn(inst, code);
+    }
 
-        code.append('(');
-        for (Element param : method.getParams()) {
-            code.append(generateTypeDescriptor(param.getType()));
-        }
-
-        Type returnType = method.getReturnType();
-        code.append(')').append(generateTypeDescriptor(returnType)).append(NL);
-
-        // Stack and locals limits
-        code.append(TAB).append(".limit stack 99").append(NL);
-        code.append(TAB).append(".limit locals 99").append(NL);
-
-        for (Instruction inst : method.getInstructions()) {
-            // Explicitly use String for instCode
-            String instCode = StringLines.getLines(generators.apply(inst)).stream()
-                    .collect(Collectors.joining(NL + TAB, TAB, NL));
-
-            code.append(instCode);
-            // check non void return
-            if (inst instanceof CallInstruction && !((CallInstruction) inst).getReturnType().getTypeOfElement().equals(ElementType.VOID)) {
-                if (((CallInstruction) inst).getInvocationType() != CallType.NEW) {
-                    code.append("pop").append(NL);
-                }
+    private void handleNonVoidReturn(Instruction inst, StringBuilder code) {
+        if (inst instanceof CallInstruction && !((CallInstruction) inst).getReturnType().getTypeOfElement().equals(ElementType.VOID)) {
+            if (((CallInstruction) inst).getInvocationType() != CallType.NEW) {
+                code.append("pop").append(NL);
             }
         }
+    }
 
-        code.append(".end method").append(NL);
+    private String generateMethodSignatureAndBodyCode(Method method) {
+        StringBuilder code = new StringBuilder();
+        currentMethod = method;
 
-        // unset method
+        // Append the method signature using the refactored method
+        appendMethodSignature(code, method);
+
+        // Append the method body including instructions and stack limits using the refactored methods
+        appendMethodBody(code, method);
+
+        // Unset the current method context after completion
         currentMethod = null;
 
         return code.toString();
