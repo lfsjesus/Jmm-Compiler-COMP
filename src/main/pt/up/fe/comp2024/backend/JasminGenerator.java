@@ -398,8 +398,8 @@ public class JasminGenerator {
 
         List<String> imports = ollirResult.getOllirClass().getImports();
         for (String imp : imports) {
-            String impClassName = imp.substring(imp.lastIndexOf('.') + 1);
-            if (impClassName.equals(name)) {
+            String impName = imp.substring(imp.lastIndexOf('.') + 1);
+            if (impName.equals(name)) {
                 return imp.replace('.', '/');
             }
         }
