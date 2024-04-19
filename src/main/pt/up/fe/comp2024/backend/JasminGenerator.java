@@ -96,30 +96,29 @@ public class JasminGenerator {
 
     // Helper methods for class generation
     private void appendClassDeclaration(StringBuilder code, ClassUnit classUnit) {
-        String classAccessModifier = classUnit.getClassAccessModifier() != AccessModifier.DEFAULT ?
-                classUnit.getClassAccessModifier().name().toLowerCase() + " " : "";
-        code.append(".class ").append(classAccessModifier);
+        String classVisibility = "";
+        if (!classUnit.getClassAccessModifier().equals(AccessModifier.DEFAULT)) {
+            classVisibility = classUnit.getClassAccessModifier().name().toLowerCase() + " ";
+        }
+
+
+        code.append(".class ").append(classVisibility);
         if (classUnit.isStaticClass()) {
             code.append("static ");
         }
         if (classUnit.isFinalClass()) {
             code.append("final ");
         }
-        String packageName = classUnit.getPackage();
-        if (packageName != null) {
-            className = packageName + '/';
+        if (classUnit.getPackage() != null) {
+            className = classUnit.getPackage() + '/';
         }
-        className += classUnit.getClassName();
-        code.append(className).append(NL);
+        code.append(className += classUnit.getClassName()).append(NL);
     }
 
     private void appendSuperClass(StringBuilder code, ClassUnit classUnit) {
-        String superClass = classUnit.getSuperClass();
-        if (superClass == null || superClass.equals("Object")) {
-            superClass = "java/lang/Object";
-        }
-        superClass = generateFullName(superClass);
-        code.append(".super ").append(superClass).append(NL).append(NL);
+        String superName = classUnit.getSuperClass();
+        superName = (superName == null || superName.equals("Object")) ? "java/lang/Object" : superName;
+        code.append(".super ").append(generateFullName(superName)).append(NL).append(NL);
     }
 
     private void generateFields(StringBuilder code, ClassUnit classUnit) {
