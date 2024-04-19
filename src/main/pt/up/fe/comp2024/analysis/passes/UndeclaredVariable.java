@@ -175,6 +175,22 @@ public class UndeclaredVariable extends AnalysisVisitor {
     private void checkMethodLocals(JmmNode methodDecl, SymbolTable table) {
         List<JmmNode> locals = methodDecl.getChildren(Kind.VAR_DECL);
 
+        // check if there are parameters with the same name as locals
+        List<JmmNode> params = methodDecl.getChildren(Kind.PARAM);
+        for (JmmNode local : locals) {
+            for (JmmNode param : params) {
+                if (local.getChild(1).get("name").equals(param.getChild(1).get("name"))) {
+                    addReport(Report.newError(
+                            Stage.SEMANTIC,
+                            NodeUtils.getLine(local),
+                            NodeUtils.getColumn(local),
+                            "Local variable '" + local.getChild(1).get("name") + "' is already declared as a parameter",
+                            null)
+                    );
+                }
+            }
+        }
+
         // check if there are any repeated locals
         for (int i = 0; i < locals.size(); i++) {
             for (int j = i + 1; j < locals.size(); j++) {
