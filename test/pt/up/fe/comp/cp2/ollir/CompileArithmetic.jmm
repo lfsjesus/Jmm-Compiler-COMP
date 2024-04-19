@@ -1,20 +1,15 @@
-import io;
+import A.B.C;
+class ThisTest extends C {
 
-
-class Simple {
-    int field_int;
-    boolean field_bool;
-
-     public int method_int(int a){
-        int b;
-        field_int = 5;
-        field_int = a + (field_int);
-        io.println(field_int);
+    public int foo() {
+        int a;
+        a = this.thistest();
         return a;
     }
 
-    public static void main(String[] args){
-       new Simple().method_int(9);
+    public int thistest() {
+        C c;
+        c = this;
+        return 0;
     }
-
 }

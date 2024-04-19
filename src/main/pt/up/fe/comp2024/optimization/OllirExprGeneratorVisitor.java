@@ -39,7 +39,7 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         addVisit(METHOD_CALL, this::visitMethodCall);
 
         addVisit(PAREN_EXPR, this::visitParenExpr);
-
+        addVisit(THIS_LITERAL, this::visitVarRef);
         addVisit(NEW_CLASS_OBJ_EXPR, this::visitNewClassObjExpr);
         setDefaultVisit(this::defaultVisit);
     }

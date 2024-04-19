@@ -287,6 +287,7 @@ public class JasminGenerator {
             String className = callType == CallType.invokestatic ?
                     generateFullyQualified(((Operand) callInstruction.getCaller()).getName()) :
                     generateFullyQualified(((ClassType) callInstruction.getCaller().getType()).getName());
+
             if (callType == CallType.invokespecial) {
                 code.append(generators.apply(callInstruction.getCaller()));
             }
