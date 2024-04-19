@@ -191,24 +191,24 @@ public class JasminGenerator {
     }
 
     // Instruction generation
-    private String generateGetFieldInstrCode(GetFieldInstruction getFieldInstruction) {
+    private String generateGetFieldInstrCode(GetFieldInstruction getFieldInstr) {
         StringBuilder code = new StringBuilder();
-        code.append(generators.apply(getFieldInstruction.getObject()));
+        code.append(generators.apply(getFieldInstr.getObject()));
 
         code.append("getfield ");
-        generateFieldAccessCode(code, getFieldInstruction);
+        generateFieldAccessCode(code, getFieldInstr);
 
         return code.toString();
     }
 
     // Instruction generation
-    private String generatePutFieldInstrCode(PutFieldInstruction putFieldInstruction) {
+    private String generatePutFieldInstrCode(PutFieldInstruction putFieldInstr) {
         StringBuilder code = new StringBuilder();
-        code.append(generators.apply(putFieldInstruction.getObject()));
-        code.append(generators.apply(putFieldInstruction.getValue()));
+        code.append(generators.apply(putFieldInstr.getObject()));
+        code.append(generators.apply(putFieldInstr.getValue()));
 
         code.append("putfield ");
-        generateFieldAccessCode(code, putFieldInstruction);
+        generateFieldAccessCode(code, putFieldInstr);
 
         return code.toString();
     }
@@ -216,11 +216,8 @@ public class JasminGenerator {
     // Instruction generation
     private String generateAssignmentInstrCode(AssignInstruction assign) {
         StringBuilder code = new StringBuilder();
-
-        // generate code for loading what's on the right
         code.append(generators.apply(assign.getRhs()));
 
-        // store value in the stack in destination
         Element lhs = assign.getDest();
 
         if (!(lhs instanceof Operand operand)) {
