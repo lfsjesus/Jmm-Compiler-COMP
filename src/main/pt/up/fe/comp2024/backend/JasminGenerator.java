@@ -54,7 +54,7 @@ public class JasminGenerator {
         generators.put(SingleOpInstruction.class, this::generateSingleOpInstructionCode);
         generators.put(LiteralElement.class, this::generateLiteralElementCode);
         generators.put(Operand.class, this::generateLoadOperandCode);
-        generators.put(BinaryOpInstruction.class, this::generateBinaryOperationCode);
+        generators.put(BinaryOpInstruction.class, this::generateBinaryOperationInstructionCode);
         generators.put(ReturnInstruction.class, this::generateReturnInstructionCode);
     }
 
@@ -282,7 +282,7 @@ public class JasminGenerator {
         };
     }
 
-    private String generateBinaryOperationCode(BinaryOpInstruction binaryOp) {
+    private String generateBinaryOperationInstructionCode(BinaryOpInstruction binaryOp) {
         StringBuilder code = new StringBuilder();
 
         // load values on the left and on the right
