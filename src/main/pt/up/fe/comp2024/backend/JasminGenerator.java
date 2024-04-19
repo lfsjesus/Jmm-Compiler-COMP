@@ -46,8 +46,8 @@ public class JasminGenerator {
         this.generators = new FunctionClassMap<>();
         generators.put(ClassUnit.class, this::generateClassCode);
         generators.put(Field.class, this::generateFieldDeclarationCode);
-        generators.put(GetFieldInstruction.class, this::generateGetFieldInst);
-        generators.put(PutFieldInstruction.class, this::generatePutFieldInst);
+        generators.put(GetFieldInstruction.class, this::generateGetFieldInstructionCode);
+        generators.put(PutFieldInstruction.class, this::generatePutFieldInstructionCode);
         generators.put(Method.class, this::generateMethod);
         generators.put(AssignInstruction.class, this::generateAssign);
         generators.put(CallInstruction.class, this::generateCallInst);
@@ -156,6 +156,41 @@ public class JasminGenerator {
         return code.toString();
     }
 
+    private String generateGetFieldInstructionCode(GetFieldInstruction getFieldInstruction) {
+        StringBuilder code = new StringBuilder();
+        code.append(generators.apply(getFieldInstruction.getObject()));
+
+        code.append("getfield ");
+        if (Objects.equals(getFieldInstruction.getObject().getName(), "this")) {
+            code.append(className).append('/');
+        }
+        code.append(getFieldInstruction.getField().getName()).append(' ');
+
+        Type fieldType = getFieldInstruction.getField().getType();
+        code.append(generateTypeDescriptor(fieldType)).append(NL);
+
+        return code.toString();
+    }
+
+
+    private String generatePutFieldInstructionCode(PutFieldInstruction putFieldInstruction) {
+        StringBuilder code = new StringBuilder();
+        code.append(generators.apply(putFieldInstruction.getObject()));
+
+        code.append(generators.apply(putFieldInstruction.getValue()));
+
+        code.append("putfield ");
+        if (Objects.equals(putFieldInstruction.getObject().getName(), "this")) {
+            code.append(className).append('/');
+        }
+        code.append(putFieldInstruction.getField().getName()).append(' ');
+
+        Type fieldType = putFieldInstruction.getField().getType();
+        code.append(generateTypeDescriptor(fieldType)).append(NL);
+
+        return code.toString();
+    }
+
     private String generateMethod(Method method) {
         currentMethod = method;
 
@@ -209,40 +244,6 @@ public class JasminGenerator {
 
         // unset method
         currentMethod = null;
-
-        return code.toString();
-    }
-
-    private String generateGetFieldInst(GetFieldInstruction getFieldInstruction) {
-        StringBuilder code = new StringBuilder();
-        code.append(generators.apply(getFieldInstruction.getObject()));
-
-        code.append("getfield ");
-        if (Objects.equals(getFieldInstruction.getObject().getName(), "this")) {
-            code.append(className).append('/');
-        }
-        code.append(getFieldInstruction.getField().getName()).append(' ');
-
-        Type fieldType = getFieldInstruction.getField().getType();
-        code.append(generateTypeDescriptor(fieldType)).append(NL);
-
-        return code.toString();
-    }
-
-    private String generatePutFieldInst(PutFieldInstruction putFieldInstruction) {
-        StringBuilder code = new StringBuilder();
-        code.append(generators.apply(putFieldInstruction.getObject()));
-
-        code.append(generators.apply(putFieldInstruction.getValue()));
-
-        code.append("putfield ");
-        if (Objects.equals(putFieldInstruction.getObject().getName(), "this")) {
-            code.append(className).append('/');
-        }
-        code.append(putFieldInstruction.getField().getName()).append(' ');
-
-        Type fieldType = putFieldInstruction.getField().getType();
-        code.append(generateTypeDescriptor(fieldType)).append(NL);
 
         return code.toString();
     }
