@@ -44,7 +44,7 @@ public class JasminGenerator {
         className = "";
 
         this.generators = new FunctionClassMap<>();
-        // Basic elements first
+        // Basic elements
         generators.put(ClassUnit.class, this::generateClassCode);
         generators.put(Field.class, this::generateFieldDeclarationCode);
         generators.put(Method.class, this::generateMethodSignatureAndBodyCode);
