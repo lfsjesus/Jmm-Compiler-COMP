@@ -120,7 +120,8 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
                 ((node.getJmmParent().isInstance(ASSIGN_STMT) && node.getJmmParent().getChild(1).equals(node)) ||
                 (node.getJmmParent().isInstance(METHOD_RETURN)) ||
                 (node.getJmmParent().isInstance(METHOD_CALL)) ||
-                (node.getJmmParent().isInstance(BINARY_EXPR))))
+                (node.getJmmParent().isInstance(BINARY_EXPR)) ||
+                (node.getJmmParent().isInstance(PAREN_EXPR))) )
 
                 {
             String temp = OptUtils.getTemp() + OptUtils.toOllirType(TypeUtils.getVarType(id, TypeUtils.getMethodName(node), table));

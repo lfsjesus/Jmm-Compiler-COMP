@@ -7,8 +7,9 @@ class Simple {
 
      public int method_int(int a){
         int b;
-        b = a + (2 + field_int);
-        io.println(b);
+        field_int = 5;
+        field_int = a + (field_int);
+        io.println(field_int);
         return a;
     }
 
