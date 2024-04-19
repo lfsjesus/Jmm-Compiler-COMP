@@ -345,43 +345,48 @@ public class JasminGenerator {
         return code.toString();
     }
 
-
     private String generateCallInstrCode(CallInstruction callInstruction) {
         StringBuilder code = new StringBuilder();
 
         CallType callType = callInstruction.getInvocationType();
-        if (callType.equals(CallType.invokevirtual)) {
-            code.append(generators.apply(callInstruction.getCaller()));
-        }
+        String className = null;
 
-        for (Element operand : callInstruction.getArguments()) {
-            code.append(generators.apply(operand));
-        }
-
-        if (callType.equals(CallType.NEW)) {
-            code.append(callType.name().toLowerCase()).append(' ');
-            Operand operand = (Operand) callInstruction.getCaller();
-            code.append(operand.getName()).append(NL);
-        }
-        else {
-            String className = callType.equals(CallType.invokestatic) ?
-                    generateFullyQualified(((Operand) callInstruction.getCaller()).getName()) :
-                    generateFullyQualified(((ClassType) callInstruction.getCaller().getType()).getName());
-
-            if (callType.equals(CallType.invokespecial)) {
+        // Process initial parts based on call type
+        switch (callType) {
+            case invokevirtual:
                 code.append(generators.apply(callInstruction.getCaller()));
-            }
-            code.append(callType.name()).append(' ');
-            code.append(className).append('/');
-            String name = ((LiteralElement) callInstruction.getMethodName()).getLiteral().replace("\"", "");
-            code.append(name);
-            code.append('(');
-            for (Element arg : callInstruction.getArguments()) {
-                code.append(generateTypeDescriptor(arg.getType()));
-            }
-            Type returnType = callInstruction.getReturnType();
-            code.append(')').append(generateTypeDescriptor(returnType)).append(NL);
+                break;
+            case NEW:
+                Operand newOperand = (Operand) callInstruction.getCaller();
+                className = newOperand.getName();
+                code.append(callType.name().toLowerCase()).append(' ').append(className).append(NL);
+                return code.toString();
+            case invokespecial:
+                code.append(generators.apply(callInstruction.getCaller()));
+                // Fall through to common handling below
+            case invokestatic:
+                Operand staticOperand = (Operand) callInstruction.getCaller();
+                className = generateFullyQualified(staticOperand.getName());
+                break;
+            default:
+                ClassType classTypeOperand = (ClassType) callInstruction.getCaller().getType();
+                className = generateFullyQualified(classTypeOperand.getName());
+                break;
         }
+
+        // Append method call details
+        code.append(callType.name()).append(' ').append(className).append('/');
+        String methodName = ((LiteralElement) callInstruction.getMethodName()).getLiteral().replace("\"", "");
+        code.append(methodName).append('(');
+
+        // Append arguments' types
+        for (Element arg : callInstruction.getArguments()) {
+            code.append(generateTypeDescriptor(arg.getType()));
+        }
+
+        // Append return type
+        Type returnType = callInstruction.getReturnType();
+        code.append(')').append(generateTypeDescriptor(returnType)).append(NL);
 
         return code.toString();
     }
