@@ -53,9 +53,9 @@ public class JasminGenerator {
         generators.put(CallInstruction.class, this::generateCallInstructionCode);
         generators.put(SingleOpInstruction.class, this::generateSingleOpInstructionCode);
         generators.put(LiteralElement.class, this::generateLoadConstantCode);
-        generators.put(Operand.class, this::generateOperand);
-        generators.put(BinaryOpInstruction.class, this::generateBinaryOp);
-        generators.put(ReturnInstruction.class, this::generateReturn);
+        generators.put(Operand.class, this::generateLoadOperandCode);
+        generators.put(BinaryOpInstruction.class, this::generateBinaryOperationCode);
+        generators.put(ReturnInstruction.class, this::generateReturnInstructionCode);
     }
 
     public List<Report> getReports() {
@@ -270,7 +270,7 @@ public class JasminGenerator {
         return code.toString();
     }
 
-    private String generateOperand(Operand operand) {
+    private String generateLoadOperandCode(Operand operand) {
         // get register
         var reg = currentMethod.getVarTable().get(operand.getName()).getVirtualReg();
 
@@ -281,7 +281,7 @@ public class JasminGenerator {
         };
     }
 
-    private String generateBinaryOp(BinaryOpInstruction binaryOp) {
+    private String generateBinaryOperationCode(BinaryOpInstruction binaryOp) {
         var code = new StringBuilder();
 
         // load values on the left and on the right
@@ -302,7 +302,7 @@ public class JasminGenerator {
         return code.toString();
     }
 
-    private String generateReturn(ReturnInstruction returnInst) {
+    private String generateReturnInstructionCode(ReturnInstruction returnInst) {
         var code = new StringBuilder();
 
         if (returnInst.hasReturnValue()) {
