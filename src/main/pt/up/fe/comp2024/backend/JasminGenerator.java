@@ -360,7 +360,6 @@ public class JasminGenerator {
                 break;
 
             default:
-                // Optionally handle unexpected cases
                 throw new IllegalStateException("Unsupported invocation type: " + invocationType);
         }
 
@@ -381,20 +380,15 @@ public class JasminGenerator {
     private String generateJasminType(Type type) {
         ElementType elementType = type.getTypeOfElement();
         return switch (elementType) {
+            case BOOLEAN -> "Z";
             case VOID -> "V";
             case INT32 -> "I";
-            case BOOLEAN -> "Z";
             case STRING -> "Ljava/lang/String;";
-            case OBJECTREF, CLASS -> "L" + generateFullName(((ClassType) type).getName()) + ";";
+            case CLASS, OBJECTREF -> "L" + generateFullName(((ClassType) type).getName()) + ";";
             case ARRAYREF -> {
-                StringBuilder code = new StringBuilder();
-                ArrayType arrayType = (ArrayType) type;
-
-                int numDimensions = arrayType.getNumDimensions();
-                code.append("[".repeat(numDimensions));
-
-                code.append(generateJasminType(arrayType.getElementType()));
-                yield code.toString();
+                ArrayType arrType = (ArrayType) type;
+                yield "[".repeat(arrType.getNumDimensions()) +
+                        generateJasminType(arrType.getElementType());
             }
             default -> "";
         };
