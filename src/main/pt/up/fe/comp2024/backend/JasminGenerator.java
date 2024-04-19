@@ -198,11 +198,9 @@ public class JasminGenerator {
         // store value in the stack in destination
         Element lhs = assign.getDest();
 
-        if (!(lhs instanceof Operand)) {
+        if (!(lhs instanceof Operand operand)) {
             throw new NotImplementedException(lhs.getClass());
         }
-
-        var operand = (Operand) lhs;
 
         // get register
         var reg = currentMethod.getVarTable().get(operand.getName()).getVirtualReg();
