@@ -143,35 +143,34 @@ public class JasminGenerator {
 
     // Method generation
     private void generateMethods(StringBuilder code, ClassUnit classUnit) {
-        for (Method method : classUnit.getMethods()) {
-            if (!method.isConstructMethod()) {  // assuming constructor method means default constructor
-                code.append(generators.apply(method));
-            }
-        }
+        classUnit.getMethods().stream()
+                .filter(method -> !method.isConstructMethod())  // Filter out constructor methods
+                .map(generators::apply)  // Apply the generator function to each method
+                .forEach(code::append);  // Append each generated string to the StringBuilder
     }
 
     // Field generation
     private String generateFieldDeclarationCode(Field field) {
         StringBuilder code = new StringBuilder();
+        String name = field.getFieldName();
+        String jasminType = generateJasminType(field.getFieldType());
+        String visibility = "";
 
-        String modifier = field.getFieldAccessModifier() != AccessModifier.DEFAULT ?
-                field.getFieldAccessModifier().name().toLowerCase() + " " :
-                "";
-        code.append(".field ").append(modifier);
+        if (!field.getFieldAccessModifier().equals(AccessModifier.DEFAULT)) {
+            visibility = field.getFieldAccessModifier().name().toLowerCase() + " ";
+        }
+        code.append(".field ").append(visibility);
+
         if (field.isStaticField()) {
             code.append("static ");
         }
         if (field.isFinalField()) {
             code.append("final ");
         }
-
-        String fieldName = field.getFieldName();
-        String jasminType = generateJasminType(field.getFieldType());
-        code.append(fieldName).append(' ').append(jasminType);
+        code.append(name).append(' ').append(jasminType);
 
         if (field.isInitialized()) {
-            int initialValue = field.getInitialValue();
-            code.append(" = ").append(initialValue);
+            code.append(" = ").append(field.getInitialValue());
         }
 
         return code.toString();
