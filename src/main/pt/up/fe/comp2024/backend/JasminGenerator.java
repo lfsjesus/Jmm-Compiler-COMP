@@ -196,17 +196,6 @@ public class JasminGenerator {
                     .collect(Collectors.joining(NL + TAB, TAB, NL));
 
 
-            // if we call a mmethod like this.int() it puts things on the stack
-            // so we need to pop them
-            // we need to make sure it is not an assign instruction
-            if (inst instanceof CallInstruction) {
-                var callInst = (CallInstruction) inst;
-                if (callInst.getInvocationType() == CallType.invokespecial) {
-                    instCode += "pop" + NL;
-                }
-            }
-
-
             code.append(instCode);
         }
 
