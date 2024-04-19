@@ -48,8 +48,8 @@ public class JasminGenerator {
         generators.put(Field.class, this::generateFieldDeclarationCode);
         generators.put(GetFieldInstruction.class, this::generateGetFieldInstructionCode);
         generators.put(PutFieldInstruction.class, this::generatePutFieldInstructionCode);
-        generators.put(Method.class, this::generateMethod);
-        generators.put(AssignInstruction.class, this::generateAssign);
+        generators.put(Method.class, this::generateMethodSignatureAndBodyCode);
+        generators.put(AssignInstruction.class, this::generateAssignmentInstructionCode);
         generators.put(CallInstruction.class, this::generateCallInst);
         generators.put(SingleOpInstruction.class, this::generateSingleOp);
         generators.put(LiteralElement.class, this::generateLiteral);
@@ -156,42 +156,66 @@ public class JasminGenerator {
         return code.toString();
     }
 
+    private void appendClassNameIfThisReference(StringBuilder code, String objectName) {
+        if (Objects.equals(objectName, "this")) {
+            code.append(className).append('/');
+        }
+    }
+
+    private void generateFieldAccessCode(StringBuilder code, FieldInstruction fieldInstruction) {
+        appendClassNameIfThisReference(code, fieldInstruction.getObject().getName());
+        code.append(fieldInstruction.getField().getName()).append(' ');
+        code.append(generateTypeDescriptor(fieldInstruction.getField().getType())).append(NL);
+    }
+
     private String generateGetFieldInstructionCode(GetFieldInstruction getFieldInstruction) {
         StringBuilder code = new StringBuilder();
         code.append(generators.apply(getFieldInstruction.getObject()));
 
         code.append("getfield ");
-        if (Objects.equals(getFieldInstruction.getObject().getName(), "this")) {
-            code.append(className).append('/');
-        }
-        code.append(getFieldInstruction.getField().getName()).append(' ');
-
-        Type fieldType = getFieldInstruction.getField().getType();
-        code.append(generateTypeDescriptor(fieldType)).append(NL);
+        generateFieldAccessCode(code, getFieldInstruction);
 
         return code.toString();
     }
-
 
     private String generatePutFieldInstructionCode(PutFieldInstruction putFieldInstruction) {
         StringBuilder code = new StringBuilder();
         code.append(generators.apply(putFieldInstruction.getObject()));
-
         code.append(generators.apply(putFieldInstruction.getValue()));
 
         code.append("putfield ");
-        if (Objects.equals(putFieldInstruction.getObject().getName(), "this")) {
-            code.append(className).append('/');
-        }
-        code.append(putFieldInstruction.getField().getName()).append(' ');
-
-        Type fieldType = putFieldInstruction.getField().getType();
-        code.append(generateTypeDescriptor(fieldType)).append(NL);
+        generateFieldAccessCode(code, putFieldInstruction);
 
         return code.toString();
     }
 
-    private String generateMethod(Method method) {
+    private String generateAssignmentInstructionCode(AssignInstruction assign) {
+        StringBuilder code = new StringBuilder();
+
+        // generate code for loading what's on the right
+        code.append(generators.apply(assign.getRhs()));
+
+        // store value in the stack in destination
+        Element lhs = assign.getDest();
+
+        if (!(lhs instanceof Operand)) {
+            throw new NotImplementedException(lhs.getClass());
+        }
+
+        var operand = (Operand) lhs;
+
+        // get register
+        var reg = currentMethod.getVarTable().get(operand.getName()).getVirtualReg();
+
+        switch (operand.getType().getTypeOfElement()) {
+            case INT32, BOOLEAN -> code.append("istore ").append(reg).append(NL);
+            case OBJECTREF, ARRAYREF, STRING, CLASS -> code.append("astore ").append(reg).append(NL);
+        }
+
+        return code.toString();
+    }
+
+    private String generateMethodSignatureAndBodyCode(Method method) {
         currentMethod = method;
 
         StringBuilder code = new StringBuilder();
@@ -244,32 +268,6 @@ public class JasminGenerator {
 
         // unset method
         currentMethod = null;
-
-        return code.toString();
-    }
-
-    private String generateAssign(AssignInstruction assign) {
-        StringBuilder code = new StringBuilder();
-
-        // generate code for loading what's on the right
-        code.append(generators.apply(assign.getRhs()));
-
-        // store value in the stack in destination
-        Element lhs = assign.getDest();
-
-        if (!(lhs instanceof Operand)) {
-            throw new NotImplementedException(lhs.getClass());
-        }
-
-        var operand = (Operand) lhs;
-
-        // get register
-        var reg = currentMethod.getVarTable().get(operand.getName()).getVirtualReg();
-
-        switch (operand.getType().getTypeOfElement()) {
-            case INT32, BOOLEAN -> code.append("istore ").append(reg).append(NL);
-            case OBJECTREF, ARRAYREF, STRING, CLASS -> code.append("astore ").append(reg).append(NL);
-        }
 
         return code.toString();
     }
