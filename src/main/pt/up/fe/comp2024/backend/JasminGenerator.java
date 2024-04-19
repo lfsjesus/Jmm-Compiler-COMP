@@ -203,7 +203,7 @@ public class JasminGenerator {
         }
 
         // get register
-        var reg = currentMethod.getVarTable().get(operand.getName()).getVirtualReg();
+        int reg = currentMethod.getVarTable().get(operand.getName()).getVirtualReg();
 
         switch (operand.getType().getTypeOfElement()) {
             case INT32, BOOLEAN -> code.append("istore ").append(reg).append(NL);
