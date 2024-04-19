@@ -345,60 +345,46 @@ public class JasminGenerator {
         return code.toString();
     }
 
+
     private String generateCallInstrCode(CallInstruction callInstruction) {
         StringBuilder code = new StringBuilder();
 
         CallType callType = callInstruction.getInvocationType();
-
-        // Handle method invocation based on the type of call
-        switch (callType) {
-            case invokevirtual:
-                code.append(generators.apply(callInstruction.getCaller()));
-                break;
-            case NEW:
-                handleNewInstruction(callInstruction, code);
-                break;
-            case invokestatic:
-            case invokespecial:
-                handleInvokeSpecialOrStatic(callInstruction, callType, code);
-                break;
-            default:
-                throw new IllegalArgumentException("Unsupported call type: " + callType);
+        if (callType.equals(CallType.invokevirtual)) {
+            code.append(generators.apply(callInstruction.getCaller()));
         }
 
-        // Append arguments for all types except NEW
-        if (callType != CallType.NEW) {
-            appendArgumentsAndReturn(callInstruction, code);
+        for (Element operand : callInstruction.getArguments()) {
+            code.append(generators.apply(operand));
+        }
+
+        if (callType.equals(CallType.NEW)) {
+            code.append(callType.name().toLowerCase()).append(' ');
+            Operand operand = (Operand) callInstruction.getCaller();
+            code.append(operand.getName()).append(NL);
+        }
+        else {
+            String className = callType.equals(CallType.invokestatic) ?
+                    generateFullyQualified(((Operand) callInstruction.getCaller()).getName()) :
+                    generateFullyQualified(((ClassType) callInstruction.getCaller().getType()).getName());
+
+            if (callType.equals(CallType.invokespecial)) {
+                code.append(generators.apply(callInstruction.getCaller()));
+            }
+            code.append(callType.name()).append(' ');
+            code.append(className).append('/');
+            String name = ((LiteralElement) callInstruction.getMethodName()).getLiteral().replace("\"", "");
+            code.append(name);
+            code.append('(');
+            for (Element arg : callInstruction.getArguments()) {
+                code.append(generateTypeDescriptor(arg.getType()));
+            }
+            Type returnType = callInstruction.getReturnType();
+            code.append(')').append(generateTypeDescriptor(returnType)).append(NL);
         }
 
         return code.toString();
     }
-
-    private void handleNewInstruction(CallInstruction callInstruction, StringBuilder code) {
-        code.append(CallType.NEW.name().toLowerCase()).append(' ');
-        Operand operand = (Operand) callInstruction.getCaller();
-        code.append(operand.getName()).append(NL);
-    }
-
-    private void handleInvokeSpecialOrStatic(CallInstruction callInstruction, CallType callType, StringBuilder code) {
-        if (callType == CallType.invokespecial) {
-            code.append(generators.apply(callInstruction.getCaller()));
-        }
-        String className = generateFullyQualified(((Operand) callInstruction.getCaller()).getName());
-        code.append(callType.name()).append(' ').append(className).append('/');
-    }
-
-    private void appendArgumentsAndReturn(CallInstruction callInstruction, StringBuilder code) {
-        String name = ((LiteralElement) callInstruction.getMethodName()).getLiteral().replace("\"", "");
-        code.append(name);
-        code.append('(');
-        for (Element arg : callInstruction.getArguments()) {
-            code.append(generateTypeDescriptor(arg.getType()));
-        }
-        Type returnType = callInstruction.getReturnType();
-        code.append(')').append(generateTypeDescriptor(returnType)).append(NL);
-    }
-
 
     private String generateSingleOpInstrCode(SingleOpInstruction singleOp) {
         return generators.apply(singleOp.getSingleOperand());
