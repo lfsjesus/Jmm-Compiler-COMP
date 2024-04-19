@@ -372,7 +372,7 @@ public class JasminGenerator {
 
 
     private String generateTypeDescriptor(Type type) {
-        var elementType = type.getTypeOfElement();
+        ElementType elementType = type.getTypeOfElement();
         return switch (elementType) {
             case VOID -> "V";
             case INT32 -> "I";
@@ -380,10 +380,10 @@ public class JasminGenerator {
             case STRING -> "Ljava/lang/String;";
             case OBJECTREF, CLASS -> "L" + generateFullyQualified(((ClassType) type).getName()) + ";";
             case ARRAYREF -> {
-                var code = new StringBuilder();
-                var arrayType = (ArrayType) type;
+                StringBuilder code = new StringBuilder();
+                ArrayType arrayType = (ArrayType) type;
 
-                var numDimensions = arrayType.getNumDimensions();
+                int numDimensions = arrayType.getNumDimensions();
                 code.append("[".repeat(numDimensions));
 
                 code.append(generateTypeDescriptor(arrayType.getElementType()));
