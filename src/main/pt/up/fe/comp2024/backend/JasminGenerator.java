@@ -213,7 +213,62 @@ public class JasminGenerator {
         return code.toString();
     }
 
+    private String generateMethodSignatureAndBodyCode(Method method) {
+        currentMethod = method;
 
+        StringBuilder code = new StringBuilder();
+
+        // calculate modifier
+        var modifier = method.getMethodAccessModifier() != AccessModifier.DEFAULT ?
+                method.getMethodAccessModifier().name().toLowerCase() + " " :
+                "";
+
+        code.append(NL).append(".method ").append(modifier);
+
+        // This will only happen with 'main' in Java--
+        if (method.isStaticMethod()) {
+            code.append("static ");
+        }
+        if (method.isFinalMethod()) {
+            code.append("final ");
+        }
+
+        String methodName = method.getMethodName();
+        code.append(methodName);
+
+        code.append('(');
+        for (Element param : method.getParams()) {
+            code.append(generateTypeDescriptor(param.getType()));
+        }
+
+        Type returnType = method.getReturnType();
+        code.append(')').append(generateTypeDescriptor(returnType)).append(NL);
+
+        // Stack and locals limits
+        code.append(TAB).append(".limit stack 99").append(NL);
+        code.append(TAB).append(".limit locals 99").append(NL);
+
+        for (Instruction inst : method.getInstructions()) {
+            String instCode = StringLines.getLines(generators.apply(inst)).stream()
+                    .collect(Collectors.joining(NL + TAB, TAB, NL));
+
+
+            code.append(instCode);
+            // check non void return
+            if (inst instanceof CallInstruction && !((CallInstruction) inst).getReturnType().getTypeOfElement().equals(ElementType.VOID)) {
+                if (((CallInstruction) inst).getInvocationType() != CallType.NEW) {
+                    code.append("pop").append(NL);
+                }
+            }
+        }
+
+        code.append(".end method").append(NL);
+
+        // unset method
+        currentMethod = null;
+
+        return code.toString();
+    }
 
     private String generateLoadOperandCode(Operand operand) {
         // get register
@@ -264,37 +319,10 @@ public class JasminGenerator {
         return code.toString();
     }
 
-    private void appendMethodSignature(StringBuilder code, Method method) {
-        var modifier = method.getMethodAccessModifier() != AccessModifier.DEFAULT ?
-                method.getMethodAccessModifier().name().toLowerCase() + " " :
-                "";
+    private String generateCallInstructionCode(CallInstruction callInstruction) {
+        var code = new StringBuilder();
 
-        code.append(NL).append(".method ").append(modifier);
-
-        if (method.isStaticMethod()) {
-            code.append("static ");
-        }
-        if (method.isFinalMethod()) {
-            code.append("final ");
-        }
-
-        code.append(method.getMethodName()).append('(');
-        for (Element param : method.getParams()) {
-            code.append(generateTypeDescriptor(param.getType()));
-        }
-
-        Type returnType = method.getReturnType();
-        code.append(')').append(generateTypeDescriptor(returnType)).append(NL);
-    }
-
-    private void appendStackAndLocalsLimits(StringBuilder code, int stackLimit, int localsLimit) {
-        code.append(TAB).append(".limit stack ").append(stackLimit).append(NL);
-        code.append(TAB).append(".limit locals ").append(localsLimit).append(NL);
-    }
-
-    private void appendCallInstruction(StringBuilder code, CallInstruction callInstruction) {
         var callType = callInstruction.getInvocationType();
-
         if (callType == CallType.invokevirtual) {
             code.append(generators.apply(callInstruction.getCaller()));
         }
@@ -307,7 +335,8 @@ public class JasminGenerator {
             code.append(callType.name().toLowerCase()).append(' ');
             var operand = (Operand) callInstruction.getCaller();
             code.append(operand.getName()).append(NL);
-        } else {
+        }
+        else {
             String className = callType == CallType.invokestatic ?
                     generateFullyQualified(((Operand) callInstruction.getCaller()).getName()) :
                     generateFullyQualified(((ClassType) callInstruction.getCaller().getType()).getName());
@@ -326,37 +355,7 @@ public class JasminGenerator {
             var returnType = callInstruction.getReturnType();
             code.append(')').append(generateTypeDescriptor(returnType)).append(NL);
         }
-    }
 
-    private String generateMethodSignatureAndBodyCode(Method method) {
-        StringBuilder code = new StringBuilder();
-        currentMethod = method;
-
-        appendMethodSignature(code, method);
-
-        // Stack and locals limits
-        appendStackAndLocalsLimits(code, 99, 99);
-
-        for (Instruction inst : method.getInstructions()) {
-            String instCode = StringLines.getLines(generators.apply(inst)).stream()
-                    .collect(Collectors.joining(NL + TAB, TAB, NL));
-
-            code.append(instCode);
-            if (inst instanceof CallInstruction && !((CallInstruction) inst).getReturnType().getTypeOfElement().equals(ElementType.VOID)) {
-                if (((CallInstruction) inst).getInvocationType() != CallType.NEW) {
-                    code.append("pop").append(NL);
-                }
-            }
-        }
-
-        code.append(".end method").append(NL);
-        currentMethod = null;
-        return code.toString();
-    }
-
-    private String generateCallInstructionCode(CallInstruction callInstruction) {
-        StringBuilder code = new StringBuilder();
-        appendCallInstruction(code, callInstruction);
         return code.toString();
     }
 
