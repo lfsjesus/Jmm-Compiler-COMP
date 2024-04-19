@@ -75,7 +75,7 @@ public class JasminGenerator {
         return code;
     }
 
-
+    // Class generation
     private String generateClassCode(ClassUnit classUnit) {
         StringBuilder code = new StringBuilder();
 
@@ -94,6 +94,7 @@ public class JasminGenerator {
         return code.toString();
     }
 
+    // Helper methods for class generation
     private void appendClassDeclaration(StringBuilder code, ClassUnit classUnit) {
         String classAccessModifier = classUnit.getClassAccessModifier() != AccessModifier.DEFAULT ?
                 classUnit.getClassAccessModifier().name().toLowerCase() + " " : "";
