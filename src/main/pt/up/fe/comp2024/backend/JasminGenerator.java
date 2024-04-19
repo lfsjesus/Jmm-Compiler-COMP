@@ -198,8 +198,7 @@ public class JasminGenerator {
 
             code.append(instCode);
             // check non void return
-            if (inst instanceof CallInstruction && !returnType.getTypeOfElement().equals(ElementType.VOID)) {
-                //
+            if (inst instanceof CallInstruction && !((CallInstruction) inst).getReturnType().getTypeOfElement().equals(ElementType.VOID)) {
                 if (((CallInstruction) inst).getInvocationType() != CallType.NEW) {
                     code.append("pop").append(NL);
                 }
