@@ -170,7 +170,7 @@ public class JasminGenerator {
         }
 
         String fieldName = field.getFieldName();
-        String typeDescriptor = generateTypeDescriptor(field.getFieldType());
+        String typeDescriptor = generateJasminType(field.getFieldType());
         code.append(fieldName).append(' ').append(typeDescriptor);
 
         if (field.isInitialized()) {
@@ -192,7 +192,7 @@ public class JasminGenerator {
     private void generateFieldAccessCode(StringBuilder code, FieldInstruction fieldInstruction) {
         appendClassNameIfThisReference(code, fieldInstruction.getObject().getName());
         code.append(fieldInstruction.getField().getName()).append(' ');
-        code.append(generateTypeDescriptor(fieldInstruction.getField().getType())).append(NL);
+        code.append(generateJasminType(fieldInstruction.getField().getType())).append(NL);
     }
 
     // Instruction generation
@@ -250,8 +250,8 @@ public class JasminGenerator {
         if (method.isStaticMethod()) code.append("static ");
         if (method.isFinalMethod()) code.append("final ");
         code.append(method.getMethodName()).append('(');
-        method.getParams().forEach(param -> code.append(generateTypeDescriptor(param.getType())));
-        code.append(')').append(generateTypeDescriptor(method.getReturnType())).append(NL);
+        method.getParams().forEach(param -> code.append(generateJasminType(param.getType())));
+        code.append(')').append(generateJasminType(method.getReturnType())).append(NL);
     }
 
     private void appendMethodBody(StringBuilder code, Method method) {
@@ -374,10 +374,10 @@ public class JasminGenerator {
                 code.append(methodName);
                 code.append('(');
                 for (Element arg : callInstruction.getArguments()) {
-                    code.append(generateTypeDescriptor(arg.getType()));
+                    code.append(generateJasminType(arg.getType()));
                 }
                 Type returnType = callInstruction.getReturnType();
-                code.append(')').append(generateTypeDescriptor(returnType)).append(NL);
+                code.append(')').append(generateJasminType(returnType)).append(NL);
                 break;
 
             case NEW:
@@ -405,7 +405,7 @@ public class JasminGenerator {
 
 
 
-    private String generateTypeDescriptor(Type type) {
+    private String generateJasminType(Type type) {
         ElementType elementType = type.getTypeOfElement();
         return switch (elementType) {
             case VOID -> "V";
@@ -420,7 +420,7 @@ public class JasminGenerator {
                 int numDimensions = arrayType.getNumDimensions();
                 code.append("[".repeat(numDimensions));
 
-                code.append(generateTypeDescriptor(arrayType.getElementType()));
+                code.append(generateJasminType(arrayType.getElementType()));
                 yield code.toString();
             }
             default -> "";
