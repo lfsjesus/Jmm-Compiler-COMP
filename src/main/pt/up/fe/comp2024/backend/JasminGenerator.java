@@ -44,18 +44,23 @@ public class JasminGenerator {
         className = "";
 
         this.generators = new FunctionClassMap<>();
+        // Basic elements first
         generators.put(ClassUnit.class, this::generateClassCode);
         generators.put(Field.class, this::generateFieldDeclarationCode);
-        generators.put(GetFieldInstruction.class, this::generateGetFieldInstrCode);
-        generators.put(PutFieldInstruction.class, this::generatePutFieldInstrCode);
         generators.put(Method.class, this::generateMethodSignatureAndBodyCode);
+        generators.put(Operand.class, this::generateLoadOperandCode);
+        generators.put(LiteralElement.class, this::generateLiteralElementCode);
+
+        // Instruction handling
         generators.put(AssignInstruction.class, this::generateAssignmentInstrCode);
         generators.put(CallInstruction.class, this::generateCallInstrCode);
         generators.put(SingleOpInstruction.class, this::generateSingleOpInstrCode);
-        generators.put(LiteralElement.class, this::generateLiteralElementCode);
-        generators.put(Operand.class, this::generateLoadOperandCode);
         generators.put(BinaryOpInstruction.class, this::generateBinaryOperationInstrCode);
         generators.put(ReturnInstruction.class, this::generateReturnInstrCode);
+
+        // Field access instructions
+        generators.put(GetFieldInstruction.class, this::generateGetFieldInstrCode);
+        generators.put(PutFieldInstruction.class, this::generatePutFieldInstrCode);
     }
 
     public List<Report> getReports() {
@@ -395,7 +400,7 @@ public class JasminGenerator {
 
     private String generateFullyQualified(String name) {
 
-        List<java.lang.String> imports = ollirResult.getOllirClass().getImports();
+        List<String> imports = ollirResult.getOllirClass().getImports();
         for (String imp : imports) {
             String impClassName = imp.substring(imp.lastIndexOf('.') + 1);
             if (impClassName.equals(name)) {
