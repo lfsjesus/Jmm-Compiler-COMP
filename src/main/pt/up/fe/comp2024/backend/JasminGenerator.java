@@ -273,7 +273,7 @@ public class JasminGenerator {
 
     private String generateLoadOperandCode(Operand operand) {
         // get register
-        var reg = currentMethod.getVarTable().get(operand.getName()).getVirtualReg();
+        int reg = currentMethod.getVarTable().get(operand.getName()).getVirtualReg();
 
         return switch (operand.getType().getTypeOfElement()) {
             case INT32, BOOLEAN -> "iload " + reg + NL;
@@ -283,14 +283,14 @@ public class JasminGenerator {
     }
 
     private String generateBinaryOperationCode(BinaryOpInstruction binaryOp) {
-        var code = new StringBuilder();
+        StringBuilder code = new StringBuilder();  // Use StringBuilder instead of var
 
         // load values on the left and on the right
         code.append(generators.apply(binaryOp.getLeftOperand()));
         code.append(generators.apply(binaryOp.getRightOperand()));
 
         // apply operation
-        var op = switch (binaryOp.getOperation().getOpType()) {
+        String op = switch (binaryOp.getOperation().getOpType()) {  // Use String instead of var
             case ADD -> "iadd";
             case SUB -> "isub";
             case MUL -> "imul";
