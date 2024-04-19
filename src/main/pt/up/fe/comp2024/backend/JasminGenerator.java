@@ -44,8 +44,8 @@ public class JasminGenerator {
         className = "";
 
         this.generators = new FunctionClassMap<>();
-        generators.put(ClassUnit.class, this::generateClassUnit);
-        generators.put(Field.class, this::generateField);
+        generators.put(ClassUnit.class, this::generateClassCode);
+        generators.put(Field.class, this::generateFieldDeclarationCode);
         generators.put(GetFieldInstruction.class, this::generateGetFieldInst);
         generators.put(PutFieldInstruction.class, this::generatePutFieldInst);
         generators.put(Method.class, this::generateMethod);
@@ -71,7 +71,7 @@ public class JasminGenerator {
     }
 
 
-    private String generateClassUnit(ClassUnit classUnit) {
+    private String generateClassCode(ClassUnit classUnit) {
 
         StringBuilder code = new StringBuilder();
 
@@ -130,7 +130,7 @@ public class JasminGenerator {
         return code.toString();
     }
 
-    private String generateField(Field field) {
+    private String generateFieldDeclarationCode(Field field) {
         StringBuilder code = new StringBuilder();
 
         String modifier = field.getFieldAccessModifier() != AccessModifier.DEFAULT ?
