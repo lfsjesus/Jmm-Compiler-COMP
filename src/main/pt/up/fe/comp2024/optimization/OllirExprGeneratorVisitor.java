@@ -572,7 +572,7 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
 
             computation.append(temp).append(SPACE)
                     .append(ASSIGN).append(arrayType.replace(".array", ""))
-                    .append(SPACE).append(arrayVisit.getCode())
+                    .append(SPACE).append(arrayVisit.getCode().replace(".array", ""))
                     .append("[").append(indexVisit.getCode()).append("]")
                     .append(arrayType).append(END_STMT);
 
