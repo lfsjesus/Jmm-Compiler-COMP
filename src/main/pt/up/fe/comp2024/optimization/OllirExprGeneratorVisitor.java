@@ -125,6 +125,42 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
             return new OllirExprResult(temp, computation);
         }
 
+        if (node.get("op").equals("<")) {
+            StringBuilder computation = new StringBuilder();
+            StringBuilder code = new StringBuilder();
+
+            var lhs = visit(left);
+            var rhs = visit(right);
+
+            computation.append(lhs.getComputation());
+            computation.append(rhs.getComputation());
+
+            computation.append("if(").append(lhs.getCode()).append(" <.bool ").append(rhs.getCode()).append(") goto true_0").append(END_STMT);
+
+            String temp = OptUtils.getTemp() + OptUtils.toOllirType(TypeUtils.getExprType(node, table));
+
+            computation.append(temp).append(SPACE)
+                                    .append(ASSIGN)
+                                    .append(OptUtils.toOllirType(TypeUtils.getExprType(node, table)))
+                                    .append(SPACE)
+                                    .append("0.bool")
+                                    .append(END_STMT);
+
+            computation.append("goto end_0").append(END_STMT);
+
+            computation.append("true_0:").append('\n');
+
+            computation.append(temp).append(SPACE).append(ASSIGN)
+                    .append(OptUtils.toOllirType(TypeUtils.getExprType(node, table)))
+                    .append(SPACE).append("1.bool").append(END_STMT);
+
+            computation.append("end_0:").append('\n');
+
+            return new OllirExprResult(temp, computation);
+
+
+        }
+
         var lhs = visit(left);
         var rhs = visit(right);
 

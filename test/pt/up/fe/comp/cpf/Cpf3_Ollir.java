@@ -75,6 +75,8 @@ public class Cpf3_Ollir {
                 "Could not find either an LTH or GTE operations, of two if/elses in method " + method.getMethodName(),
                 validCode, ollirResult);
 
+        System.out.println(ollirResult.getOllirCode());
+
     }
 
     @Test
