@@ -42,6 +42,7 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         addVisit(MAIN_LITERAL, this::visitVarRef);
         addVisit(NEW_CLASS_OBJ_EXPR, this::visitNewClassObjExpr);
         addVisit(NEW_ARRAY_EXPR, this::visitNewArrayExpr);
+        addVisit(IF_EXPR, this::visitIfExpr);
         setDefaultVisit(this::defaultVisit);
     }
 
@@ -473,5 +474,51 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         String finalCode = "new(array, " + sizeVisit.getCode() + ") " + OptUtils.toOllirType(new Type(type, true));
 
         return new OllirExprResult(finalCode, computation);
+    }
+
+    private OllirExprResult visitIfExpr(JmmNode node, Void unused) {
+        // two gotos: if_0 and endif_0
+
+        StringBuilder computation = new StringBuilder();
+        StringBuilder code = new StringBuilder();
+
+        JmmNode condition = node.getJmmChild(0);
+
+        var conditionVisit = visit(condition);
+
+        computation.append(conditionVisit.getComputation());
+
+        computation.append("if(").append(conditionVisit.getCode()).append(") goto if_0").append(END_STMT);
+
+        // put the else code here
+        JmmNode elseNode = node.getParent().getJmmChild(1).getChild(0).getChild(0);
+
+        if (elseNode.isInstance(EXPR_STMT)) {
+            elseNode = elseNode.getJmmChild(0);
+        }
+
+        var elseVisit = visit(elseNode);
+
+        computation.append(elseVisit.getCode())
+                    .append("goto endif_0").append(END_STMT);
+
+        // If_0 label
+
+        computation.append("if_0:").append('\n');
+
+        JmmNode thenNode = node.getJmmChild(1).getChild(0);
+
+        if (thenNode.isInstance(EXPR_STMT)) {
+            thenNode = thenNode.getJmmChild(0);
+        }
+
+        var thenVisit = visit(thenNode);
+
+        computation.append(thenVisit.getCode())
+                .append("endif_0:").append('\n');
+
+
+
+        return new OllirExprResult(code.toString(), computation.toString());
     }
 }

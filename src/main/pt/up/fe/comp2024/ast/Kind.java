@@ -38,6 +38,8 @@ public enum Kind {
     METHOD_CALL_EXPR,
     METHOD_CALL,
     NOT_EXPR,
+    IF_EXPR,
+    ELSE_EXPR,
     TRUE_LITERAL,
     FALSE_LITERAL,
     INTEGER_LITERAL,

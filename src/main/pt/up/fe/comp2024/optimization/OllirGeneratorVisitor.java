@@ -43,6 +43,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         addVisit(PARAM, this::visitParam);
         addVisit(METHOD_RETURN, this::visitReturn);
         addVisit(ASSIGN_STMT, this::visitAssignStmt);
+        addVisit(IF_STMT, this::visitIfStmt);
         setDefaultVisit(this::defaultVisit);
     }
 
@@ -264,6 +265,13 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         return code.toString();
     }
 
+    private String visitIfStmt(JmmNode node, Void unused) {
+        StringBuilder code = new StringBuilder();
+
+        JmmNode ifExpr = node.getJmmChild(0);
+
+        return exprVisitor.visit(ifExpr).getComputation();
+    }
 
 
     /**
