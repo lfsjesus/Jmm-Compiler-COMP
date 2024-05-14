@@ -43,32 +43,31 @@ public class OptUtils {
 
         // Handle array types
         if (typeKind.equals("ArrayType")) {
-            String arrayType = typeNode.getChildren().get(0).get("name") + "[]";
-            return toOllirType(arrayType);
+            String arrayType = typeNode.getChildren().get(0).get("name");
+            return toOllirType(arrayType, true);
         }
 
         String typeName = typeNode.get("name");
 
-        return toOllirType(typeName);
+        return toOllirType(typeName, false);
     }
 
     public static String toOllirType(Type type) {
-        return toOllirType(type.getName());
+        return toOllirType(type.getName(), type.isArray());
     }
 
-    private static String toOllirType(String typeName) {
+    private static String toOllirType(String typeName, boolean isArray) {
 
         String type = "." + switch (typeName) {
             case "int" -> "i32";
             case "boolean" -> "bool";
             case "void" -> "V";
-            case "String[]" -> "array.String";
             // else, it's .class
 
             default -> typeName;
         };
 
-        return type;
+        return (isArray) ? ".array" + type : type;
     }
 
 
