@@ -38,6 +38,7 @@ public class TypeUtils {
             case THIS_LITERAL -> new Type(table.getClassName(), false);
             case LENGTH_LITERAL -> getVarType("length", getMethodName(expr), table);
             case INTEGER_LITERAL -> new Type(INT_TYPE_NAME, false);
+            case NOT_EXPR -> new Type(BOOL_TYPE_NAME, false);
             default -> throw new UnsupportedOperationException("Can't compute type for expression kind '" + kind + "'");
         };
     }
