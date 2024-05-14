@@ -79,6 +79,52 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         JmmNode left = node.getJmmChild(0);
         JmmNode right = node.getJmmChild(1);
 
+        // If we have && operator we need gotos
+        if (node.get("op").equals("&&")) {
+            StringBuilder computation = new StringBuilder();
+            StringBuilder code = new StringBuilder();
+
+            var lhs = visit(left);
+
+            computation.append(lhs.getComputation());
+
+            /* if(lhs.getCode()) goto true_0;
+               tmp1.bool := .bool 0.bool;
+                goto end_0;
+             */
+
+            //code.append(lhs.getCode()).append(SPACE).append("if").append(SPACE).append("eq").append(SPACE).append("0").append(SPACE).append("goto").append(SPACE).append("true_0").append(END_STMT);
+
+            computation.append("if(").append(lhs.getCode()).append(")").append(" goto true_0").append(END_STMT);
+
+            String temp = OptUtils.getTemp() + OptUtils.toOllirType(TypeUtils.getExprType(node, table));
+
+            computation.append(temp).append(SPACE)
+                                    .append(ASSIGN)
+                                    .append(OptUtils.toOllirType(TypeUtils.getExprType(node, table)))
+                                    .append(SPACE)
+                                    .append("0.bool")
+                                    .append(END_STMT);
+            computation.append("goto end_0").append(END_STMT);
+
+
+            // Label true_0
+            computation.append("true_0:").append('\n');
+
+            var rhs = visit(right);
+
+            computation.append(rhs.getComputation());
+            // now previous temp is the result of the code of rhs
+            computation.append(temp).append(SPACE).append(ASSIGN)
+                    .append(OptUtils.toOllirType(TypeUtils.getExprType(node, table)))
+                    .append(SPACE).append(rhs.getCode()).append(END_STMT);
+
+            // Label end_0
+            computation.append("end_0:").append('\n');
+
+            return new OllirExprResult(temp, computation);
+        }
+
         var lhs = visit(left);
         var rhs = visit(right);
 

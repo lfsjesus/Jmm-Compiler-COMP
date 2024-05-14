@@ -52,6 +52,9 @@ public class Cpf3_Ollir {
 
         CpUtils.assertTrue("Expected to find 1 if in method " + method.getMethodName(), ifInsts.size() == 1, ollirResult);
         CpUtils.assertTrue("Expected to find 1 goto in method " + method.getMethodName(), gotoInsts.size() == 1, ollirResult);
+
+        // print
+        System.out.println(ollirResult.getOllirCode());
     }
 
     @Test
