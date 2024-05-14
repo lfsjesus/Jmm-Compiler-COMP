@@ -174,6 +174,7 @@ public class Cpf3_Ollir {
                 .collect(Collectors.toList());
 
         CpUtils.assertEquals("Number of 'arraylenght' calls", 1, lengthCalls.size(), result);
+        System.out.println(result.getOllirCode());
     }
 
     /*checks if the access to the elements of array is correct*/
