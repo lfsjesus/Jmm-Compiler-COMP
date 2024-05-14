@@ -66,7 +66,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         code.append(rhs.getComputation());
 
         Type thisType = TypeUtils.getExprType(node.getJmmChild(0), table);
-        String typeString = OptUtils.toOllirType(thisType);
+        String typeString = OptUtils.toOllirType(thisType).replace(".array", "");
 
         code.append(lhs.getCode());
         code.append(SPACE);

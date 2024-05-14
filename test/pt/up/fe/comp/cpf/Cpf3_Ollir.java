@@ -190,6 +190,8 @@ public class Cpf3_Ollir {
                 .flatMap(assign -> CpUtils.getElements(assign.getRhs()).stream())
                 .filter(element -> element instanceof ArrayOperand).count();
         CpUtils.assertEquals("Number of array reads", 5, numArrayReads, result);
+
+        System.out.println(result.getOllirCode());
     }
 
     /*checks multiple expressions as indexes to access the elements of an array*/

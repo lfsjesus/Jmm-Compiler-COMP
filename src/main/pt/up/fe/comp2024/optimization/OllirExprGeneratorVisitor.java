@@ -42,6 +42,7 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         addVisit(MAIN_LITERAL, this::visitVarRef);
         addVisit(NEW_CLASS_OBJ_EXPR, this::visitNewClassObjExpr);
         addVisit(NEW_ARRAY_EXPR, this::visitNewArrayExpr);
+        addVisit(ARRAY_ACCESS_EXPR, this::visitArrayAccessExpr);
         addVisit(IF_EXPR, this::visitIfExpr);
         setDefaultVisit(this::defaultVisit);
     }
@@ -518,6 +519,31 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
                 .append("endif_0:").append('\n');
 
 
+
+        return new OllirExprResult(code.toString(), computation.toString());
+    }
+
+    private OllirExprResult visitArrayAccessExpr(JmmNode node, Void unused) {
+        StringBuilder code = new StringBuilder();
+        StringBuilder computation = new StringBuilder();
+
+        JmmNode array = node.getJmmChild(0);
+        JmmNode index = node.getJmmChild(1);
+
+        var arrayVisit = visit(array);
+        var indexVisit = visit(index);
+
+        computation.append(arrayVisit.getComputation());
+        computation.append(indexVisit.getComputation());
+
+        // remove ".array" from the type
+        String arrayType = OptUtils.toOllirType(TypeUtils.getExprType(array, table)).replace(".array", "");
+
+        // a[0] -> a[0.i32].i32
+        code.append(array.get("name")).append("[")
+                .append(indexVisit.getCode())
+                .append("]")
+                .append(arrayType);
 
         return new OllirExprResult(code.toString(), computation.toString());
     }
