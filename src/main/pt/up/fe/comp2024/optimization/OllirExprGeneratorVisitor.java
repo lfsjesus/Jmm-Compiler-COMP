@@ -44,6 +44,7 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         addVisit(NEW_ARRAY_EXPR, this::visitNewArrayExpr);
         addVisit(ARRAY_ACCESS_EXPR, this::visitArrayAccessExpr);
         addVisit(ARRAY_LENGTH_EXPR, this::visitArrayLengthExpr);
+        addVisit(ARRAY_INIT_EXPR, this::visitArrayInitExpr);
         setDefaultVisit(this::defaultVisit);
     }
 
@@ -610,7 +611,60 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         code.append(temp);
 
         return new OllirExprResult(code.toString(), computation.toString());
+    }
 
+    private OllirExprResult visitArrayInitExpr(JmmNode node, Void unused) {
+        StringBuilder code = new StringBuilder();
+        StringBuilder computation = new StringBuilder();
+
+        /*
+        a = [1,2,3,4]
+        tmp2.array.i32 :=.array.i32 new(array, 4.i32).array.i32;
+      __varargs_array_0.array.i32 :=.array.i32 tmp2.array.i32;
+      __varargs_array_0.array.i32[0.i32].i32 :=.i32 1.i32;
+      __varargs_array_0.array.i32[1.i32].i32 :=.i32 2.i32;
+      __varargs_array_0.array.i32[2.i32].i32 :=.i32 3.i32;
+      __varargs_array_0.array.i32[3.i32].i32 :=.i32 4.i32;
+         */
+
+        JmmNode array = node.getJmmParent().getJmmChild(0);
+
+        var arrayVisit = visit(array);
+
+        computation.append(arrayVisit.getComputation());
+
+        String temp = OptUtils.getTemp() + OptUtils.toOllirType(TypeUtils.getExprType(array, table));
+
+        computation.append(temp).append(SPACE)
+                .append(ASSIGN).append(OptUtils.toOllirType(TypeUtils.getExprType(array, table)))
+                .append(SPACE).append("new(array, ")
+                .append(node.getNumChildren()).append(".i32)")
+                .append(OptUtils.toOllirType(TypeUtils.getExprType(array, table)))
+                .append(END_STMT);
+
+        computation.append("__varargs_array_0").append(OptUtils.toOllirType(TypeUtils.getExprType(array, table)))
+                .append(SPACE)
+                .append(ASSIGN).append(OptUtils.toOllirType(TypeUtils.getExprType(array, table)))
+                .append(SPACE).append(temp)
+                .append(END_STMT);
+
+        for (int i = 0; i < node.getNumChildren(); i++) {
+            JmmNode child = node.getJmmChild(i);
+
+            var childVisit = visit(child);
+
+            computation.append(childVisit.getComputation());
+
+            computation.append("__varargs_array_0").append(OptUtils.toOllirType(TypeUtils.getExprType(array, table)))
+                    .append("[").append(i).append(".i32].i32 :=.i32 ")
+                    .append(childVisit.getCode()).append(END_STMT);
+        }
+
+            code.append("__varargs_array_0").append(OptUtils.toOllirType(TypeUtils.getExprType(array, table)));
+
+
+
+        return new OllirExprResult(code.toString(), computation.toString());
 
 
     }

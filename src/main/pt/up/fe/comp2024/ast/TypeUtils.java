@@ -36,7 +36,7 @@ public class TypeUtils {
             case THIS_LITERAL -> new Type(table.getClassName(), false);
             case LENGTH_LITERAL -> getVarType("length", getMethodName(expr), table);
             case INTEGER_LITERAL -> new Type(INT_TYPE_NAME, false);
-            case ARRAY_ACCESS_EXPR -> getVarType(expr.getChild(0).get("name"), getMethodName(expr), table);
+            case ARRAY_ACCESS_EXPR -> new Type(getVarType(expr.getChild(0).get("name"), getMethodName(expr), table).getName(), false); // because the access is an int or a boolean
             case NOT_EXPR -> new Type(BOOL_TYPE_NAME, false);
             default -> throw new UnsupportedOperationException("Can't compute type for expression kind '" + kind + "'");
         };

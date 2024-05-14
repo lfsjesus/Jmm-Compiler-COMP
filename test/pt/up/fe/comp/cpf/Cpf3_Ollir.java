@@ -272,6 +272,7 @@ public class Cpf3_Ollir {
 
         var assigns = CpUtils.getInstructions(AssignInstruction.class, method);
         CpUtils.assertTrue("Expected at least 6 assignments in method 'bar'", assigns.size() >= 6, result);
+        System.out.println(result.getOllirCode());
     }
 
 
