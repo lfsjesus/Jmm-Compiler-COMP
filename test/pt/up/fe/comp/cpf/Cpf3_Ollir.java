@@ -127,6 +127,7 @@ public class Cpf3_Ollir {
         var branches = CpUtils.assertInstExists(CondBranchInstruction.class, method, result);
 
         CpUtils.assertTrue("Number of branches between 1 and 3", branches.size() >= 1 && branches.size() <= 3, result);
+        System.out.println(result.getOllirCode());
     }
 
     @Test
@@ -146,6 +147,8 @@ public class Cpf3_Ollir {
         // have a return statement
         var returns = CpUtils.assertInstExists(ReturnInstruction.class, method, result);
         CpUtils.assertTrue("Has return", returns.size() == 1, result);
+
+        System.out.println(result.getOllirCode());
     }
 
     /*checks if an array is correctly initialized*/

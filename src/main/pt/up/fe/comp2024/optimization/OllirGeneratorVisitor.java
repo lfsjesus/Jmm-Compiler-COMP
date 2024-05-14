@@ -44,6 +44,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         addVisit(METHOD_RETURN, this::visitReturn);
         addVisit(ASSIGN_STMT, this::visitAssignStmt);
         addVisit(IF_STMT, this::visitIfStmt);
+        addVisit(WHILE_STMT, this::visitWhileStmt);
         setDefaultVisit(this::defaultVisit);
     }
 
@@ -266,11 +267,41 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
     }
 
     private String visitIfStmt(JmmNode node, Void unused) {
-        StringBuilder code = new StringBuilder();
-
         JmmNode ifExpr = node.getJmmChild(0);
 
         return exprVisitor.visit(ifExpr).getComputation();
+    }
+
+    private String visitWhileStmt(JmmNode node, Void unused) {
+        StringBuilder code = new StringBuilder();
+
+        JmmNode breakCondition = node.getJmmChild(0);
+
+        var expr = exprVisitor.visit(breakCondition);
+
+        code.append(expr.getComputation())
+            .append("if (")
+            .append(expr.getCode())
+            .append(") goto whilebody_0;\n");
+
+
+
+        code.append("goto endwhile_0;\n")
+            .append("whilebody_0:\n");
+
+        for (int i = 0; i < node.getChild(1).getNumChildren(); i++) {
+            code.append(visit(node.getChild(1).getJmmChild(i)));
+        }
+
+        code.append("if (")
+            .append(expr.getCode())
+            .append(") goto whilebody_0;\n");
+
+        code.append("goto endwhile_0;\n")
+            .append("endwhile_0:\n");
+
+        return code.toString();
+
     }
 
 
