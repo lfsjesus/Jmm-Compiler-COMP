@@ -329,6 +329,12 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
             code.append(")");
             code.append(OptUtils.toOllirType(thisType));
         }
+        else if (parent.isInstance(ARRAY_ACCESS_EXPR)) {
+            needTemp = true;
+            thisType = TypeUtils.getExprType(parent, table);
+            code.append(")");
+            code.append(OptUtils.toOllirType(thisType));
+        }
         else if (parent.isInstance(PAREN_EXPR)) {
             needTemp = true;
             thisType = TypeUtils.getExprType(parent.getJmmChild(0), table);
@@ -560,10 +566,23 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         String arrayType = OptUtils.toOllirType(TypeUtils.getExprType(array, table)).replace(".array", "");
 
         // a[0] -> a[0.i32].i32
-        code.append(array.get("name")).append("[")
-                .append(indexVisit.getCode())
+        if (!node.getJmmParent().isInstance(ASSIGN_STMT)) {
+            String temp = OptUtils.getTemp() + arrayType;
+
+            computation.append(temp).append(SPACE)
+                    .append(ASSIGN).append(arrayType.replace(".array", ""))
+                    .append(SPACE).append(arrayVisit.getCode())
+                    .append("[").append(indexVisit.getCode()).append("]")
+                    .append(arrayType).append(END_STMT);
+
+            code.append(temp);
+        }
+        else {
+            code.append(array.get("name")).append("[")
+                .append(indexVisit.getCode().replace(".array", ""))
                 .append("]")
                 .append(arrayType);
+        }
 
         return new OllirExprResult(code.toString(), computation.toString());
     }
