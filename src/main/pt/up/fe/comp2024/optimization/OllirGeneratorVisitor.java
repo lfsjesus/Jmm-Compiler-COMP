@@ -268,8 +268,57 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
     private String visitIfStmt(JmmNode node, Void unused) {
         JmmNode ifExpr = node.getJmmChild(0);
+        JmmNode elseNode = node.getJmmChild(1).getChild(0).getChild(0);
 
-        return exprVisitor.visit(ifExpr).getComputation();
+        StringBuilder computation = new StringBuilder();
+
+
+        JmmNode condition = ifExpr.getJmmChild(0);
+
+        var conditionVisit = exprVisitor.visit(condition);
+
+        computation.append(conditionVisit.getComputation());
+
+        int ifLabelNum = OptUtils.getNextIfLabelNum();
+
+        computation.append("if(")
+                .append(conditionVisit.getCode())
+                .append(") goto if_")
+                .append(ifLabelNum)
+                .append(END_STMT);
+
+        // put the else code here
+        if (elseNode.isInstance(EXPR_STMT)) {
+            elseNode = elseNode.getJmmChild(0);
+        }
+
+        var elseVisit = visit(elseNode);
+
+
+        computation.append(elseVisit)
+                .append("goto ")
+                .append("endif_")
+                .append(ifLabelNum)
+                .append(END_STMT);
+
+
+        // If_0 label
+
+        computation.append("if_").append(ifLabelNum).append(":").append('\n');
+
+        JmmNode thenNode = ifExpr.getJmmChild(1).getChild(0);
+
+        if (thenNode.isInstance(EXPR_STMT)) {
+            thenNode = thenNode.getJmmChild(0);
+        }
+
+        var thenVisit = visit(thenNode);
+
+        computation.append(thenVisit)
+                .append("endif_").append(ifLabelNum).append(":").append('\n');
+
+
+        return computation.toString();
     }
 
     private String visitWhileStmt(JmmNode node, Void unused) {
@@ -279,15 +328,17 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
         var expr = exprVisitor.visit(breakCondition);
 
+        int whileLabel = OptUtils.getNextWhileLabelNum();
+
         code.append(expr.getComputation())
             .append("if (")
             .append(expr.getCode())
-            .append(") goto whilebody_0;\n");
+            .append(") goto whilebody_").append(whileLabel).append(";\n");
 
 
 
-        code.append("goto endwhile_0;\n")
-            .append("whilebody_0:\n");
+        code.append("goto endwhile_").append(whileLabel).append(";\n")
+            .append("whilebody_").append(whileLabel).append(":\n");
 
         for (int i = 0; i < node.getChild(1).getNumChildren(); i++) {
             code.append(visit(node.getChild(1).getJmmChild(i)));
@@ -295,10 +346,10 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
         code.append("if (")
             .append(expr.getCode())
-            .append(") goto whilebody_0;\n");
+            .append(") goto whilebody_").append(whileLabel).append(";\n");
 
-        code.append("goto endwhile_0;\n")
-            .append("endwhile_0:\n");
+        code.append("goto endwhile_").append(whileLabel).append(";\n")
+            .append("endwhile_").append(whileLabel).append(":\n");
 
         return code.toString();
 

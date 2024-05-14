@@ -15,6 +15,12 @@ import static pt.up.fe.comp2024.ast.Kind.TYPE;
 
 public class OptUtils {
     private static int tempNumber = -1;
+    private static int trueLabelNumber = -1;
+    private static int endLabelNumber = -1;
+    private static int whileLabelNumber = -1;
+    private static int endWhileLabelNumber = -1;
+    private static int ifLabelNumber = -1;
+
 
     public static String getTemp() {
 
@@ -30,6 +36,31 @@ public class OptUtils {
 
         tempNumber += 1;
         return tempNumber;
+    }
+
+    public static int getNextTrueLabelNum() {
+        trueLabelNumber += 1;
+        return trueLabelNumber;
+    }
+
+    public static int getNextEndLabelNum() {
+        endLabelNumber += 1;
+        return endLabelNumber;
+    }
+
+    public static int getNextWhileLabelNum() {
+        whileLabelNumber += 1;
+        return whileLabelNumber;
+    }
+
+    public static int getNextEndWhileLabelNum() {
+        endWhileLabelNumber += 1;
+        return endWhileLabelNumber;
+    }
+
+    public static int getNextIfLabelNum() {
+        ifLabelNumber += 1;
+        return ifLabelNumber;
     }
 
     public static String toOllirType(JmmNode typeNode) {

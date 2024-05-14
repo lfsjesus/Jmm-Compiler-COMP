@@ -115,6 +115,7 @@ public class Cpf3_Ollir {
 
         var gotos = CpUtils.assertInstExists(GotoInstruction.class, method, result);
         CpUtils.assertTrue("Has at least 6 gotos", gotos.size() >= 6, result);
+        System.out.println(result.getOllirCode());
     }
 
     @Test
