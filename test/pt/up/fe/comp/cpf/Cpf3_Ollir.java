@@ -217,6 +217,7 @@ public class Cpf3_Ollir {
                 .flatMap(assign -> CpUtils.getElements(assign.getRhs()).stream())
                 .filter(element -> element instanceof ArrayOperand).count();
         CpUtils.assertEquals("Number of array reads", 6, numArrayReads, result);
+        System.out.println(result.getOllirCode());
     }
 
     @Test
@@ -301,6 +302,7 @@ public class Cpf3_Ollir {
         var assigns = CpUtils.getInstructions(AssignInstruction.class, method);
         CpUtils.assertTrue("Expected at least 10 assignments in method 'bar'", assigns.size() >= 11, result);
 
+        System.out.println(result.getOllirCode());
     }
 
 }

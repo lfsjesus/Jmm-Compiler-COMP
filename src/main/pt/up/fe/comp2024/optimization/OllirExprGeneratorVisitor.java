@@ -1,5 +1,6 @@
 package pt.up.fe.comp2024.optimization;
 
+import pt.up.fe.comp.jmm.analysis.table.Symbol;
 import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
 import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.AJmmVisitor;
@@ -252,10 +253,39 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
 
         List<String> codes = new ArrayList<>();
 
-        for (JmmNode param : params) {
-            var paramVisit = visit(param);
+        // If it's varargs, we need to create an array with the parameters
+        List<Symbol> tableMethodParams = new ArrayList<>();
+        boolean isVarArgs = false;
+
+        if (table.getMethods().contains(methodName)) {
+            tableMethodParams = table.getParameters(methodName);
+            try {
+                isVarArgs = (boolean) tableMethodParams.get(tableMethodParams.size() - 1).getType().getObject("varargs");
+            }
+            catch (Exception e) {
+                // do nothing
+            }
+        }
+
+        int fixedParams = isVarArgs ? tableMethodParams.size() - 1 : params.size();
+
+
+        for (int i = 0; i < fixedParams; i++) {
+            var paramVisit = visit(params.get(i));
             computation.append(paramVisit.getComputation());
             codes.add(paramVisit.getCode());
+        }
+
+        if (isVarArgs) {
+            List<JmmNode> varArgs = new ArrayList<>();
+            for (int i = fixedParams; i < params.size(); i++) {
+                varArgs.add(params.get(i));
+            }
+
+            var varArgsVisit = computeVarArg(varArgs);
+
+            computation.append(varArgsVisit.getComputation());
+            codes.add(varArgsVisit.getCode());
         }
 
         String invokeType = getInvokeType(methodCall);
@@ -294,7 +324,7 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         code.append(methodName);
         code.append("\"");
 
-        for (int i = 0; i < params.size(); i++) {
+        for (int i = 0; i < codes.size(); i++) {
             code.append(", ");
             code.append(codes.get(i));
         }
@@ -676,5 +706,44 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
 
 
         return new OllirExprResult(code.toString(), computation.toString());
+    }
+
+    private OllirExprResult computeVarArg(List<JmmNode> nodes) {
+        StringBuilder code = new StringBuilder();
+        StringBuilder computation = new StringBuilder();
+
+        String type = OptUtils.toOllirType(TypeUtils.getExprType(nodes.get(0), table));
+
+        String temp = OptUtils.getTemp() + ".array" + type;
+
+        // Do what we do in visitArrayInitExpr
+        computation.append(temp).append(SPACE)
+                .append(ASSIGN).append(".array").append(type)
+                .append(SPACE).append("new(array, ")
+                .append(nodes.size()).append(".i32)").append(".array").append(type)
+                .append(END_STMT);
+
+        int varArgsNum = OptUtils.getNextVarArgsNum();
+
+        computation.append("__varargs_array_").append(varArgsNum).append(".array").append(type)
+                .append(SPACE)
+                .append(ASSIGN).append(".array").append(type)
+                .append(SPACE).append(temp)
+                .append(END_STMT);
+
+        for (JmmNode node : nodes) {
+            var childVisit = visit(node);
+            computation.append(childVisit.getComputation());
+
+            // do the same as in visitArrayInitExpr, like __varargs_array_0.array.i32[0.i32].i32 :=.i32 1.i32;
+            computation.append("__varargs_array_").append(varArgsNum)
+                    .append(".array").append(type)
+                    .append("[").append(nodes.indexOf(node)).append(".i32].i32 :=.i32 ")
+                    .append(childVisit.getCode()).append(END_STMT);
+
+        }
+
+
+        return new OllirExprResult("__varargs_array_" + varArgsNum + ".array" + type, computation.toString());
     }
 }

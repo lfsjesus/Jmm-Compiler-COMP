@@ -89,8 +89,9 @@ public class JmmSymbolTableBuilder {
                 JmmNode type = varArg.getJmmChild(0);
 
                 String paramType = varArg.getJmmChild(0).get("name");
-
-                paramsList.add(new Symbol(new Type(paramType, true), paramName));
+                Type typeObj = new Type(paramType, true);
+                typeObj.putObject("varargs", (Object) true);
+                paramsList.add(new Symbol(typeObj, paramName));
             }
 
             map.put(method.get("name"), paramsList);
