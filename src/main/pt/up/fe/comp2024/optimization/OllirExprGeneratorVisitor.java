@@ -642,7 +642,10 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
                 .append(OptUtils.toOllirType(TypeUtils.getExprType(array, table)))
                 .append(END_STMT);
 
-        computation.append("__varargs_array_0").append(OptUtils.toOllirType(TypeUtils.getExprType(array, table)))
+        int varArgsNum = OptUtils.getNextVarArgsNum();
+
+        computation.append("__varargs_array_").append(varArgsNum)
+                .append(OptUtils.toOllirType(TypeUtils.getExprType(array, table)))
                 .append(SPACE)
                 .append(ASSIGN).append(OptUtils.toOllirType(TypeUtils.getExprType(array, table)))
                 .append(SPACE).append(temp)
@@ -655,12 +658,15 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
 
             computation.append(childVisit.getComputation());
 
-            computation.append("__varargs_array_0").append(OptUtils.toOllirType(TypeUtils.getExprType(array, table)))
+            computation.append("__varargs_array_").append(varArgsNum)
+                    .append(OptUtils.toOllirType(TypeUtils.getExprType(array, table)))
                     .append("[").append(i).append(".i32].i32 :=.i32 ")
                     .append(childVisit.getCode()).append(END_STMT);
         }
 
-            code.append("__varargs_array_0").append(OptUtils.toOllirType(TypeUtils.getExprType(array, table)));
+            code.append("__varargs_array_")
+                    .append(varArgsNum)
+                    .append(OptUtils.toOllirType(TypeUtils.getExprType(array, table)));
 
 
 

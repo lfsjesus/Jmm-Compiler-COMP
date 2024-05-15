@@ -20,6 +20,7 @@ public class OptUtils {
     private static int whileLabelNumber = -1;
     private static int endWhileLabelNumber = -1;
     private static int ifLabelNumber = -1;
+    private static int varArgsNumber = -1;
 
 
     public static String getTemp() {
@@ -61,6 +62,11 @@ public class OptUtils {
     public static int getNextIfLabelNum() {
         ifLabelNumber += 1;
         return ifLabelNumber;
+    }
+
+    public static int getNextVarArgsNum() {
+        varArgsNumber += 1;
+        return varArgsNumber;
     }
 
     public static String toOllirType(JmmNode typeNode) {
