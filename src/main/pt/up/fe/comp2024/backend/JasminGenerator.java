@@ -57,6 +57,9 @@ public class JasminGenerator {
         generators.put(SingleOpInstruction.class, this::generateSingleOpInstrCode);
         generators.put(BinaryOpInstruction.class, this::generateBinaryOperationInstrCode);
         generators.put(ReturnInstruction.class, this::generateReturnInstrCode);
+        generators.put(UnaryOpInstruction.class, this::generateUnaryOpInstrCode);
+        //generators.put(SingleOpCondInstruction.class, this::generateSingleOpCondInstrCode);
+        generators.put(GotoInstruction.class, inst -> "" );
 
         // Field access instructions
         generators.put(GetFieldInstruction.class, this::generateGetFieldInstrCode);
@@ -402,5 +405,20 @@ public class JasminGenerator {
                 .map(imp -> imp.replace('.', '/'))
                 .orElse(simpleName);
     }
+
+    private String generateUnaryOpInstrCode(UnaryOpInstruction unaryOp) {
+        StringBuilder code = new StringBuilder();
+        code.append(generators.apply(unaryOp.getOperand()));
+        String op = switch (unaryOp.getOperation().getOpType()) {
+            case NOTB -> "ldc 1" + NL + "ixor";
+            default -> throw new NotImplementedException(unaryOp.getOperation().getOpType());
+        };
+
+        code.append(op).append(NL);
+
+        return code.toString();
+    }
+
+
 
 }

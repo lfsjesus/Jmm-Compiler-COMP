@@ -6,7 +6,7 @@ class ArrayVarargs {
         ArrayVarargs a;
         a = new ArrayVarargs();
 
-        //a.bar();
+        a.bar();
     }
 
     int foo(int... a) {
