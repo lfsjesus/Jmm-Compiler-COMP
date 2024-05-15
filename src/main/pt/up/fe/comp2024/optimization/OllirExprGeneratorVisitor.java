@@ -627,27 +627,32 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
       __varargs_array_0.array.i32[3.i32].i32 :=.i32 4.i32;
          */
 
-        JmmNode array = node.getJmmParent().getJmmChild(0);
+        //JmmNode array = node.getJmmParent().getJmmChild(0);
 
-        var arrayVisit = visit(array);
+        //var arrayVisit = visit(array);
 
-        computation.append(arrayVisit.getComputation());
+        //computation.append(arrayVisit.getComputation());
 
-        String temp = OptUtils.getTemp() + OptUtils.toOllirType(TypeUtils.getExprType(array, table));
+        // get type by seeing first element
+
+        JmmNode elem = node.getJmmChild(0);
+
+        String type = OptUtils.toOllirType(TypeUtils.getExprType(elem, table));
+        
+
+        String temp = OptUtils.getTemp() + ".array" + type;
 
         computation.append(temp).append(SPACE)
-                .append(ASSIGN).append(OptUtils.toOllirType(TypeUtils.getExprType(array, table)))
+                .append(ASSIGN).append(".array").append(type)
                 .append(SPACE).append("new(array, ")
-                .append(node.getNumChildren()).append(".i32)")
-                .append(OptUtils.toOllirType(TypeUtils.getExprType(array, table)))
+                .append(node.getNumChildren()).append(".i32)").append(".array").append(type)
                 .append(END_STMT);
 
         int varArgsNum = OptUtils.getNextVarArgsNum();
 
-        computation.append("__varargs_array_").append(varArgsNum)
-                .append(OptUtils.toOllirType(TypeUtils.getExprType(array, table)))
+        computation.append("__varargs_array_").append(varArgsNum).append(".array").append(type)
                 .append(SPACE)
-                .append(ASSIGN).append(OptUtils.toOllirType(TypeUtils.getExprType(array, table)))
+                .append(ASSIGN).append(".array" + type)
                 .append(SPACE).append(temp)
                 .append(END_STMT);
 
@@ -659,19 +664,17 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
             computation.append(childVisit.getComputation());
 
             computation.append("__varargs_array_").append(varArgsNum)
-                    .append(OptUtils.toOllirType(TypeUtils.getExprType(array, table)))
+                    .append(".array").append(type)
                     .append("[").append(i).append(".i32].i32 :=.i32 ")
                     .append(childVisit.getCode()).append(END_STMT);
         }
 
             code.append("__varargs_array_")
                     .append(varArgsNum)
-                    .append(OptUtils.toOllirType(TypeUtils.getExprType(array, table)));
+                    .append(".array").append(type);
 
 
 
         return new OllirExprResult(code.toString(), computation.toString());
-
-
     }
 }
