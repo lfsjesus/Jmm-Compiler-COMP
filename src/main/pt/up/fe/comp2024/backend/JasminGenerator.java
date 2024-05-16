@@ -10,6 +10,7 @@ import pt.up.fe.specs.util.utilities.StringLines;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -58,13 +59,14 @@ public class JasminGenerator {
         generators.put(BinaryOpInstruction.class, this::generateBinaryOperationInstrCode);
         generators.put(ReturnInstruction.class, this::generateReturnInstrCode);
         generators.put(UnaryOpInstruction.class, this::generateUnaryOpInstrCode);
-        //generators.put(SingleOpCondInstruction.class, this::generateSingleOpCondInstrCode);
-        generators.put(GotoInstruction.class, inst -> "" );
+        generators.put(SingleOpCondInstruction.class, this::generateSingleOpCondInstrCode);
+        generators.put(GotoInstruction.class, this::generateGoToInstrCode);
 
         // Field access instructions
         generators.put(GetFieldInstruction.class, this::generateGetFieldInstrCode);
         generators.put(PutFieldInstruction.class, this::generatePutFieldInstrCode);
     }
+
 
     public List<Report> getReports() {
         return reports;
@@ -249,6 +251,15 @@ public class JasminGenerator {
     private void appendMethodBody(StringBuilder code, Method method) {
         appendStackAndLocalsLimits(code);
         method.getInstructions().forEach(inst -> appendInstruction(code, inst));
+
+        for (Instruction inst : method.getInstructions()) {
+            for (Map.Entry<String, Instruction> label : method.getLabels().entrySet()) {
+                if (inst.equals(label.getValue())) {
+                    code.append(label.getKey()).append(':').append(NL);
+                }
+            }
+            appendInstruction(code, inst);
+        }
         code.append(".end method").append(NL);
     }
 
@@ -419,6 +430,18 @@ public class JasminGenerator {
         return code.toString();
     }
 
+    private String generateSingleOpCondInstrCode(SingleOpCondInstruction singleOpCond) {
+        StringBuilder code = new StringBuilder();
+        code.append(generators.apply(singleOpCond.getOperands().get(0)));
+        code.append("ifne").append(' ').append(singleOpCond.getLabel()).append(NL);
+
+        return code.toString();
+    }
+
+
+    private String generateGoToInstrCode(GotoInstruction goTo) {
+        return "goto " + goTo.getLabel() + NL;
+    }
 
 
 }

@@ -116,6 +116,7 @@ public class Cpf4_Jasmin {
     @Test
     public void section2_Arithmetic_Simple_and() {
         CpUtils.runJasmin(getJasminResult("arithmetic/Arithmetic_and.ollir"), "1");
+        System.out.println(getJasminResult("arithmetic/Arithmetic_and.ollir").getJasminCode());
     }
 
     @Test
@@ -150,6 +151,7 @@ public class Cpf4_Jasmin {
     @Test
     public void section3_ControlFlow_If_Not_Simple() {
         CpUtils.runJasmin(getJasminResult("control_flow/SimpleIfElseNot.ollir"), "10\n200");
+        System.out.println(getJasminResult("control_flow/SimpleIfElseNot.ollir").getJasminCode());
     }
 
     /*checks if the code of a simple WHILE statement is well executed */
