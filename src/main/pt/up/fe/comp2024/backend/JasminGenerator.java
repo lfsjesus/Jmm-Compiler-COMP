@@ -8,10 +8,7 @@ import pt.up.fe.specs.util.classmap.FunctionClassMap;
 import pt.up.fe.specs.util.exceptions.NotImplementedException;
 import pt.up.fe.specs.util.utilities.StringLines;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -33,6 +30,11 @@ public class JasminGenerator {
     String className;
 
     Method currentMethod;
+
+    int limitLocals;
+    int limitStack;
+    int currentStack;
+    int numArgs;
 
     private final FunctionClassMap<TreeNode, String> generators;
 
@@ -144,6 +146,8 @@ public class JasminGenerator {
                 return
             .end method
             """, generateFullName(superName));
+
+
         code.append(NL).append(defaultConstructor);
     }
 
@@ -210,8 +214,10 @@ public class JasminGenerator {
     // Instruction generation
     private String generatePutFieldInstrCode(PutFieldInstruction putFieldInstr) {
         StringBuilder code = new StringBuilder();
+        this.decrementStack(2);
         code.append(generators.apply(putFieldInstr.getObject()));
         code.append(generators.apply(putFieldInstr.getValue()));
+
 
         code.append("putfield ");
         generateFieldAccessCode(code, putFieldInstr);
@@ -233,20 +239,31 @@ public class JasminGenerator {
         if (lhs instanceof ArrayOperand) {
             // load arrayRef
             int register = currentMethod.getVarTable().get(operand.getName()).getVirtualReg();
+            this.incrementStack(1);
             code.append("aload ").append(register).append(NL);
             // load index
             code.append(generators.apply(((ArrayOperand) lhs).getIndexOperands().get(0)));
             // load value
             code.append(generators.apply(assign.getRhs()));
+
             code.append("iastore").append(NL);
+            this.decrementStack(3);
+
             return code.toString();
         }
 
         code.append(generators.apply(assign.getRhs()));
 
         switch (operand.getType().getTypeOfElement()) {
-            case INT32, BOOLEAN -> code.append("istore ").append(currentMethod.getVarTable().get(operand.getName()).getVirtualReg()).append(NL);
-            case OBJECTREF, ARRAYREF, STRING, CLASS -> code.append("astore ").append(currentMethod.getVarTable().get(operand.getName()).getVirtualReg()).append(NL);
+            case INT32, BOOLEAN -> {
+                this.decrementStack(1);
+                code.append("istore ").append(currentMethod.getVarTable().get(operand.getName()).getVirtualReg()).append(NL);
+            }
+            case OBJECTREF, ARRAYREF, STRING, CLASS -> {
+                this.decrementStack(1);
+                code.append("astore ").append(currentMethod.getVarTable().get(operand.getName()).getVirtualReg()).append(NL);
+
+            }
         }
 
         return code.toString();
@@ -264,23 +281,32 @@ public class JasminGenerator {
     }
 
     private void appendMethodBody(StringBuilder code, Method method) {
-        appendStackAndLocalsLimits(code);
+
         //method.getInstructions().forEach(inst -> appendInstruction(code, inst));
+
+        StringBuilder methodCode = new StringBuilder();
+        this.limitLocals = computeLimitLocals(method);
+        this.limitStack = 0;
+        this.currentStack = 0;
 
         for (Instruction inst : method.getInstructions()) {
             for (Map.Entry<String, Instruction> label : method.getLabels().entrySet()) {
                 if (inst.equals(label.getValue())) {
-                    code.append(label.getKey()).append(':').append(NL);
+                    methodCode.append(label.getKey()).append(':').append(NL);
                 }
             }
-            appendInstruction(code, inst);
+            appendInstruction(methodCode, inst);
         }
+
+        appendStackAndLocalsLimits(code, limitLocals, limitStack);
+        code.append(methodCode);
+
         code.append(".end method").append(NL);
     }
 
-    private void appendStackAndLocalsLimits(StringBuilder code) {
-        code.append(TAB).append(".limit stack ").append(99).append(NL);
-        code.append(TAB).append(".limit locals ").append(99).append(NL);
+    private void appendStackAndLocalsLimits(StringBuilder code, int limitLocals, int limitStack) {
+        code.append(TAB).append(".limit stack ").append(limitStack).append(NL);
+        code.append(TAB).append(".limit locals ").append(limitLocals).append(NL);
     }
     private void appendInstruction(StringBuilder code, Instruction inst) {
         String instruction = StringLines.getLines(generators.apply(inst)).stream()
@@ -293,6 +319,7 @@ public class JasminGenerator {
         if (inst instanceof CallInstruction && !((CallInstruction) inst).getReturnType().getTypeOfElement().equals(ElementType.VOID)) {
             if (((CallInstruction) inst).getInvocationType() != CallType.NEW) {
                 code.append("pop").append(NL);
+                this.decrementStack(1);
             }
         }
     }
@@ -313,14 +340,18 @@ public class JasminGenerator {
         // if we put "astore", we load with "aload"
         if (operand instanceof ArrayOperand) {
             StringBuilder code = new StringBuilder();
+            this.incrementStack(1);
+
             code.append("aload ").append(register).append(NL);
-
             code.append(generators.apply(((ArrayOperand) operand).getIndexOperands().get(0)));
-
             code.append("iaload").append(NL);
+            this.decrementStack(1);
             return code.toString();
 
         }
+
+        this.incrementStack(1);
+
         return switch (operand.getType().getTypeOfElement()) {
             case INT32, BOOLEAN -> "iload " + register + NL;
             case THIS, OBJECTREF, ARRAYREF, STRING, CLASS -> "aload " + register + NL;
@@ -342,6 +373,8 @@ public class JasminGenerator {
         };
 
         code.append(op).append(NL);
+
+        this.decrementStack(1);
 
         return code.toString();
     }
@@ -368,11 +401,24 @@ public class JasminGenerator {
         StringBuilder code = new StringBuilder();
 
         CallType invocationType = instruction.getInvocationType();
+
+        this.numArgs = 0;
+
         switch (invocationType) {
             case invokevirtual:
                 code.append(generators.apply(instruction.getCaller()));
+                this.numArgs = 1;
+                for (Element elem : instruction.getOperands()) {
+                    this.numArgs += 1;
+                }
                 // Fall through to append arguments
             case invokestatic:
+                // Ensure this doesn't happen for invokevirtual twice
+                if (invocationType.equals(CallType.invokestatic)) {
+                    for (Element elem : instruction.getOperands()) {
+                        this.numArgs += 1;
+                    }
+                }
             case invokespecial:
                 instruction.getArguments().forEach(arg -> code.append(generators.apply(arg)));
 
@@ -391,16 +437,25 @@ public class JasminGenerator {
                 code.append('(');
                 instruction.getArguments().forEach(arg -> code.append(generateJasminType(arg.getType())));
                 Type ret = instruction.getReturnType();
+
+                this.numArgs = (ret.getTypeOfElement() == ElementType.VOID) ? this.numArgs : this.numArgs - 1;
+
                 code.append(')').append(generateJasminType(ret)).append(NL);
                 break;
 
             case NEW:
+                this.numArgs = -2; // Don't know why...
+                for (Element elem : instruction.getOperands()) {
+                    this.numArgs += 1;
+                }
                 if (instruction.getCaller() instanceof Operand && ((Operand) instruction.getCaller()).getName().equals("array")) {
                     // load array size
                     code.append(generators.apply(instruction.getArguments().get(0)));
                     code.append("newarray int").append(NL);
                     break;
                 }
+
+
                 code.append(invocationType.name().toLowerCase()).append(' ');
                 Operand operand = (Operand) instruction.getCaller();
                 code.append(operand.getName()).append(NL);
@@ -415,6 +470,8 @@ public class JasminGenerator {
                 throw new IllegalStateException("Unsupported invocation type: " + invocationType);
         }
 
+        this.decrementStack(this.numArgs);
+
         return code.toString();
     }
 
@@ -424,9 +481,9 @@ public class JasminGenerator {
     }
 
     private String generateLiteralElementCode(LiteralElement literal) {
+        this.incrementStack(1);
         return "ldc " + literal.getLiteral() + NL;
     }
-
 
 
     private String generateJasminType(Type type) {
@@ -464,6 +521,10 @@ public class JasminGenerator {
         };
 
         code.append(op).append(NL);
+        this.incrementStack(1);
+        this.decrementStack(2);
+        this.incrementStack(1);
+
 
         return code.toString();
     }
@@ -472,6 +533,7 @@ public class JasminGenerator {
         StringBuilder code = new StringBuilder();
         code.append(generators.apply(singleOpCond.getOperands().get(0)));
         code.append("ifne").append(' ').append(singleOpCond.getLabel()).append(NL);
+        this.decrementStack(1);
 
         return code.toString();
     }
@@ -494,15 +556,18 @@ public class JasminGenerator {
                 if (opCond.getCondition().getOperands().get(1) instanceof LiteralElement) {
                     code.append("isub").append(NL);
                     code.append("iflt ").append(opCond.getLabel()).append(NL);
+                    this.decrementStack(2);
                 }
 
                 else if (opCond.getCondition().getOperands().get(0) instanceof LiteralElement) {
                     code.append("isub").append(NL);
                     code.append("ifgt ").append(opCond.getLabel()).append(NL);
+                    this.decrementStack(2);
                 }
 
                 else { // In case it's two variables, no need to subtract (do we need this???????)
                     code.append("if_icmplt ").append(opCond.getLabel()).append(NL);
+                    this.decrementStack(2);
                 }
                 break;
 
@@ -510,15 +575,18 @@ public class JasminGenerator {
                 if (opCond.getCondition().getOperands().get(1) instanceof LiteralElement) {
                     code.append("isub").append(NL);
                     code.append("ifge ").append(opCond.getLabel()).append(NL);
+                    this.decrementStack(2);
                 }
 
                 else if (opCond.getCondition().getOperands().get(0) instanceof LiteralElement) {
                     code.append("isub").append(NL);
                     code.append("ifle ").append(opCond.getLabel()).append(NL);
+                    this.decrementStack(2);
                 }
 
                 else { // In case it's two variables, no need to subtract (do we need this???????)
                     code.append("if_icmpge ").append(opCond.getLabel()).append(NL);
+                    this.decrementStack(2);
                 }
                 break;
 
@@ -528,6 +596,25 @@ public class JasminGenerator {
         }
 
         return code.toString();
+    }
+
+    private int computeLimitLocals(Method method) {
+        Set<Integer> registers = new TreeSet<>();
+        registers.add(0); // 'this' reference
+
+        for (Descriptor desc : method.getVarTable().values()) {
+            registers.add(desc.getVirtualReg());
+        }
+        return registers.size();
+    }
+
+    private void incrementStack(int increment) {
+        this.currentStack += increment;
+        this.limitStack = Math.max(this.currentStack, this.limitStack);
+    }
+
+    private void decrementStack(int decrement) {
+        currentStack -= decrement;
     }
 
 

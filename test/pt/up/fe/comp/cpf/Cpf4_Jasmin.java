@@ -305,5 +305,6 @@ public class Cpf4_Jasmin {
 
         // Make sure the code compiles
         jasminResult.compile();
+        System.out.println("Limits stack: " + numStack);
     }
 }
