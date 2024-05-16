@@ -60,6 +60,7 @@ public class JasminGenerator {
         generators.put(ReturnInstruction.class, this::generateReturnInstrCode);
         generators.put(UnaryOpInstruction.class, this::generateUnaryOpInstrCode);
         generators.put(SingleOpCondInstruction.class, this::generateSingleOpCondInstrCode);
+        generators.put(OpCondInstruction.class, this::generateOpCondInstrCode);
         generators.put(GotoInstruction.class, this::generateGoToInstrCode);
 
         // Field access instructions
@@ -441,6 +442,38 @@ public class JasminGenerator {
 
     private String generateGoToInstrCode(GotoInstruction goTo) {
         return "goto " + goTo.getLabel() + NL;
+    }
+
+    private String generateOpCondInstrCode(OpCondInstruction opCond) {
+        StringBuilder code = new StringBuilder();
+
+        code.append(opCond.getOperands().stream()
+                .map(generators::apply)
+                .collect(Collectors.joining()));
+
+
+        switch (opCond.getCondition().getOperation().getOpType()) {
+            case LTH:
+                if (opCond.getCondition().getOperands().get(1) instanceof LiteralElement) {
+                    code.append("isub").append(NL);
+                    code.append("iflt ").append(opCond.getLabel()).append(NL);
+                }
+
+                else if (opCond.getCondition().getOperands().get(0) instanceof LiteralElement) {
+                    code.append("isub").append(NL);
+                    code.append("ifgt ").append(opCond.getLabel()).append(NL);
+                }
+
+                else { // In case it's two variables, no need to subtract (do we need this???????)
+                    code.append("if_icmplt ").append(opCond.getLabel()).append(NL);
+                }
+                break;
+
+            default:
+                throw new NotImplementedException(opCond.getCondition().getOperation().getOpType());
+        }
+
+        return code.toString();
     }
 
 
