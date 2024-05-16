@@ -444,7 +444,7 @@ public class JasminGenerator {
                 break;
 
             case NEW:
-                this.numArgs = -2; // Don't know why...
+                this.numArgs = -3; // Don't know why...
                 for (Element elem : instruction.getOperands()) {
                     this.numArgs += 1;
                 }
