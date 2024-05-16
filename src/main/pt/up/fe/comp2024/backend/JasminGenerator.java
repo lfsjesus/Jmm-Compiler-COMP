@@ -222,13 +222,27 @@ public class JasminGenerator {
     // Instruction generation
     private String generateAssignmentInstrCode(AssignInstruction assign) {
         StringBuilder code = new StringBuilder();
-        code.append(generators.apply(assign.getRhs()));
+
 
         Element lhs = assign.getDest();
 
         if (!(lhs instanceof Operand operand)) {
             throw new NotImplementedException(lhs.getClass());
         }
+
+        if (lhs instanceof ArrayOperand) {
+            // load arrayRef
+            int register = currentMethod.getVarTable().get(operand.getName()).getVirtualReg();
+            code.append("aload ").append(register).append(NL);
+            // load index
+            code.append(generators.apply(((ArrayOperand) lhs).getIndexOperands().get(0)));
+            // load value
+            code.append(generators.apply(assign.getRhs()));
+            code.append("iastore").append(NL);
+            return code.toString();
+        }
+
+        code.append(generators.apply(assign.getRhs()));
 
         switch (operand.getType().getTypeOfElement()) {
             case INT32, BOOLEAN -> code.append("istore ").append(currentMethod.getVarTable().get(operand.getName()).getVirtualReg()).append(NL);
@@ -296,12 +310,24 @@ public class JasminGenerator {
     private String generateLoadOperandCode(Operand operand) {
         int register = currentMethod.getVarTable().get(operand.getName()).getVirtualReg();
 
+        // if we put "astore", we load with "aload"
+        if (operand instanceof ArrayOperand) {
+            StringBuilder code = new StringBuilder();
+            code.append("aload ").append(register).append(NL);
+
+            code.append(generators.apply(((ArrayOperand) operand).getIndexOperands().get(0)));
+
+            code.append("iaload").append(NL);
+            return code.toString();
+
+        }
         return switch (operand.getType().getTypeOfElement()) {
             case INT32, BOOLEAN -> "iload " + register + NL;
             case THIS, OBJECTREF, ARRAYREF, STRING, CLASS -> "aload " + register + NL;
             default -> "";
         };
     }
+
 
     private String generateBinaryOperationInstrCode(BinaryOpInstruction binaryOp) {
         StringBuilder code = new StringBuilder();
@@ -369,9 +395,20 @@ public class JasminGenerator {
                 break;
 
             case NEW:
+                if (instruction.getCaller() instanceof Operand && ((Operand) instruction.getCaller()).getName().equals("array")) {
+                    // load array size
+                    code.append(generators.apply(instruction.getArguments().get(0)));
+                    code.append("newarray int").append(NL);
+                    break;
+                }
                 code.append(invocationType.name().toLowerCase()).append(' ');
                 Operand operand = (Operand) instruction.getCaller();
                 code.append(operand.getName()).append(NL);
+                break;
+
+            case arraylength:
+                code.append(generators.apply(instruction.getCaller()));
+                code.append("arraylength").append(NL);
                 break;
 
             default:

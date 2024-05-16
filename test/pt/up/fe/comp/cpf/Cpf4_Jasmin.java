@@ -187,7 +187,7 @@ public class Cpf4_Jasmin {
     @Test
     public void section5_Arrays_Init_Array() {
         CpUtils.runJasmin(getJasminResult("arrays/ArrayNew.ollir"), "Result: 5");
-
+        System.out.println(getJasminResult("arrays/ArrayNew.ollir").getJasminCode());
     }
 
     /*checks if the access to the elements of array is correct*/
