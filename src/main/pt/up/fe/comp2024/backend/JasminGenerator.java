@@ -469,6 +469,23 @@ public class JasminGenerator {
                 }
                 break;
 
+            case GTE:
+                if (opCond.getCondition().getOperands().get(1) instanceof LiteralElement) {
+                    code.append("isub").append(NL);
+                    code.append("ifge ").append(opCond.getLabel()).append(NL);
+                }
+
+                else if (opCond.getCondition().getOperands().get(0) instanceof LiteralElement) {
+                    code.append("isub").append(NL);
+                    code.append("ifle ").append(opCond.getLabel()).append(NL);
+                }
+
+                else { // In case it's two variables, no need to subtract (do we need this???????)
+                    code.append("if_icmpge ").append(opCond.getLabel()).append(NL);
+                }
+                break;
+
+
             default:
                 throw new NotImplementedException(opCond.getCondition().getOperation().getOpType());
         }
