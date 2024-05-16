@@ -251,7 +251,7 @@ public class JasminGenerator {
 
     private void appendMethodBody(StringBuilder code, Method method) {
         appendStackAndLocalsLimits(code);
-        method.getInstructions().forEach(inst -> appendInstruction(code, inst));
+        //method.getInstructions().forEach(inst -> appendInstruction(code, inst));
 
         for (Instruction inst : method.getInstructions()) {
             for (Map.Entry<String, Instruction> label : method.getLabels().entrySet()) {
