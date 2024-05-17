@@ -471,14 +471,17 @@ public class JasminGenerator {
                 break;
 
             case NEW:
-
                 if (instruction.getCaller() instanceof Operand && ((Operand) instruction.getCaller()).getName().equals("array")) {
                     // load array size
                     code.append(generators.apply(instruction.getArguments().get(0)));
                     code.append("newarray int").append(NL);
                     break;
                 }
+
                 this.numArgs = -1;
+                for (Element elem : instruction.getOperands()) {
+                    this.numArgs += 1;
+                }
 
                 code.append(invocationType.name().toLowerCase()).append(' ');
                 Operand operand = (Operand) instruction.getCaller();
