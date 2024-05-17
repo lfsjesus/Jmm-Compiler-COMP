@@ -1,4 +1,5 @@
 import Other;
+
 BasicMethods extends Other {
 
     .construct BasicMethods().V {

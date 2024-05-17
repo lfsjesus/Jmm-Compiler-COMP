@@ -91,6 +91,7 @@ public class Cpf4_Jasmin {
     public void section1_Basic_Method_Declaration_Array() {
         JasminResult jasminResult = getJasminResult("basic/BasicMethodsArray.ollir");
         CpUtils.matches(jasminResult, JASMIN_METHOD_REGEX_PREFIX + "\\[I");
+        System.out.println(jasminResult.getJasminCode());
     }
 
     /*checks if the index for loading a argument is correct (should be 1) */
