@@ -529,6 +529,18 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
 
         computation.append(sizeVisit.getComputation());
 
+        if (node.getParent().isInstance(METHOD_CALL)) {
+            String ollirType = OptUtils.toOllirType(new Type(type, true));
+            String temp = OptUtils.getTemp() + ollirType;
+            computation.append(temp).append(SPACE)
+                    .append(ASSIGN).append(ollirType)
+                    .append(SPACE).append("new(array, ")
+                    .append(sizeVisit.getCode()).append(")").append(ollirType)
+                    .append(END_STMT);
+
+            return new OllirExprResult(temp, computation);
+        }
+
         String finalCode = "new(array, " + sizeVisit.getCode() + ")" + OptUtils.toOllirType(new Type(type, true));
 
         return new OllirExprResult(finalCode, computation);

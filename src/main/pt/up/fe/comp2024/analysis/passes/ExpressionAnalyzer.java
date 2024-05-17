@@ -81,16 +81,7 @@ public class ExpressionAnalyzer extends AnalysisVisitor{
     }
 
     private Void visitNewArrayExpr(JmmNode node, SymbolTable table) {
-        JmmNode assign = node.getJmmParent();
-        JmmNode varRef = assign.getChildren().get(0);
-        JmmNode newExpr = assign.getChildren().get(1);
-
-        String declaredType = getNodeType(varRef, table).getName();
-        String currentType = getNodeType(newExpr, table).getName();
-
-        if (!declaredType.equals(currentType)) {
-            addReport(Report.newError(Stage.SEMANTIC, NodeUtils.getLine(node), NodeUtils.getColumn(node), "Cannot assign array of type " + currentType + " to variable of type " + declaredType, null));
-        }
+        // Types were already checked
 
         if (node.getChildren().size() != 1 || !node.getChildren().get(0).isInstance(Kind.INTEGER_LITERAL)) {
             addReport(Report.newError(Stage.SEMANTIC, NodeUtils.getLine(node), NodeUtils.getColumn(node), "Array must have a size", null));
