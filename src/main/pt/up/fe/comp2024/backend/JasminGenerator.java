@@ -206,7 +206,6 @@ public class JasminGenerator {
         code.append(generators.apply(getFieldInstr.getObject()));
 
         code.append("getfield ");
-        this.incrementStack(1); // PROVISIONAL
         generateFieldAccessCode(code, getFieldInstr);
 
         return code.toString();
@@ -373,7 +372,7 @@ public class JasminGenerator {
             StringBuilder code = new StringBuilder();
             this.incrementStack(1);
 
-            code.append("aload ").append(register).append(NL);
+            code.append("aload").append(register > 3 ? " " : "_").append(register).append(NL);
             code.append(generators.apply(((ArrayOperand) operand).getIndexOperands().get(0)));
             code.append("iaload").append(NL);
             this.decrementStack(1);
@@ -570,8 +569,7 @@ public class JasminGenerator {
 
         code.append(op).append(NL);
         this.incrementStack(1);
-        this.decrementStack(2);
-        this.incrementStack(1);
+        this.decrementStack(1);
 
 
         return code.toString();
@@ -604,13 +602,13 @@ public class JasminGenerator {
                 if (opCond.getCondition().getOperands().get(1) instanceof LiteralElement) {
                     code.append("isub").append(NL);
                     code.append("iflt ").append(opCond.getLabel()).append(NL);
-                    this.decrementStack(3);
+                    this.decrementStack(2);
                 }
 
                 else if (opCond.getCondition().getOperands().get(0) instanceof LiteralElement) {
                     code.append("isub").append(NL);
                     code.append("ifgt ").append(opCond.getLabel()).append(NL);
-                    this.decrementStack(3);
+                    this.decrementStack(2);
                 }
 
                 else { // In case it's two variables, no need to subtract (do we need this???????)
@@ -623,13 +621,13 @@ public class JasminGenerator {
                 if (opCond.getCondition().getOperands().get(1) instanceof LiteralElement) {
                     code.append("isub").append(NL);
                     code.append("ifge ").append(opCond.getLabel()).append(NL);
-                    this.decrementStack(3);
+                    this.decrementStack(2);
                 }
 
                 else if (opCond.getCondition().getOperands().get(0) instanceof LiteralElement) {
                     code.append("isub").append(NL);
                     code.append("ifle ").append(opCond.getLabel()).append(NL);
-                    this.decrementStack(3);
+                    this.decrementStack(2);
                 }
 
                 else { // In case it's two variables, no need to subtract (do we need this???????)
