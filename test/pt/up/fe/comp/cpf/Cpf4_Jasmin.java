@@ -128,6 +128,7 @@ public class Cpf4_Jasmin {
     @Test
     public void section2_Arithmetic_Simple_not() {
         CpUtils.runJasmin(getJasminResult("arithmetic/Arithmetic_not.ollir"), "false");
+        System.out.println(getJasminResult("arithmetic/Arithmetic_not.ollir").getJasminCode());
     }
 
 

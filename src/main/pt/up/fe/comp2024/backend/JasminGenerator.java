@@ -345,7 +345,7 @@ public class JasminGenerator {
 
     private void handlePopAfterInvoke(Instruction inst, StringBuilder code) {
         if (inst instanceof CallInstruction && !((CallInstruction) inst).getReturnType().getTypeOfElement().equals(ElementType.VOID)) {
-            if (((CallInstruction) inst).getInvocationType() != CallType.NEW) {
+            if (!((CallInstruction) inst).getReturnType().getTypeOfElement().equals(ElementType.VOID)) {
                 code.append(TAB).append("pop").append(NL);
                 this.decrementStack(1);
             }
@@ -435,14 +435,14 @@ public class JasminGenerator {
             case invokevirtual:
                 code.append(generators.apply(instruction.getCaller()));
                 this.numArgs = 1;
-                for (Element elem : instruction.getArguments()) {
+                for (Element ignored : instruction.getArguments()) {
                     this.numArgs += 1;
                 }
                 // Fall through to append arguments
             case invokestatic:
                 // Ensure this doesn't happen for invokevirtual twice
                 if (invocationType.equals(CallType.invokestatic)) {
-                    for (Element elem : instruction.getArguments()) {
+                    for (Element ignored : instruction.getArguments()) {
                         this.numArgs += 1;
                     }
                 }
@@ -473,7 +473,7 @@ public class JasminGenerator {
             case NEW:
                 this.numArgs = -1;
 
-                for (Element elem : instruction.getArguments()) {
+                for (Element ignored : instruction.getArguments()) {
                     this.numArgs += 1;
                 }
 
