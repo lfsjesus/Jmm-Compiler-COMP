@@ -298,7 +298,7 @@ public class JasminGenerator {
             appendInstruction(methodCode, inst);
         }
 
-        appendStackAndLocalsLimits(code, limitLocals, limitStack);
+        appendStackAndLocalsLimits(code, limitLocals, limitStack + 1);
         code.append(methodCode);
 
         code.append(".end method").append(NL);
