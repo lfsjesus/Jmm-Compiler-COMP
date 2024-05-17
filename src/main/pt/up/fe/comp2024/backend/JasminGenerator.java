@@ -556,13 +556,13 @@ public class JasminGenerator {
                 if (opCond.getCondition().getOperands().get(1) instanceof LiteralElement) {
                     code.append("isub").append(NL);
                     code.append("iflt ").append(opCond.getLabel()).append(NL);
-                    this.decrementStack(2);
+                    this.decrementStack(3);
                 }
 
                 else if (opCond.getCondition().getOperands().get(0) instanceof LiteralElement) {
                     code.append("isub").append(NL);
                     code.append("ifgt ").append(opCond.getLabel()).append(NL);
-                    this.decrementStack(2);
+                    this.decrementStack(3);
                 }
 
                 else { // In case it's two variables, no need to subtract (do we need this???????)
@@ -575,13 +575,13 @@ public class JasminGenerator {
                 if (opCond.getCondition().getOperands().get(1) instanceof LiteralElement) {
                     code.append("isub").append(NL);
                     code.append("ifge ").append(opCond.getLabel()).append(NL);
-                    this.decrementStack(2);
+                    this.decrementStack(3);
                 }
 
                 else if (opCond.getCondition().getOperands().get(0) instanceof LiteralElement) {
                     code.append("isub").append(NL);
                     code.append("ifle ").append(opCond.getLabel()).append(NL);
-                    this.decrementStack(2);
+                    this.decrementStack(3);
                 }
 
                 else { // In case it's two variables, no need to subtract (do we need this???????)
