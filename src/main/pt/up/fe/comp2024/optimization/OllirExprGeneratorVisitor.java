@@ -183,17 +183,9 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
 
         Type resType = TypeUtils.getExprType(node, table);
         String resOllirType = OptUtils.toOllirType(resType);
-        String code = "";
+        String code = OptUtils.getTemp() + resOllirType;
 
-        //check if we need to create a temp variable
-        if (node.getParent().isInstance(ASSIGN_STMT) &&
-                (right.isInstance(INTEGER_LITERAL) || right.isInstance(TRUE_LITERAL) || right.isInstance(FALSE_LITERAL))) {
-            code = lhs.getCode();
-        }
-        else {
-            code = OptUtils.getTemp() + resOllirType;
 
-        }
 
 
 

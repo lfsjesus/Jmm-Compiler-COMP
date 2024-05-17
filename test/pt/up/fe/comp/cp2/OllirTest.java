@@ -24,6 +24,8 @@ public class OllirTest {
     @Test
     public void compileArithmetic() {
         testJmmCompilation("pt/up/fe/comp/cp2/ollir/CompileArithmetic.jmm", this::compileArithmetic);
+        // print olir code
+        System.out.println(TestUtils.optimize(SpecsIo.getResource("pt/up/fe/comp/cp2/ollir/CompileArithmetic.jmm")).getOllirCode());
     }
 
     @Test

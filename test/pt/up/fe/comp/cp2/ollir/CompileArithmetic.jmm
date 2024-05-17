@@ -1,19 +1,16 @@
 import io;
 
 class Simple {
-    int a;
-
-     public int arithmetic(int a){
-        io.println(a);
-        return 0;
-    }
 
 
     public static void main(String[] args){
-        Simple s;
-        s = new Simple();
-        s.arithmetic(100);
+        int a;
+        a = 1 - (2*2);
+        this.foo(1+2);
     }
 
+    public int foo(int a) {
+        return a;
+    }
 
 }
