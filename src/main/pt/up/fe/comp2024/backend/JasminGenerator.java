@@ -483,8 +483,6 @@ public class JasminGenerator {
                     break;
                 }
 
-
-
                 code.append(invocationType.name().toLowerCase()).append(' ');
                 Operand operand = (Operand) instruction.getCaller();
                 code.append(operand.getName()).append(NL);
@@ -569,7 +567,6 @@ public class JasminGenerator {
 
         code.append(op).append(NL);
         this.incrementStack(1);
-        this.decrementStack(1);
 
 
         return code.toString();
