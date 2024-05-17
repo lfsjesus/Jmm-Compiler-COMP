@@ -435,14 +435,14 @@ public class JasminGenerator {
             case invokevirtual:
                 code.append(generators.apply(instruction.getCaller()));
                 this.numArgs = 1;
-                for (Element elem : instruction.getOperands()) {
+                for (Element elem : instruction.getArguments()) {
                     this.numArgs += 1;
                 }
                 // Fall through to append arguments
             case invokestatic:
                 // Ensure this doesn't happen for invokevirtual twice
                 if (invocationType.equals(CallType.invokestatic)) {
-                    for (Element elem : instruction.getOperands()) {
+                    for (Element elem : instruction.getArguments()) {
                         this.numArgs += 1;
                     }
                 }
@@ -472,13 +472,12 @@ public class JasminGenerator {
 
             case NEW:
                 this.numArgs = -1;
-                for (Element elem : instruction.getOperands()) {
+
+                for (Element elem : instruction.getArguments()) {
                     this.numArgs += 1;
                 }
 
                 if (instruction.getCaller() instanceof Operand && ((Operand) instruction.getCaller()).getName().equals("array")) {
-                    // load array size
-                    this.numArgs -= 1; // because we don't need to load the size
                     code.append(generators.apply(instruction.getArguments().get(0)));
                     code.append("newarray int").append(NL);
                     break;
