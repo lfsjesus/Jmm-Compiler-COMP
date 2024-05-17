@@ -240,7 +240,13 @@ public class JasminGenerator {
             // load arrayRef
             int register = currentMethod.getVarTable().get(operand.getName()).getVirtualReg();
             this.incrementStack(1);
-            code.append("aload ").append(register).append(NL);
+
+            if (register == 0) {
+                code.append("aload_0").append(NL);
+            } else {
+                code.append("aload ").append(register).append(NL);
+            }
+
             // load index
             code.append(generators.apply(((ArrayOperand) lhs).getIndexOperands().get(0)));
             // load value
@@ -253,15 +259,16 @@ public class JasminGenerator {
         }
 
         code.append(generators.apply(assign.getRhs()));
-
+        int register = currentMethod.getVarTable().get(operand.getName()).getVirtualReg();
         switch (operand.getType().getTypeOfElement()) {
             case INT32, BOOLEAN -> {
                 this.decrementStack(1);
-                code.append("istore ").append(currentMethod.getVarTable().get(operand.getName()).getVirtualReg()).append(NL);
+
+                code.append("istore").append(register > 3 ? " " : "_").append(register).append(NL);
             }
             case OBJECTREF, ARRAYREF, STRING, CLASS -> {
                 this.decrementStack(1);
-                code.append("astore ").append(currentMethod.getVarTable().get(operand.getName()).getVirtualReg()).append(NL);
+                code.append("astore").append(register > 3 ? " " : "_").append(register).append(NL);
 
             }
         }
@@ -298,7 +305,7 @@ public class JasminGenerator {
             appendInstruction(methodCode, inst);
         }
 
-        appendStackAndLocalsLimits(code, limitLocals, limitStack + 1);
+        appendStackAndLocalsLimits(code, limitLocals, limitStack);
         code.append(methodCode);
 
         code.append(".end method").append(NL);
@@ -353,8 +360,8 @@ public class JasminGenerator {
         this.incrementStack(1);
 
         return switch (operand.getType().getTypeOfElement()) {
-            case INT32, BOOLEAN -> "iload " + register + NL;
-            case THIS, OBJECTREF, ARRAYREF, STRING, CLASS -> "aload " + register + NL;
+            case INT32, BOOLEAN -> "iload" + (register > 3 ? " " : "_") + register + NL;
+            case THIS, OBJECTREF, ARRAYREF, STRING, CLASS -> "aload" + (register > 3 ? " " : "_") + register + NL;
             default -> "";
         };
     }
@@ -482,7 +489,24 @@ public class JasminGenerator {
 
     private String generateLiteralElementCode(LiteralElement literal) {
         this.incrementStack(1);
-        return "ldc " + literal.getLiteral() + NL;
+        StringBuilder code = new StringBuilder();
+
+        if (!literal.getType().getTypeOfElement().equals(ElementType.INT32) && !literal.getType().getTypeOfElement().equals(ElementType.BOOLEAN)) {
+            code.append("ldc ").append(literal.getLiteral()).append(NL);
+        } else {
+            int value = Integer.parseInt(literal.getLiteral());
+            if (value <= 5 && value >= -1) {
+                code.append("iconst_").append(value).append(NL);
+            } else if (value <= 127 && value >= -128) {
+                code.append("bipush ").append(value).append(NL);
+            } else if (value <= 32767 && value >= -32768) {
+                code.append("sipush ").append(value).append(NL);
+            } else {
+                code.append("ldc ").append(value).append(NL);
+            }
+
+        }
+        return code.toString();
     }
 
 
@@ -516,7 +540,7 @@ public class JasminGenerator {
         StringBuilder code = new StringBuilder();
         code.append(generators.apply(unaryOp.getOperand()));
         String op = switch (unaryOp.getOperation().getOpType()) {
-            case NOTB -> "ldc 1" + NL + "ixor";
+            case NOTB -> "iconst_1" + NL + "ixor";
             default -> throw new NotImplementedException(unaryOp.getOperation().getOpType());
         };
 
