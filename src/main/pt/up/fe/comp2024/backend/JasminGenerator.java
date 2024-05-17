@@ -312,8 +312,6 @@ public class JasminGenerator {
 
     private void appendMethodBody(StringBuilder code, Method method) {
 
-        //method.getInstructions().forEach(inst -> appendInstruction(code, inst));
-
         StringBuilder methodCode = new StringBuilder();
         this.limitLocals = computeLimitLocals(method);
         this.limitStack = 0;
@@ -328,7 +326,7 @@ public class JasminGenerator {
             appendInstruction(methodCode, inst);
         }
 
-        appendStackAndLocalsLimits(code, limitLocals, limitStack);
+        appendStackAndLocalsLimits(code, this.limitLocals, this.limitStack);
         code.append(methodCode);
 
         code.append(".end method").append(NL);
@@ -348,7 +346,7 @@ public class JasminGenerator {
     private void handlePopAfterInvoke(Instruction inst, StringBuilder code) {
         if (inst instanceof CallInstruction && !((CallInstruction) inst).getReturnType().getTypeOfElement().equals(ElementType.VOID)) {
             if (((CallInstruction) inst).getInvocationType() != CallType.NEW) {
-                code.append("pop").append(NL);
+                code.append(TAB).append("pop").append(NL);
                 this.decrementStack(1);
             }
         }
@@ -371,7 +369,6 @@ public class JasminGenerator {
         if (operand instanceof ArrayOperand) {
             StringBuilder code = new StringBuilder();
             this.incrementStack(1);
-
             code.append("aload").append(register > 3 ? " " : "_").append(register).append(NL);
             code.append(generators.apply(((ArrayOperand) operand).getIndexOperands().get(0)));
             code.append("iaload").append(NL);
@@ -474,10 +471,7 @@ public class JasminGenerator {
                 break;
 
             case NEW:
-                this.numArgs = -2;
-                for (Element elem : instruction.getOperands()) {
-                    this.numArgs += 1;
-                }
+                //this.numArgs = 0;
                 if (instruction.getCaller() instanceof Operand && ((Operand) instruction.getCaller()).getName().equals("array")) {
                     // load array size
                     code.append(generators.apply(instruction.getArguments().get(0)));
@@ -511,7 +505,7 @@ public class JasminGenerator {
     }
 
     private String generateLiteralElementCode(LiteralElement literal) {
-        this.incrementStack(1);
+
         StringBuilder code = new StringBuilder();
 
         if (!literal.getType().getTypeOfElement().equals(ElementType.INT32) && !literal.getType().getTypeOfElement().equals(ElementType.BOOLEAN)) {
@@ -529,6 +523,7 @@ public class JasminGenerator {
             }
 
         }
+        this.incrementStack(1);
         return code.toString();
     }
 
