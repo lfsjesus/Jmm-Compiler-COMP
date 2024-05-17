@@ -206,6 +206,7 @@ public class JasminGenerator {
         code.append(generators.apply(getFieldInstr.getObject()));
 
         code.append("getfield ");
+        this.incrementStack(1);
         generateFieldAccessCode(code, getFieldInstr);
 
         return code.toString();
