@@ -18,6 +18,7 @@ import pt.up.fe.comp.CpUtils;
 import pt.up.fe.comp.TestUtils;
 import pt.up.fe.comp.jmm.jasmin.JasminResult;
 import pt.up.fe.comp.jmm.ollir.OllirResult;
+import pt.up.fe.comp2024.optimization.OllirExprResult;
 import pt.up.fe.specs.util.SpecsIo;
 import pt.up.fe.specs.util.SpecsStrings;
 
@@ -100,6 +101,8 @@ public class Cpf5_Optimizations {
     @Test
     public void section1_InstSelection_iinc() {
         JasminResult jasminResult = getJasminResult("inst_selection/InstSelection_iinc.jmm");
+        //print ollir code
+        System.out.println(getOllirResult("inst_selection/InstSelection_iinc.jmm").getOllirCode());
         CpUtils.matches(jasminResult, "iinc\\s+\\w+\\s+1");
 
     }

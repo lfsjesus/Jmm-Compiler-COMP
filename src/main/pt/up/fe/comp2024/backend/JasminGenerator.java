@@ -253,13 +253,39 @@ public class JasminGenerator {
 
             return code.toString();
         }
+        int register = currentMethod.getVarTable().get(operand.getName()).getVirtualReg();
+
+        // use iinc if incrementing a variable
+
+
+        if (assign.getRhs().getInstType().equals(InstructionType.BINARYOPER)) {
+            BinaryOpInstruction binaryOp = (BinaryOpInstruction) assign.getRhs();
+            if (binaryOp.getOperation().getOpType().equals(OperationType.ADD)) {
+                boolean literalLeft = binaryOp.getLeftOperand().isLiteral();
+                boolean literalRight = binaryOp.getRightOperand().isLiteral();
+
+                // if one of the operands is a literal, we can use iinc
+                if ((literalLeft != literalRight)) {
+                    Operand variable = literalLeft ? (Operand) binaryOp.getRightOperand() : (Operand) binaryOp.getLeftOperand();
+
+                    if (variable.getName().equals(((Operand) assign.getDest()).getName())) {
+                        int increment = Integer.parseInt(literalLeft ? ((LiteralElement) binaryOp.getLeftOperand()).getLiteral() : ((LiteralElement) binaryOp.getRightOperand()).getLiteral());
+                        if (increment <= 127 && increment >= -128) {
+                            code.append("iinc ").append(register).append(' ').append(increment).append(NL);
+                            return code.toString();
+                        }
+                    }
+                }
+
+            }
+        }
 
         code.append(generators.apply(assign.getRhs()));
-        int register = currentMethod.getVarTable().get(operand.getName()).getVirtualReg();
+
+
         switch (operand.getType().getTypeOfElement()) {
             case INT32, BOOLEAN -> {
                 this.decrementStack(1);
-
                 code.append("istore").append(register > 3 ? " " : "_").append(register).append(NL);
             }
             case OBJECTREF, ARRAYREF, STRING, CLASS -> {
