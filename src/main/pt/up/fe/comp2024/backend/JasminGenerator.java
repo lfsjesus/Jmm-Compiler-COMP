@@ -206,7 +206,7 @@ public class JasminGenerator {
         code.append(generators.apply(getFieldInstr.getObject()));
 
         code.append("getfield ");
-        //this.incrementStack(1); // PROVISIONAL
+        this.incrementStack(1); // PROVISIONAL
         generateFieldAccessCode(code, getFieldInstr);
 
         return code.toString();
@@ -215,12 +215,13 @@ public class JasminGenerator {
     // Instruction generation
     private String generatePutFieldInstrCode(PutFieldInstruction putFieldInstr) {
         StringBuilder code = new StringBuilder();
-        this.decrementStack(2);
+
         code.append(generators.apply(putFieldInstr.getObject()));
         code.append(generators.apply(putFieldInstr.getValue()));
 
 
         code.append("putfield ");
+        this.decrementStack(2); // PROVISIONAL
         generateFieldAccessCode(code, putFieldInstr);
 
         return code.toString();
