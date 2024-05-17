@@ -241,11 +241,7 @@ public class JasminGenerator {
             int register = currentMethod.getVarTable().get(operand.getName()).getVirtualReg();
             this.incrementStack(1);
 
-            if (register == 0) {
-                code.append("aload_0").append(NL);
-            } else {
-                code.append("aload ").append(register).append(NL);
-            }
+            code.append("aload").append(register > 3 ? " " : "_").append(register).append(NL);
 
             // load index
             code.append(generators.apply(((ArrayOperand) lhs).getIndexOperands().get(0)));
