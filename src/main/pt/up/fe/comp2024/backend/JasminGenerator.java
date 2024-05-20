@@ -515,7 +515,10 @@ public class JasminGenerator {
             code.append("ldc ").append(literal.getLiteral()).append(NL);
         } else {
             int value = Integer.parseInt(literal.getLiteral());
-            if (value <= 5 && value >= -1) {
+            if (value == -1) {
+                code.append("iconst_m1").append(NL);
+            }
+            else if (value <= 5 && value >= 0) {
                 code.append("iconst_").append(value).append(NL);
             } else if (value <= 127 && value >= -128) {
                 code.append("bipush ").append(value).append(NL);
@@ -524,7 +527,6 @@ public class JasminGenerator {
             } else {
                 code.append("ldc ").append(value).append(NL);
             }
-
         }
         this.incrementStack(1);
         return code.toString();

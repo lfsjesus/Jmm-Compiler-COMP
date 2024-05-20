@@ -6,6 +6,10 @@ class CompileMethodInvocation {
 
     }
 
+    public CompileMethodInvocation bar() {
+        return this;
+    }
+
     public int foo() {
         int a;
 

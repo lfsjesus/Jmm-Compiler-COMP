@@ -20,5 +20,6 @@ class CompileBasic extends Quicksort {
 
 
     public static void main(String[] args) {
+
     }
 }
