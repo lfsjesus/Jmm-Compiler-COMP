@@ -43,6 +43,7 @@ public class TypeUtils {
                 Type firstElementType = getExprType(firstElement, table);
                 yield new Type(firstElementType.getName(), true);
             }
+            case TRUE_LITERAL, FALSE_LITERAL -> new Type(BOOL_TYPE_NAME, false);
             case NOT_EXPR -> new Type(BOOL_TYPE_NAME, false);
 
             default -> throw new UnsupportedOperationException("Can't compute type for expression kind '" + kind + "'");

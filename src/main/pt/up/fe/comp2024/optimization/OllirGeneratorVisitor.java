@@ -272,7 +272,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
     private String visitIfStmt(JmmNode node, Void unused) {
         JmmNode ifExpr = node.getJmmChild(0);
-        JmmNode elseNode = node.getJmmChild(1).getChild(0).getChild(0);
+        JmmNode elseNode = node.getJmmChild(1).getChild(0);
 
         StringBuilder computation = new StringBuilder();
 
@@ -292,15 +292,23 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
                 .append(END_STMT);
 
         // put the else code here
+        /*
         if (elseNode.isInstance(EXPR_STMT)) {
             elseNode = elseNode.getJmmChild(0);
         }
 
         var elseVisit = visit(elseNode);
+        */
 
 
-        computation.append(elseVisit)
-                .append("goto ")
+
+        for (JmmNode elseChild : elseNode.getChildren()) {
+            var elseChildVisit = visit(elseChild);
+            computation.append(elseChildVisit);
+        }
+
+
+        computation.append("goto ")
                 .append("endif_")
                 .append(ifLabelNum)
                 .append(END_STMT);
@@ -343,6 +351,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
         code.append("goto endwhile_").append(whileLabel).append(";\n")
             .append("whilebody_").append(whileLabel).append(":\n");
+
 
         for (int i = 0; i < node.getChild(1).getNumChildren(); i++) {
             code.append(visit(node.getChild(1).getJmmChild(i)));
