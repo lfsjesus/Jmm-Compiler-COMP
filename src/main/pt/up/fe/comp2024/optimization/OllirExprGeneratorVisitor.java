@@ -521,7 +521,16 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
 
         computation.append(sizeVisit.getComputation());
 
-        if (node.getParent().isInstance(METHOD_CALL)) {
+        boolean isField = false;
+
+        if (node.getParent() != null && node.getParent().isInstance(ASSIGN_STMT)) {
+            String nameIfField = node.getParent().getChild(0).get("name");
+            isField = (table.getFields().stream().anyMatch(field -> field.getName().equals(nameIfField)
+                    && table.getLocalVariables(TypeUtils.getMethodName(node)).stream().noneMatch(local -> local.getName().equals(nameIfField)
+                    && table.getParameters(TypeUtils.getMethodName(node)).stream().noneMatch(param -> param.getName().equals(nameIfField)))));
+        }
+
+        if (node.getParent().isInstance(METHOD_CALL) || isField) {
             String ollirType = OptUtils.toOllirType(new Type(type, true));
             String temp = OptUtils.getTemp() + ollirType;
             computation.append(temp).append(SPACE)
@@ -604,6 +613,11 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         JmmNode array = node.getJmmChild(0);
         JmmNode index = node.getJmmChild(1);
 
+        boolean isField = (table.getFields().stream().anyMatch(field -> field.getName().equals(array.get("name"))
+                && table.getLocalVariables(TypeUtils.getMethodName(array)).stream().noneMatch(local -> local.getName().equals(array.get("name"))
+                && table.getParameters(TypeUtils.getMethodName(array)).stream().noneMatch(param -> param.getName().equals(array.get("name"))))));
+
+
         var arrayVisit = visit(array);
         var indexVisit = visit(index);
 
@@ -627,10 +641,23 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
             code.append(temp);
         }
         else {
-            code.append(array.get("name")).append("[")
-                .append(indexVisit.getCode().replace(".array", ""))
-                .append("]")
-                .append(arrayType);
+            if (isField) {
+                String temp = OptUtils.getTemp() + ".array" + arrayType;
+
+                computation.append(temp).append(SPACE)
+                        .append(ASSIGN).append(arrayType.replace(".array", ""))
+                        .append(SPACE).append("getfield(this, ").append(array.get("name")).append(".array").append(arrayType).append(")")
+                        .append(".array").append(arrayType).append(END_STMT);
+
+                code.append(temp);
+
+            }
+            else {
+                code.append(array.get("name")).append("[")
+                    .append(indexVisit.getCode().replace(".array", ""))
+                    .append("]")
+                    .append(arrayType);
+            }
         }
 
         return new OllirExprResult(code.toString(), computation.toString());

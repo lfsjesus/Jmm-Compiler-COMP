@@ -75,7 +75,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         code.append(lhs.getCode());
         code.append(SPACE);
 
-        if (!fieldBeingAssigned) {
+        if (!fieldBeingAssigned || isArrayDerivation) {
             code.append(ASSIGN);
             code.append(typeString);
             code.append(SPACE);
