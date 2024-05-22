@@ -4,8 +4,7 @@ class IfWhileNested {
     int[] a;
 
     public int[] func(int[] b) {
-        int i;
-        i = a[1];
+        a = [1,0];
         return a;
     }
 

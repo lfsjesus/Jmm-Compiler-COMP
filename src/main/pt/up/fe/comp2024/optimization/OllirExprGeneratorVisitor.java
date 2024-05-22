@@ -749,6 +749,10 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
                 .append(nodes.size()).append(".i32)").append(".array").append(type)
                 .append(END_STMT);
 
+        if (nodes.isEmpty()) {
+            return new OllirExprResult(temp, computation.toString());
+        }
+
         int varArgsNum = OptUtils.getNextVarArgsNum();
 
         computation.append("__varargs_array_").append(varArgsNum).append(".array").append(type)
