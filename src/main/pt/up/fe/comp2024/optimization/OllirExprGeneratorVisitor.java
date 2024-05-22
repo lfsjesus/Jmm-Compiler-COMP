@@ -738,13 +738,7 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         StringBuilder code = new StringBuilder();
         StringBuilder computation = new StringBuilder();
 
-        String type = null;
-        if (!nodes.isEmpty()) {
-            type = OptUtils.toOllirType(TypeUtils.getExprType(nodes.get(0), table));
-        }
-        else {
-            type = ".i32";
-        }
+        String type = (nodes.isEmpty()) ? ".i32" : OptUtils.toOllirType(TypeUtils.getExprType(nodes.get(0), table));
 
         String temp = OptUtils.getTemp() + ".array" + type;
 
