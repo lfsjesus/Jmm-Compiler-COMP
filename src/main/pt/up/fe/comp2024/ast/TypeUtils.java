@@ -38,11 +38,14 @@ public class TypeUtils {
             case INTEGER_LITERAL -> new Type(INT_TYPE_NAME, false);
             case ARRAY_ACCESS_EXPR -> new Type(getVarType(expr.getChild(0).get("name"), getMethodName(expr), table).getName(), false); // because the access is an int or a boolean
             //case NEW_ARRAY_EXPR -> new Type(expr.get("name"), true);
+            /*
             case ARRAY_INIT_EXPR -> {
                 JmmNode firstElement = expr.getChildren().get(0);
                 Type firstElementType = getExprType(firstElement, table);
                 yield new Type(firstElementType.getName(), true);
             }
+            */
+
             case TRUE_LITERAL, FALSE_LITERAL -> new Type(BOOL_TYPE_NAME, false);
             case NOT_EXPR -> new Type(BOOL_TYPE_NAME, false);
 
