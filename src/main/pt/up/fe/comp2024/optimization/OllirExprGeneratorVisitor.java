@@ -642,15 +642,15 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         }
         else {
             if (isField) {
-                String temp = OptUtils.getTemp() + ".array" + arrayType;
+                String fieldTempNum = OptUtils.getTemp();
+                String temp = fieldTempNum + ".array" + arrayType;
 
                 computation.append(temp).append(SPACE)
                         .append(ASSIGN).append(arrayType.replace(".array", ""))
                         .append(SPACE).append("getfield(this, ").append(array.get("name")).append(".array").append(arrayType).append(")")
                         .append(".array").append(arrayType).append(END_STMT);
 
-                code.append(temp);
-
+                code.append(fieldTempNum).append("[").append(indexVisit.getCode().replace(".array", "")).append("]").append(arrayType);
             }
             else {
                 code.append(array.get("name")).append("[")
