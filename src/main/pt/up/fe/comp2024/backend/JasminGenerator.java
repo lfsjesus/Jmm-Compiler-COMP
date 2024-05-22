@@ -21,6 +21,8 @@ public class JasminGenerator {
     private static final String NL = "\n";
     private static final String TAB = "   ";
 
+    private static int cmpCounter = 0;
+
     private final OllirResult ollirResult;
 
     List<Report> reports;
@@ -402,7 +404,20 @@ public class JasminGenerator {
             default -> throw new NotImplementedException(binaryOp.getOperation().getOpType());
         };
 
+        if (binaryOp.getOperation().getOpType().equals(OperationType.LTH) ||
+                binaryOp.getOperation().getOpType().equals(OperationType.GTE)) {
+            int cmpCounter = getAndIncrementCmpCounter();
+            code.append(op).append(' ').append("cmp_true_").append(cmpCounter).append(NL);
+            code.append("iconst_0").append(NL);
+            code.append("goto ").append("cmp_end_").append(cmpCounter).append(NL);
+            code.append("cmp_true_").append(cmpCounter).append(":").append(NL);
+            code.append("iconst_1").append(NL);
+            code.append("cmp_end_").append(cmpCounter).append(":").append(NL);
+
+
+        } else {
         code.append(op).append(NL);
+        }
 
         this.decrementStack(1);
 
@@ -665,5 +680,8 @@ public class JasminGenerator {
         this.currentStack -= decrement;
     }
 
+    private int getAndIncrementCmpCounter() {
+        return cmpCounter++;
+    }
 
 }
