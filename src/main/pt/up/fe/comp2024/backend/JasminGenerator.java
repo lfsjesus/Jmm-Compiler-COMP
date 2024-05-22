@@ -393,7 +393,9 @@ public class JasminGenerator {
         StringBuilder code = new StringBuilder();
         code.append(generators.apply(binaryOp.getLeftOperand()));
         code.append(generators.apply(binaryOp.getRightOperand()));
-        String op = switch (binaryOp.getOperation().getOpType()) {
+
+        OperationType opType = binaryOp.getOperation().getOpType();
+        String op = switch (opType) {
             case ADD -> "iadd";
             case SUB -> "isub";
             case MUL -> "imul";
@@ -404,25 +406,27 @@ public class JasminGenerator {
             default -> throw new NotImplementedException(binaryOp.getOperation().getOpType());
         };
 
-        if (binaryOp.getOperation().getOpType().equals(OperationType.LTH) ||
-                binaryOp.getOperation().getOpType().equals(OperationType.GTE)) {
+        if (opType.equals(OperationType.LTH) || opType.equals(OperationType.GTE)) {
             int cmpCounter = getAndIncrementCmpCounter();
             code.append(op).append(' ').append("cmp_true_").append(cmpCounter).append(NL);
+            this.decrementStack(2);
             code.append("iconst_0").append(NL);
+            this.incrementStack(1);
             code.append("goto ").append("cmp_end_").append(cmpCounter).append(NL);
             code.append("cmp_true_").append(cmpCounter).append(":").append(NL);
+            this.incrementStack(1);
             code.append("iconst_1").append(NL);
             code.append("cmp_end_").append(cmpCounter).append(":").append(NL);
 
 
         } else {
-        code.append(op).append(NL);
+            code.append(op).append(NL);
+            this.decrementStack(1);
         }
-
-        this.decrementStack(1);
 
         return code.toString();
     }
+
 
     private String generateReturnInstrCode(ReturnInstruction instruction) {
         StringBuilder code = new StringBuilder();  // Explicitly declare as StringBuilder
