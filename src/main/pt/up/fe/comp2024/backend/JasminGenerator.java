@@ -397,6 +397,8 @@ public class JasminGenerator {
             case MUL -> "imul";
             case DIV -> "idiv";
             case ANDB -> "iand";
+            case LTH -> "if_icmplt";
+            case GTE -> "if_icmpge";
             default -> throw new NotImplementedException(binaryOp.getOperation().getOpType());
         };
 
