@@ -1,18 +1,16 @@
 class Test {
+    int[] f;
 
     public static void main(String[] args) {
-        int[] f;
-        f[0] = f[0] + 1;
+
 
     }
 
 
-    public int[] foo() {
-        int[] f;
-        f[0] = f[0] + 1;
-        f[1] = f[1] + 1;
-        this.foo();
-        return f;
+    public int foo() {
+        f[0] = 1;
+
+        return 0;
     }
 
 }
