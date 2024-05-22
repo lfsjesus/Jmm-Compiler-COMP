@@ -692,28 +692,9 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         StringBuilder code = new StringBuilder();
         StringBuilder computation = new StringBuilder();
 
-        /*
-        a = [1,2,3,4]
-        tmp2.array.i32 :=.array.i32 new(array, 4.i32).array.i32;
-      __varargs_array_0.array.i32 :=.array.i32 tmp2.array.i32;
-      __varargs_array_0.array.i32[0.i32].i32 :=.i32 1.i32;
-      __varargs_array_0.array.i32[1.i32].i32 :=.i32 2.i32;
-      __varargs_array_0.array.i32[2.i32].i32 :=.i32 3.i32;
-      __varargs_array_0.array.i32[3.i32].i32 :=.i32 4.i32;
-         */
-
-        //JmmNode array = node.getJmmParent().getJmmChild(0);
-
-        //var arrayVisit = visit(array);
-
-        //computation.append(arrayVisit.getComputation());
-
-        // get type by seeing first element
-
         JmmNode elem = node.getJmmChild(0);
 
         String type = OptUtils.toOllirType(TypeUtils.getExprType(elem, table));
-        
 
         String temp = OptUtils.getTemp() + ".array" + type;
 
