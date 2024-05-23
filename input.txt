@@ -4,8 +4,13 @@ class IfWhileNested {
     int[] a;
 
     public int func(int[] b) {
+        int a;
+        a = this.foo(10, this.foo(10,20,30),40);
+        return 1;
+    }
 
-        return ioPlus.f(!true);
+    public int foo(int a, int... b) {
+        return 1;
     }
 
 	public static void main(String[] args) {

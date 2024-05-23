@@ -4,6 +4,8 @@ import pt.up.fe.comp.jmm.analysis.table.Symbol;
 import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
 import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.JmmNode;
+import pt.up.fe.comp.jmm.report.Report;
+import pt.up.fe.comp.jmm.report.Stage;
 
 import java.util.List;
 
@@ -45,20 +47,13 @@ public class TypeUtils {
             }
             case NEW_CLASS_OBJ_EXPR -> new Type(expr.get("name"), false);
             case TRUE_LITERAL, FALSE_LITERAL, NOT_EXPR -> new Type(BOOL_TYPE_NAME, false);
+
             case METHOD_CALL_EXPR -> {
-                // check return type of method
-                // if it's imported, return void
-                String methodName = expr.get("name");
-                String className = table.getClassName();
-                String extendsClass = table.getSuper();
+                String methodName = expr.getChild(1).get("name");
                 List<String> imports = table.getImports();
 
-                if (imports.stream().map(imported -> imported.split(", ")[imported.split(",").length - 1]).anyMatch(imported -> imported.equals(methodName))) {
+                if (imports.stream().map(imported -> imported.split(", ")[imported.split(",").length - 1]).anyMatch(imported -> imported.equals(expr.getChild(0).get("name")))) {
                     yield new Type("void", false);
-                }
-
-                if (className.equals(methodName) || extendsClass.equals(methodName)) {
-                    yield new Type(methodName, false);
                 }
 
                 yield table.getReturnType(methodName);
@@ -169,6 +164,11 @@ public class TypeUtils {
         return null;
     }
 
+    public boolean hasImport(String className, SymbolTable table) {
+        List<String> imports = table.getImports();
+        return table.getImports().stream().map(imported -> imported.split(", ")[imported.split(",").length - 1]).anyMatch(imported -> imported.equals(className));
+
+    }
 
 
     /**
