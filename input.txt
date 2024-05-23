@@ -5,7 +5,7 @@ class IfWhileNested {
 
     public int func(int[] b) {
 
-        return ioPlus.f(a);
+        return ioPlus.f(!true);
     }
 
 	public static void main(String[] args) {

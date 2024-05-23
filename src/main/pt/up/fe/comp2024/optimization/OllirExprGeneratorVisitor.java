@@ -502,11 +502,18 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         Type resType = TypeUtils.getExprType(node, table);
         String resOllirType = OptUtils.toOllirType(resType);
 
-        // NOT SURE IF THIS IS WORKING FOR ALL CASES
+
+        if (!node.getParent().isInstance(ASSIGN_STMT)) {
+            String temp = OptUtils.getTemp() + resOllirType;
+            computation.append(temp).append(SPACE)
+                    .append(ASSIGN).append(resOllirType)
+                    .append(SPACE).append("!")
+                    .append(resOllirType).append(SPACE).append(childVisit.getCode()).append(END_STMT);
+
+            return new OllirExprResult(temp, computation);
+        }
+
         String code = "!" + resOllirType + SPACE + childVisit.getCode();
-
-
-
 
         return new OllirExprResult(code, computation);
     }
