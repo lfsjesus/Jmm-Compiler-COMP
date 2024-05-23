@@ -43,16 +43,14 @@ public class TypeUtils {
                 Type firstElementType = getExprType(firstElement, table);
                 yield new Type(firstElementType.getName(), true);
             }
-            case TRUE_LITERAL, FALSE_LITERAL -> new Type(BOOL_TYPE_NAME, false);
-            case NOT_EXPR -> new Type(BOOL_TYPE_NAME, false);
+            case NEW_CLASS_OBJ_EXPR -> new Type(expr.get("name"), false);
+            case TRUE_LITERAL, FALSE_LITERAL, NOT_EXPR -> new Type(BOOL_TYPE_NAME, false);
 
             default -> throw new UnsupportedOperationException("Can't compute type for expression kind '" + kind + "'");
         };
     }
 
     private static Type getBinExprType(JmmNode binaryExpr) {
-        // TODO: Simple implementation that needs to be expanded
-
         String operator = binaryExpr.get("op");
 
         return switch (operator) {
