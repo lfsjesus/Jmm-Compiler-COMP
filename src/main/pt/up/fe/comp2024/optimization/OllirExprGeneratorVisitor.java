@@ -217,6 +217,7 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         if (isField &&
                 ((node.getJmmParent().isInstance(ASSIGN_STMT) && node.getJmmParent().getChild(1).equals(node)) ||
                 (node.getJmmParent().isInstance(METHOD_RETURN)) ||
+                (node.getJmmParent().isInstance(ARRAY_LENGTH_EXPR)) ||
                 (node.getJmmParent().isInstance(METHOD_CALL)) ||
                 (node.getJmmParent().isInstance(BINARY_EXPR)) ||
                 (node.getJmmParent().isInstance(PAREN_EXPR))) )
