@@ -639,7 +639,18 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
                         .append(SPACE).append("getfield(this, ").append(array.get("name")).append(".array").append(arrayType).append(")")
                         .append(".array").append(arrayType).append(END_STMT);
 
-                code.append(fieldTempNum).append("[").append(indexVisit.getCode().replace(".array", "")).append("]").append(arrayType);
+                String indexTemp = OptUtils.getTemp();
+                computation.append(indexTemp).append(".i32").append(SPACE)
+                        .append(ASSIGN).append(".i32")
+                        .append(SPACE).append(fieldTempNum)
+                        .append("[")
+                        .append(indexVisit.getCode().replace(".array", ""))
+                        .append("]")
+                        .append(arrayType)
+                        .append(END_STMT);
+
+                code.append(indexTemp).append(".i32");
+
             }
             else {
                 String temp = OptUtils.getTemp() + arrayType;
