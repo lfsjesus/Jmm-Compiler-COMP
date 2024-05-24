@@ -1,3 +1,17 @@
-# Comp2024 Project
+# Comp2024 Project - Group 3A
 
-Contains a reference implementation for an initial version of the project that supports a small portion of Java--.
+## Group members
+
+- Luís Jesus (up202108683@edu.fe.up.pt)
+- Miguel Rocha (up202108720@edu.fe.up.pt)
+- Miguel Pedrosa (up202108809@edu.fe.up.pt)
+
+## Work Distribution
+
+- Luís Jesus - 33.33 %
+- Miguel Rocha - 33.33 %
+- Miguel Pedrosa - 33.33 %
+
+## Self-Assessment
+
+- We think our project deserves a 19 out of 20.
