@@ -83,7 +83,7 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         JmmNode left = node.getJmmChild(0);
         JmmNode right = node.getJmmChild(1);
 
-        // If we have && operator we need gotos
+        // && short-circuit
         if (node.get("op").equals("&&")) {
             StringBuilder computation = new StringBuilder();
             StringBuilder code = new StringBuilder();
@@ -168,8 +168,6 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
             computation.append("end_").append(endLabelNum).append(":").append('\n');
 
             return new OllirExprResult(temp, computation);
-
-
         }
 
         var lhs = visit(left);
@@ -184,12 +182,6 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         Type resType = TypeUtils.getExprType(node, table);
         String resOllirType = OptUtils.toOllirType(resType);
         String code = OptUtils.getTemp() + resOllirType;
-
-
-
-
-
-
 
         computation.append(code).append(SPACE)
                 .append(ASSIGN).append(resOllirType).append(SPACE)
@@ -555,65 +547,6 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         return new OllirExprResult(finalCode, computation);
     }
 
-    /*
-    private OllirExprResult visitIfExpr(JmmNode node, Void unused) {
-        StringBuilder computation = new StringBuilder();
-        StringBuilder code = new StringBuilder();
-
-        JmmNode condition = node.getJmmChild(0);
-
-        var conditionVisit = visit(condition);
-
-        computation.append(conditionVisit.getComputation());
-
-        int ifLabelNum = OptUtils.getNextIfLabelNum();
-
-        computation.append("if(")
-                .append(conditionVisit.getCode())
-                .append(") goto if_")
-                .append(ifLabelNum)
-                .append(END_STMT);
-
-        // put the else code here
-        JmmNode elseNode = node.getParent().getJmmChild(1).getChild(0).getChild(0);
-
-        if (elseNode.isInstance(EXPR_STMT) || elseNode.isInstance(IF_STMT) || elseNode.isInstance(ASSIGN_STMT)) {
-            elseNode = elseNode.getJmmChild(0);
-        }
-
-        var elseVisit = visit(elseNode);
-
-
-        computation.append(elseVisit.getComputation())
-                    .append(elseVisit.getCode())
-                    .append("goto ")
-                    .append("endif_")
-                    .append(ifLabelNum)
-                    .append(END_STMT);
-
-
-        // If_0 label
-
-        computation.append("if_").append(ifLabelNum).append(":").append('\n');
-
-        JmmNode thenNode = node.getJmmChild(1).getChild(0);
-
-        if (thenNode.isInstance(EXPR_STMT) || thenNode.isInstance(IF_STMT) || thenNode.isInstance(ASSIGN_STMT)) {
-            thenNode = thenNode.getJmmChild(0);
-        }
-
-        var thenVisit = visit(thenNode);
-
-        computation.append(thenVisit.getComputation())
-                    .append(thenVisit.getCode())
-                    .append("endif_").append(ifLabelNum).append(":").append('\n');
-
-
-
-        return new OllirExprResult(code.toString(), computation.toString());
-    }
-    */
-
     private OllirExprResult visitArrayAccessExpr(JmmNode node, Void unused) {
         StringBuilder code = new StringBuilder();
         StringBuilder computation = new StringBuilder();
@@ -699,8 +632,6 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         StringBuilder code = new StringBuilder();
         StringBuilder computation = new StringBuilder();
 
-        // a.length --> temp.i32 := .i32 arraylength(a.array.i32).i32
-
         JmmNode array = node.getJmmChild(0);
 
         var arrayVisit = visit(array);
@@ -774,7 +705,6 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
 
         String temp = OptUtils.getTemp() + ".array" + type;
 
-        // Do what we do in visitArrayInitExpr
         computation.append(temp).append(SPACE)
                 .append(ASSIGN).append(".array").append(type)
                 .append(SPACE).append("new(array, ")
@@ -797,14 +727,12 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
             var childVisit = visit(node);
             computation.append(childVisit.getComputation());
 
-            // do the same as in visitArrayInitExpr, like __varargs_array_0.array.i32[0.i32].i32 :=.i32 1.i32;
             computation.append("__varargs_array_").append(varArgsNum)
                     .append(".array").append(type)
                     .append("[").append(nodes.indexOf(node)).append(".i32].i32 :=.i32 ")
                     .append(childVisit.getCode()).append(END_STMT);
 
         }
-
 
         return new OllirExprResult("__varargs_array_" + varArgsNum + ".array" + type, computation.toString());
     }

@@ -47,7 +47,6 @@ public class TypeUtils {
             }
             case NEW_CLASS_OBJ_EXPR -> new Type(expr.get("name"), false);
             case TRUE_LITERAL, FALSE_LITERAL, NOT_EXPR -> new Type(BOOL_TYPE_NAME, false);
-
             case METHOD_CALL_EXPR -> {
                 String methodName = expr.getChild(1).get("name");
                 List<String> imports = table.getImports();
@@ -164,11 +163,6 @@ public class TypeUtils {
         return null;
     }
 
-    public boolean hasImport(String className, SymbolTable table) {
-        List<String> imports = table.getImports();
-        return table.getImports().stream().map(imported -> imported.split(", ")[imported.split(",").length - 1]).anyMatch(imported -> imported.equals(className));
-
-    }
 
 
     /**

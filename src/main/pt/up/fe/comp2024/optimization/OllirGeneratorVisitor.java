@@ -301,9 +301,6 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
                 .append(ifLabelNum)
                 .append(END_STMT);
 
-
-        // If_0 label
-
         computation.append("if_").append(ifLabelNum).append(":").append('\n');
 
         JmmNode thenNode = ifExpr.getJmmChild(1);

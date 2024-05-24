@@ -4,9 +4,10 @@ class IfWhileNested {
     int[] a;
 
     public int func(int[] b) {
+        IfWhileNested g;
         int a;
-        a = this.foo(10, this.foo(10,20,30),40);
-        return 1;
+        return g.foo(10, this.foo(10,20,this.foo(1,1)),40);
+
     }
 
     public int foo(int a, int... b) {
