@@ -12,6 +12,3 @@
 - Miguel Rocha - 33.33 %
 - Miguel Pedrosa - 33.33 %
 
-## Self-Assessment
-
-- We think our project deserves a 19 out of 20.
